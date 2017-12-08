@@ -708,14 +708,28 @@ add_st <- function(flux, name_out, st, stp = NULL) {
 #' assigned attributes \code{varnames} and \code{units}.
 #'
 #' The typical variables (column names; i.e. \code{names_out}) required by the
-#' tools are quality control of net ecosystem exchange (\code{"qcNEE"}), net
-#' ecosystem exchange (\code{"NEE"}), quality control of latent heat
-#' (\code{"qcLE"}), latent heat (\code{"LE"}), quality control of sensible heat
-#' (\code{"qcH"}), sensible heat (\code{"H"}), global radiation (\code{"Rg"}),
-#' air temperature (\code{"Tair"}), soil temperature (\code{"Tsoil"}), relative
-#' humidity (\code{"rH"}), quality control of momentum flux (\code{"qcTau"}) and
-#' friction velocity (\code{"Ustar"}). Check the gap-filling tool documentation
-#' for more details.
+#' tools (name; unit) are quality control of net ecosystem exchange
+#' (\code{"qcNEE"}; \code{"-"}), net ecosystem exchange (\code{"NEE"};
+#' \code{"umol m-2 s-1"}), quality control of latent heat (\code{"qcLE"};
+#' \code{"-"}), latent heat (\code{"LE"}; \code{"W m-2"}), quality control of
+#' sensible heat (\code{"qcH"}; \code{"-"}), sensible heat (\code{"H"}; \code{"W
+#' m-2"}), global radiation (\code{"Rg"}; \code{"W m-2"}), air temperature
+#' (\code{"Tair"}; \code{"degC"}), soil temperature (\code{"Tsoil"};
+#' \code{"degC"}), relative humidity (\code{"rH"}; \code{"\%"}), vapor pressure
+#' deficit(\code{"VPD"}; \code{"hPa"}), quality control of momentum flux
+#' (\code{"qcTau"}; \code{"-"}) and friction velocity (\code{"Ustar"}; \code{"m
+#' s-1"}). The unicode character for a greek letter micro (e.g. in NEE units) is
+#' not accepted by the tools, thus it is substituted by simple \code{"u"}. Check
+#' the gap-filling tool documentation for more details.
+#'
+#' \code{time_format} has two available options. \code{"YDH"} (default) extracts
+#' columns Year, DoY (Day of year) and Hour (decimal number) from the timestamp
+#' of \code{x}. It is less informative than \code{"YMDHM"} format but it is
+#' supported by all versions of both offline and online tools. \code{"YMDHM"}
+#' extracts columns Year, Month, Day, Hour, Minute. This format is not accepted
+#' by the current
+#' \href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
+#' Tool}.
 #'
 #' Arguments \code{qcTau}, \code{qcH}, \code{qcLE} and \code{qcNEE} determine
 #' whether the quality control will be applied to the respective fluxes. In case
@@ -742,6 +756,8 @@ add_st <- function(flux, name_out, st, stp = NULL) {
 #'   used as input.
 #' @param names_out Column names required by the tools for respective
 #'   \code{names_in}.
+#' @param time_format A character string identifying supported time format of
+#'   the output. Can be abbreviated.
 #' @param qcTau A logical value indicating whether quality control of momentum
 #'   flux should be considered.
 #' @param qcH A logical value indicating whether quality control of sensible
@@ -756,13 +772,16 @@ add_st <- function(flux, name_out, st, stp = NULL) {
 #'   deficit values should be checked.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#' @encoding UTF-8
 set_OT_input <- function(x, names_in,
                          names_out = c("qcNEE", "NEE", "qcLE", "LE", "qcH",
                                        "H", "Rg", "Tair", "Tsoil", "rH", "VPD",
                                        "qcTau", "Ustar"),
+                         time_format = c("YDH", "YMDHM"),
                          qcTau = TRUE, qcH = TRUE, qcLE = TRUE, qcNEE = TRUE,
                          check_time = TRUE, check_VPD = TRUE) {
   x_names <- names(x)
+  time_format <- match.arg(time_format)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
   }
@@ -776,25 +795,31 @@ set_OT_input <- function(x, names_in,
   if (length(names_in) != length(names_out)) {
     stop("length(names_in) and length(names_out) have to be equal")
   }
-  x <- x[c("timestamp", names_in)]
-  units <- get_units(x)
+  ts <- as.POSIXlt(x$timestamp)
+  x <- x[names_in]
+  units <- gsub("\u00B5", "u", get_units(x))
   for (i in seq_len(ncol(x))) {
-    attr(x[, i], "varnames") <- c("timestamp", names_in)[i]
+    attr(x[, i], "varnames") <- names_in[i]
     attr(x[, i], "units") <- units[i]
   }
-  names(x) <- c("timestamp", names_out)
-  ts <- as.POSIXlt(x$timestamp)
+  names(x) <- names_out
+  # Check works for half-hours but for hourly data both 9:00 and 9:30 format
+  # will not throw warning (though 9:30 should)
   if (check_time && !all(ts$min %in% c(0, 30))) {
     warning("Timestamp minutes are not in required format [0, 30]",
             call. = FALSE)
   }
-  out <- data.frame(Day = ts$mday, Month = ts$mon + 1, Year = ts$year + 1900,
-                    Hour = ts$hour, Minute = ts$min)
+  out <- if (time_format == "YDH") {
+    data.frame(Year = ts$year + 1900, DoY = ts$yday + 1,
+               Hour = ts$hour + ts$min / 60)
+  } else {
+    data.frame(Year = ts$year + 1900, Month = ts$mon + 1, Day = ts$mday,
+               Hour = ts$hour, Minute = ts$min)
+  }
   for (i in seq_len(ncol(out))) {
     attr(out[, i], "varnames") <- names(out)[i]
     attr(out[, i], "units") <- "-"
   }
-  x$timestamp <- format(ts, format = "%d.%m.%Y %H:%M", tz = "GMT")
   out <- cbind(out, x)
   if (check_VPD && "VPD" %in% names_out) {
     if (!all(is.na(out$VPD)) && any(out$VPD[!is.na(out$VPD)] > 100)) {
