@@ -176,7 +176,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param document A logical value. If \code{TRUE}, values of \code{qc_flag} and
 #'   \code{test} arguments are documented in both monthly and weekly plots.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{striptime_eddy}}.
+#' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
 
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       flux_gf = "none", NEE_sep = FALSE, skip_weekly = FALSE,

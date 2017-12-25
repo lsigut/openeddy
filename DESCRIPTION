@@ -1,7 +1,7 @@
 Package: openeddy
 Type: Package
 Title: The R Package for Processing Low Frequency Eddy Covariance Data
-Version: 0.0.0.9003
+Version: 0.0.0.9004
 Author: Ladislav Sigut [aut, cre, cph]
     Matthias Mauder [aut, cph]
     Pavel Sedlak [aut, cph]
@@ -23,7 +23,7 @@ Description: This package provides utilities for eddy covariance data
     handling, quality checking (similar to Mauder et al., 2013),
     processing, summarising and plotting. It aims to standardise
     the automated quality checking and make data processing reproducible.
-Depends: R (>= 3.4.2)
+Depends: R (>= 3.4.3)
 License: GPL (>= 2)
 Date: 2017-12-01
 Encoding: UTF-8
@@ -31,6 +31,7 @@ LazyData: true
 RoxygenNote: 6.0.1
 Imports:
     ggplot2 (>= 2.2.1),
-    reshape2 (>= 1.4.2)
+    reshape2 (>= 1.4.3)
 Suggests:
-    gridExtra (>= 2.3)
+    gridExtra (>= 2.3),
+    testthat (>= 2.0.0)

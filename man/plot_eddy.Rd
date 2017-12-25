@@ -155,5 +155,5 @@ drawn together with auxiliary data in weekly intervals. See 'Modules'.
 }
 
 \seealso{
-\code{\link{read_eddy}} and \code{\link{striptime_eddy}}.
+\code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
 }
