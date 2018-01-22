@@ -22,7 +22,8 @@ interest.}
 of the output.}
 }
 \value{
-An atomic type with attributes \code{"varnames"} and \code{"units"}.
+An integer vector with attributes \code{"varnames"} and
+  \code{"units"}.
 }
 \description{
 \code{fetch_filter} flags all halfhours that have longer fetch distance (of

@@ -16,7 +16,7 @@
 #' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
 #' thr[2]}, QC flag = 2.}
 #'
-#' @return A numeric vector with the same length as \code{x}. Its
+#' @return An integer vector with the same length as \code{x}. Its
 #'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
 #'   \code{"-"} values, respectively.
 #'
@@ -52,16 +52,16 @@ apply_thr <- function(x, thr, name_out, flag = c("higher", "lower")) {
   if (flag == "higher") {
     if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
     out <- rep(NA, length(x))
-    out[x <= thr[1]] <- 0
-    out[x >  thr[1]] <- 1
-    out[x >  thr[2]] <- 2
+    out[x <= thr[1]] <- 0L
+    out[x >  thr[1]] <- 1L
+    out[x >  thr[2]] <- 2L
   }
   if (flag == "lower") {
     if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
     out <- rep(NA, length(x))
-    out[x >= thr[1]] <- 0
-    out[x <  thr[1]] <- 1
-    out[x <  thr[2]] <- 2
+    out[x >= thr[1]] <- 0L
+    out[x <  thr[1]] <- 1L
+    out[x <  thr[2]] <- 2L
   }
   attributes(out) <- list(varnames = name_out, units = "-")
   return(out)
@@ -152,8 +152,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   out <- data.frame(SA = apply(df[c("u", "v", "w", "ts")], 1, max))
   out$SA_IRGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")], 1, max)
   # values above 0 are interpreted as flag 2 for given variable
-  out$SA[out$SA == 1]           <- 2
-  out$SA_IRGA[out$SA_IRGA == 1] <- 2
+  out$SA[out$SA == 1]           <- 2L
+  out$SA_IRGA[out$SA_IRGA == 1] <- 2L
   for (i in seq_len(ncol(out))) {
     attr(out[, i], "varnames") <- c("SA", "SA_IRGA")[i]
     attr(out[, i], "units") <- "-"
@@ -453,19 +453,19 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
     if (IRGA != "open") out$qc_LE_interdep <- NULL
     return(out)
   }
-  qc_LE[is.na(qc_LE)] <- 2
-  out$qc_H_interdep[qc_LE <  2] <- 0
-  out$qc_H_interdep[qc_LE >= 2] <- 1
+  qc_LE[is.na(qc_LE)] <- 2L
+  out$qc_H_interdep[qc_LE <  2] <- 0L
+  out$qc_H_interdep[qc_LE >= 2] <- 1L
   if (IRGA == "open") {
-    qc_H[is.na(qc_H)] <- 2
-    out$qc_LE_interdep[qc_H <  2] <- 0
-    out$qc_LE_interdep[qc_H >= 2] <- 1
-    out$qc_FCO2_interdep[qc_LE <  2 & qc_H <  2] <- 0
-    out$qc_FCO2_interdep[qc_LE >= 2 | qc_H >= 2] <- 1
+    qc_H[is.na(qc_H)] <- 2L
+    out$qc_LE_interdep[qc_H <  2] <- 0L
+    out$qc_LE_interdep[qc_H >= 2] <- 1L
+    out$qc_FCO2_interdep[qc_LE <  2 & qc_H <  2] <- 0L
+    out$qc_FCO2_interdep[qc_LE >= 2 | qc_H >= 2] <- 1L
   } else {
     out$qc_LE_interdep <- NULL
-    out$qc_FCO2_interdep[qc_LE <  2] <- 0
-    out$qc_FCO2_interdep[qc_LE >= 2] <- 1
+    out$qc_FCO2_interdep[qc_LE <  2] <- 0L
+    out$qc_FCO2_interdep[qc_LE >= 2] <- 1L
   }
   return(out)
 }
@@ -516,7 +516,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   }
   SD_Date <- date[1]
   if (plot) {
-    i <- 1
+    i <- 1L
     plots <- list()
   }
   while (SD_Date <= date[length(date)]) {
@@ -563,7 +563,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
                   inherit.aes = FALSE, alpha = 1/5) +
         geom_hline(data = d, aes(yintercept = yintercept)) +
         geom_point(data = xs, aes(x = timestamp, y = value, colour = variable))
-      i <- i + 1
+      i <- i + 1L
     }
     SD_Date <- SD_Date + 13
   }
@@ -648,7 +648,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
 #'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 #'
-#' @return If \code{plot = FALSE}, a numeric vector with attributes
+#' @return If \code{plot = FALSE}, an integer vector with attributes
 #'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list of
 #'   \code{ggplot} objects.
 #'
@@ -717,7 +717,7 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
   vals <- x[, flux]
   qc_flag <- x[, qc_flag]
   # NA qc is interpreted as flag 2
-  qc_flag[is.na(qc_flag)] <- 2
+  qc_flag[is.na(qc_flag)] <- 2L
   if (!is.null(light)) sun <- x[light]
   # Filter for used data (qc below flag 2 and flux is not NA)
   use <- qc_flag < 2 & !is.na(vals)
@@ -730,7 +730,7 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
     if (flux_thr[1] > flux_thr[2]) {
       stop("'flux_thr[1]' cannot be higher than 'flux_thr[2]'")
     }
-    out[((vals < flux_thr[1]) | (vals > flux_thr[2])) & use] <- 2
+    out[((vals < flux_thr[1]) | (vals > flux_thr[2])) & use] <- 2L
     use <- use & is.na(out)
   }
   # Spike Detection (Papale et al. 2006)
@@ -746,7 +746,7 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
     # Daytime & nighttime spike detection (no subsetting)
     SD_df <- desp_loop(SD_df, date, nVals, z, c, plot)
     if (plot) return(SD_df)
-    SD_df$Spike[SD_df$Spike == TRUE] <- 2
+    SD_df$Spike[SD_df$Spike == TRUE] <- 2L
   } else {
     # Night-time subset spike detection
     SD_night <- SD_df[SD_df$Light <= night_thr, ] # night-time filter
@@ -756,10 +756,10 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
     SD_day <- desp_loop(SD_day, date, nVals, z, c, plot)
     if (plot) return(list(nighttime = SD_night, daytime = SD_day))
     # Export the results into the SD dataframe
-    SD_night$Spike[SD_night$Spike == TRUE] <- 2
+    SD_night$Spike[SD_night$Spike == TRUE] <- 2L
     SD_df$Spike[match(SD_night$Index, SD_df$Index)] <- SD_night$Spike
     # Export the results into the SD dataframe
-    SD_day$Spike[SD_day$Spike == TRUE] <- 2
+    SD_day$Spike[SD_day$Spike == TRUE] <- 2L
     SD_df$Spike[match(SD_day$Index, SD_df$Index)] <- SD_day$Spike
   }
   # Export all results into the main dataframe
@@ -794,7 +794,8 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
 #' 225°] is at the distance 250 m; \item fourth sector (225°, 315°] is at the
 #' distance 300 m.}
 #'
-#' @return An atomic type with attributes \code{"varnames"} and \code{"units"}.
+#' @return An integer vector with attributes \code{"varnames"} and
+#'   \code{"units"}.
 #'
 #' @param x A data frame with column names representing required variables.
 #' @param fetch_name A character string. Specifies the column name in \code{x}

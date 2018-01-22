@@ -47,7 +47,7 @@ to obtain robust statistics.}
 \item{c}{A numeric value. \code{\link{mad}} \code{constant}.}
 }
 \value{
-If \code{plot = FALSE}, a numeric vector with attributes
+If \code{plot = FALSE}, an integer vector with attributes
   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list of
   \code{ggplot} objects.
 }

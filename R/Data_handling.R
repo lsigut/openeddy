@@ -636,7 +636,7 @@ combn_QC <- function(x, qc_names, name_out, additive = FALSE, na.as = NA) {
   }
   out_allNA <- allNA(out, 1)
   out[!out_allNA, name_out] <- rowSums(out[!out_allNA, , drop = FALSE])
-  out[, name_out][out[name_out] > 2] <- 2
+  out[, name_out][out[name_out] > 2] <- 2L
   attr(out[, name_out], "varnames") <- name_out
   attr(out[, name_out], "units") <- "-"
   return(out[, name_out])
@@ -810,10 +810,10 @@ set_OT_input <- function(x, names_in,
             call. = FALSE)
   }
   out <- if (time_format == "YDH") {
-    data.frame(Year = ts$year + 1900, DoY = ts$yday + 1,
+    data.frame(Year = ts$year + 1900L, DoY = ts$yday + 1L,
                Hour = ts$hour + ts$min / 60)
   } else {
-    data.frame(Year = ts$year + 1900, Month = ts$mon + 1, Day = ts$mday,
+    data.frame(Year = ts$year + 1900L, Month = ts$mon + 1L, Day = ts$mday,
                Hour = ts$hour, Minute = ts$min)
   }
   for (i in seq_len(ncol(out))) {

@@ -18,7 +18,7 @@ of the output.}
 approaches. Can be abbreviated. See 'Details'.}
 }
 \value{
-A numeric vector with the same length as \code{x}. Its
+An integer vector with the same length as \code{x}. Its
   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
   \code{"-"} values, respectively.
 }
