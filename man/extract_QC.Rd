@@ -5,9 +5,10 @@
 \title{Extract Quality Control Information}
 \usage{
 extract_QC(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
-  scf = TRUE, wresid = TRUE, prefix = "[8]", split = "[/]",
-  missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3), w_unrot_thr = c(0.35,
-  0.35), w_rot_thr = c(0.1, 0.15))
+  scf = TRUE, wresid = TRUE, rotation = c("double", "planar fit"),
+  prefix = "[8]", split = "[/]", missfrac_thr = c(0.1, 0.1),
+  scf_thr = c(2, 3), w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1,
+  0.15))
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables.}
@@ -34,6 +35,9 @@ factor against thresholds should be done. If \code{scf = TRUE}, columns
 and w residual after planar fit against thresholds should be done. If
 \code{wresid = TRUE}, columns \code{"w_unrot"} and \code{"w_rot"} are
 required in \code{x}.}
+
+\item{rotation}{A character string. Specifies the type of coordinate rotation
+applied. Allowed values are "double" and "planar fit". Can be abbreviated.}
 
 \item{prefix}{Character string containing a \code{\link{regular expression}}
 identifying the prefix of coded values. See '\code{\link{extract_coded}}'.}
@@ -77,7 +81,8 @@ flag range 0 - 2. In cases when extracted variable is checked against
 thresholds (missfrac, scf, wresid), \code{\link{apply_thr}} is used to assign
 flag values. First value of \code{missfrac_thr}, \code{scf_thr},
 \code{w_unrot_thr} or \code{w_rot_thr} sets threshold for flag 1, second
-value sets threshold for flag 2.
+value sets threshold for flag 2. If both threshold values are the same, only
+flag 0 and 2 will be resolved (hard flag).
 
 Check of missing data in averaging period (missfrac) takes into account
 number of valid records used for given averaging period. This number is
@@ -92,8 +97,8 @@ ts (H); w, h2o (LE) and w, co2 (FCO2).
   additive. \item Check of missing data in averaging period against
   thresholds (missfrac). Test is not additive. \item Check of spectral
   correction factor against thresholds (scf). Test is not additive. \item
-  Check of mean unrotated w and w residual after planar fit against
-  thresholds (wresid). Additive test.}
+  Check of mean unrotated w (double rotation) or w residual (planar fit)
+  against thresholds (wresid). Additive test.}
 }
 
 \section{Content and format of columns}{

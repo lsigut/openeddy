@@ -179,7 +179,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #' thresholds (missfrac, scf, wresid), \code{\link{apply_thr}} is used to assign
 #' flag values. First value of \code{missfrac_thr}, \code{scf_thr},
 #' \code{w_unrot_thr} or \code{w_rot_thr} sets threshold for flag 1, second
-#' value sets threshold for flag 2.
+#' value sets threshold for flag 2. If both threshold values are the same, only
+#' flag 0 and 2 will be resolved (hard flag).
 #'
 #' Check of missing data in averaging period (missfrac) takes into account
 #' number of valid records used for given averaging period. This number is
@@ -193,8 +194,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   additive. \item Check of missing data in averaging period against
 #'   thresholds (missfrac). Test is not additive. \item Check of spectral
 #'   correction factor against thresholds (scf). Test is not additive. \item
-#'   Check of mean unrotated w and w residual after planar fit against
-#'   thresholds (wresid). Additive test.}
+#'   Check of mean unrotated w (double rotation) or w residual (planar fit)
+#'   against thresholds (wresid). Additive test.}
 #'
 #' @section Content and format of columns: \itemize{ \item
 #'   \code{"absolute_limits_hf"}: hard flags (passed or failed the test) for
@@ -257,6 +258,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   and w residual after planar fit against thresholds should be done. If
 #'   \code{wresid = TRUE}, columns \code{"w_unrot"} and \code{"w_rot"} are
 #'   required in \code{x}.
+#' @param rotation A character string. Specifies the type of coordinate rotation
+#'   applied. Allowed values are "double" and "planar fit". Can be abbreviated.
 #' @param prefix Character string containing a \code{\link{regular expression}}
 #'   identifying the prefix of coded values. See '\code{\link{extract_coded}}'.
 #' @param split Character string containing a \code{\link{regular expression}}
@@ -274,7 +277,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
 extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
-                       scf = TRUE, wresid = TRUE, prefix = "[8]", split = "[/]",
+                       scf = TRUE, wresid = TRUE, rotation = c("double",
+                       "planar fit"), prefix = "[8]", split = "[/]",
                        missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3),
                        w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15)) {
   # Basic check of input =======================================================
@@ -366,13 +370,17 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   }
   # wresid creates overall flag for halfhours with probable advection =======
   if (wresid) {
-    # Flag correction according to residual absolute w after planar fit
-    # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
-    rot <- apply_thr(abs(x$w_rot), w_rot_thr, "w_rot")
-    # In any case (double or planar fit rotation) w_unrot must be < 0.35 m/s
-    unrot <- apply_thr(abs(x$w_unrot), w_unrot_thr, "w_unrot")
-    out$qc_ALL_wresid <- combn_QC(data.frame(rot, unrot), c("rot", "unrot"),
-                                  "qc_ALL_wresid")
+    rotation <- match.arg(rotation)
+    message(paste("wresid:", rotation, "rotation - using",
+                  ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
+    out$qc_ALL_wresid <- if (rotation == "double") {
+      # In case of double rotation abs(w_unrot) should be < 0.35 m/s
+      apply_thr(abs(x$w_unrot), w_unrot_thr, "qc_ALL_wresid")
+    } else {
+      # Flag correction according to residual absolute w after planar fit
+      # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
+      apply_thr(abs(x$w_rot), w_rot_thr, "qc_ALL_wresid")
+    }
   }
   return(out)
 }
