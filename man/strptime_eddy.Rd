@@ -53,8 +53,8 @@ found.
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 "01.01.2014  01:30:00", "01.01.2014  02:00:00")
-attr(xx, "varnames") <- "timestamp"
-attr(xx, "units") <- "-"
+varnames(xx) <- "timestamp"
+units(xx) <- "-"
 str(xx)
 (yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", center.by = -900))
 format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")

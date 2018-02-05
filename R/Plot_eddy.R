@@ -239,7 +239,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   if (any(diff(as.numeric(time)) != mean(diff(as.numeric(time))))) {
     stop("timestamp does not form regular sequence")
   }
-  units <- get_units(x, names = TRUE)
+  units <- units(x, names = TRUE)
   wrap <- function(x) paste("[", x, "]", sep = "")
   date <- as.Date(x$timestamp)
   vals <- x[, flux]

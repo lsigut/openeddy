@@ -113,21 +113,19 @@ xx <- read_eddy(text =
 24.1.2015,1.70
 24.1.2016,1.72")
 str(xx)
-(attr_v <- lapply(xx, attr, 'varnames'))
-(attr_u <- lapply(xx, attr, 'units'))
+(varnames <- varnames(xx))
+(units <- units(xx))
 
 ## Note that 'varnames' and 'units' attributes are dropped when you subset
 ## rows but unchanged if you subset columns:
 str(xx[, 1])
 str(yy <- xx[1, ])
-for (i in seq_len(ncol(yy))) {
-  attr(yy[, i], "varnames") <- attr_v[[i]]
-  attr(yy[, i], "units") <- attr_u[[i]]
-}
+varnames(yy) <- varnames
+units(yy) <- units
 str(yy)
 
 ## Computations with columns also drop 'varnames' and 'units' attributes:
-xx$date <- as.Date(xx$timestamp, attr(xx$timestamp, 'units'))
+xx$date <- as.Date(xx$timestamp, units(xx$timestamp))
 str(xx)
 
 ## header = FALSE and units = FALSE:

@@ -64,7 +64,7 @@ xx <- replicate(10,
                                     replace = TRUE)),
                       collapse = ""))
 is.na(xx) <- c(2, 5)
-attr(xx, "units") <- "8u/v/w/ts/h2o/co2"
+units(xx) <- "8u/v/w/ts/h2o/co2"
 cbind(xx, extract_coded(xx))
 }
 \seealso{

@@ -22,7 +22,7 @@ profile measurement of CO2.}
 A vector with attributes \code{varnames} and \code{units} is
   produced. \code{varnames} value is set by \code{name_out} argument.
   \code{units} value is extracted from \code{flux} vector by
-  \code{\link{get_units}} or set to default \code{"-"}.
+  \code{\link{units}} or set to default \code{"-"}.
 }
 \description{
 Correction of matter or energy flux (\code{flux}) with storage computed using
@@ -44,5 +44,5 @@ aa$flux_stc <- add_st(aa$flux, "flux_stc", aa$st, aa$stp)
 lapply(aa, attributes)
 }
 \seealso{
-\code{\link{get_units}}.
+\code{\link{units}}.
 }

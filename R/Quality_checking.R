@@ -121,11 +121,11 @@ apply_thr <- function(x, thr, name_out, flag = c("higher", "lower")) {
 #'                                     replace = TRUE)),
 #'                       collapse = ""))
 #' is.na(xx) <- c(2, 5)
-#' attr(xx, "units") <- "8u/v/w/ts/h2o/co2"
+#' units(xx) <- "8u/v/w/ts/h2o/co2"
 #' cbind(xx, extract_coded(xx))
 extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   if (!is.atomic(x)) stop("'x' must be an atomic type")
-  units <- get_units(x)
+  units <- units(x)
   vars <- unlist(strsplit(gsub(prefix, "", units),
                           split = split))
   req_vars <- c("u", "v", "w", "ts", "h2o", "co2")
@@ -155,8 +155,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   out$SA[out$SA == 1]           <- 2L
   out$SA_IRGA[out$SA_IRGA == 1] <- 2L
   for (i in seq_len(ncol(out))) {
-    attr(out[, i], "varnames") <- c("SA", "SA_IRGA")[i]
-    attr(out[, i], "units") <- "-"
+    varnames(out[, i]) <- c("SA", "SA_IRGA")[i]
+    units(out[, i]) <- "-"
   }
   return(out)
 }
@@ -299,7 +299,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
     stop(paste("missing", paste0(req_vars[!(req_vars %in% x_names)],
                                  collapse = ", ")))
   }
-  units <- get_units(x, names = TRUE)
+  units <- units(x, names = TRUE)
   if (abslim && units["absolute_limits_hf"] == "-") {
     stop("missing absolute_limits_hf format in its units attribute")
   }
@@ -313,8 +313,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   if (abslim) {
     abslim_df <- extract_coded(x$absolute_limits_hf, prefix, split)
     for (i in 1:2) {
-      attr(abslim_df[, i], "varnames") <- c(
-        "qc_SA_abslim", "qc_SA_IRGA_abslim")[i]
+      varnames(abslim_df[, i]) <- c("qc_SA_abslim", "qc_SA_IRGA_abslim")[i]
     }
     out$qc_SA_abslim <- abslim_df$SA
     out$qc_SA_IRGA_abslim <- abslim_df$SA_IRGA
@@ -324,8 +323,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   if (spikesHF) {
     spike_df <- extract_coded(x$spikes_hf, prefix, split)
     for (i in 1:2) {
-      attr(spike_df[, i], "varnames") <- c(
-        "qc_SA_spikesHF", "qc_SA_IRGA_spikesHF")[i]
+      varnames(spike_df[, i]) <- c("qc_SA_spikesHF", "qc_SA_IRGA_spikesHF")[i]
     }
     out$qc_SA_spikesHF <- spike_df$SA
     out$qc_SA_IRGA_spikesHF <- spike_df$SA_IRGA

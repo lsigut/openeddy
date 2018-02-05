@@ -26,48 +26,46 @@ allNA <- function(x, margin) {
   apply(x, margin, function(x) all(is.na(x)))
 }
 
-#' Get or Set Attributes Varnames and Units
+#' Object Attributes Varnames and Units
 #'
 #' \code{varnames} and \code{units} are useful attributes that can store
 #' original variable names (\code{varnames}) and units of measurement
 #' (\code{units}) of each column in a data frame or of an atomic type. These
-#' attributes can be displayed or set by following functions.
+#' attributes can be extracted or assigned by following functions.
 #'
-#' Functions check whether the extracted or set attributes contain elements with
-#' \code{NULL}, \code{NA}, \code{""} values or if length of each element is
+#' Functions check whether the extracted or assigned attributes contain elements
+#' with \code{NULL}, \code{NA}, \code{""} values or if length of each element is
 #' higher than \code{1}. In these cases, such elements are substituted with
 #' \code{"-"}.
 #'
-#' @return For \code{get_varnames} and \code{get_units}, a character string or
-#'   vector.
+#' @return For \code{varnames} and \code{units}, a character vector.
 #'
-#'   For \code{set_varnames} and \code{set_units}, object \code{x} with set or
-#'   updated attributes.
+#'   For \code{varnames<-} and \code{units<-}, the updated object \code{x}.
 #'
 #' @param x A data frame or an atomic type.
 #' @param names A logical value. Applies only in case of data frames. If
 #'   \code{TRUE}, attributes are extracted with corresponding column names.
-#' @param varnames,units An atomic type. The length must be \code{1} if \code{x}
-#'   is an atomic type or equal to number of columns in \code{x} if \code{x} is
-#'   a data frame.
+#' @param value An atomic type that represents \code{varnames} or \code{units}.
+#'   The length must be \code{1} if \code{x} is an atomic type or equal to
+#'   number of columns in \code{x} if \code{x} is a data frame.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
 #'
 #' @examples
 #' xx <- data.frame(a = 1, b = 2, c = 3, d = 4)
 #' lapply(xx, attr, "units")
-#' get_units(xx, names = TRUE)
-#' xx <- set_varnames(xx, c("a", "", NA, "d"))
-#' xx <- set_units(xx, 1:4)
+#' units(xx, names = TRUE)
+#' varnames(xx) <- c("a", "", NA, "d")
+#' units(xx) <- 1:4
 #' str(xx)
-#' units <- get_units(xx)
+#' units <- units(xx)
 #'
 #' ## NB: subsetting by rows removes 'varnames' and 'units' attributes
 #' str(yy <- xx[1, ])
-#' yy <- set_varnames(yy, names(yy))
-#' yy <- set_units(yy, units)
+#' varnames(yy) <- names(yy)
+#' units(yy) <- units
 #' str(yy)
-get_varnames <- function(x, names = FALSE) {
+varnames <- function(x, names = FALSE) {
   if (is.data.frame(x)) {
     varnames <- lapply(x, attr, "varnames")
     varnames <- lapply(varnames, function(x) if (
@@ -83,8 +81,35 @@ get_varnames <- function(x, names = FALSE) {
   } else stop("'x' must be a data frame or an atomic type")
 }
 
-#' @rdname get_varnames
-get_units <- function(x, names = FALSE) {
+#' @rdname varnames
+`varnames<-` <- function(x, value) {
+  if (!is.atomic(value)) stop("'value' must be of atomic type")
+  if (is.data.frame(x)) {
+    len <- ncol(x)
+    if (len != length(value)) {
+      stop("length of 'value' not equal to number of columns in 'x'")
+    }
+    value <- lapply(value, function(x) if (
+      is.null(x) || x %in% c("", NA) || (length(x) != 1))
+      "-" else as.character(x))
+    value <- unlist(value, use.names = FALSE)
+    for (i in seq_len(len)) {
+      attr(x[, i], "varnames") <- value[i]
+    }
+    return(x)
+  } else if (is.atomic(x)) {
+    if (length(value) != 1) {
+      stop("length of 'value' must be 1 for atomic type 'x'")
+    }
+    value <- if (is.null(value) || value %in% c("", NA)) "-" else
+      as.character(value)
+    attr(x, "varnames") <- value
+    return(x)
+  } else stop("'x' must be a data frame or an atomic type")
+}
+
+#' @rdname varnames
+units <- function(x, names = FALSE) {
   if (is.data.frame(x)) {
     units <- lapply(x, attr, "units")
     units <- lapply(units, function(x) if (
@@ -100,56 +125,31 @@ get_units <- function(x, names = FALSE) {
   } else stop("'x' must be a data frame or an atomic type")
 }
 
-#' @rdname get_varnames
-set_varnames <- function(x, varnames) {
-  if (!is.atomic(varnames)) stop("'varnames' must be of atomic type")
+#' @rdname varnames
+`units<-` <- function(x, value) {
+  if (!is.atomic(value)) stop("'value' must be of atomic type")
+  if (is(x, "difftime")) stop(
+    "'x' has class difftime - call base::units() instead")
   if (is.data.frame(x)) {
     len <- ncol(x)
-    if (len != length(varnames)) {
-      stop("length of 'varnames' not equal to number of columns in 'x'")
+    if (len != length(value)) {
+      stop("length of 'value' not equal to number of columns in 'x'")
     }
-    varnames <- lapply(varnames, function(x) if (
+    value <- lapply(value, function(x) if (
       is.null(x) || x %in% c("", NA) || (length(x) != 1))
       "-" else as.character(x))
-    varnames <- unlist(varnames, use.names = FALSE)
+    value <- unlist(value, use.names = FALSE)
     for (i in seq_len(len)) {
-      attr(x[, i], "varnames") <- varnames[i]
+      attr(x[, i], "units") <- value[i]
     }
     return(x)
   } else if (is.atomic(x)) {
-    if (length(varnames) != 1) {
-      stop("length of 'varnames' must be 1 for atomic type 'x'")
+    if (length(value) != 1) {
+      stop("length of 'value' must be 1 for atomic type 'x'")
     }
-    varnames <- if (is.null(varnames) || varnames %in% c("", NA)) "-" else
-      as.character(varnames)
-    attr(x, "varnames") <- varnames
-    return(x)
-  } else stop("'x' must be a data frame or an atomic type")
-}
-
-#' @rdname get_varnames
-set_units <- function(x, units) {
-  if (!is.atomic(units)) stop("'units' must be of atomic type")
-  if (is.data.frame(x)) {
-    len <- ncol(x)
-    if (len != length(units)) {
-      stop("length of 'units' not equal to number of columns in 'x'")
-    }
-    units <- lapply(units, function(x) if (
-      is.null(x) || x %in% c("", NA) || (length(x) != 1))
-      "-" else as.character(x))
-    units <- unlist(units, use.names = FALSE)
-    for (i in seq_len(len)) {
-      attr(x[, i], "units") <- units[i]
-    }
-    return(x)
-  } else if (is.atomic(x)) {
-    if (length(units) != 1) {
-      stop("length of 'units' must be 1 for atomic type 'x'")
-    }
-    units <- if (is.null(units) || units %in% c("", NA)) "-" else
-      as.character(units)
-    attr(x, "units") <- units
+    value <- if (is.null(value) || value %in% c("", NA)) "-" else
+      as.character(value)
+    attr(x, "units") <- value
     return(x)
   } else stop("'x' must be a data frame or an atomic type")
 }
@@ -246,21 +246,19 @@ set_units <- function(x, units) {
 #' 24.1.2015,1.70
 #' 24.1.2016,1.72")
 #' str(xx)
-#' (attr_v <- lapply(xx, attr, 'varnames'))
-#' (attr_u <- lapply(xx, attr, 'units'))
+#' (varnames <- varnames(xx))
+#' (units <- units(xx))
 #'
 #' ## Note that 'varnames' and 'units' attributes are dropped when you subset
 #' ## rows but unchanged if you subset columns:
 #' str(xx[, 1])
 #' str(yy <- xx[1, ])
-#' for (i in seq_len(ncol(yy))) {
-#'   attr(yy[, i], "varnames") <- attr_v[[i]]
-#'   attr(yy[, i], "units") <- attr_u[[i]]
-#' }
+#' varnames(yy) <- varnames
+#' units(yy) <- units
 #' str(yy)
 #'
 #' ## Computations with columns also drop 'varnames' and 'units' attributes:
-#' xx$date <- as.Date(xx$timestamp, attr(xx$timestamp, 'units'))
+#' xx$date <- as.Date(xx$timestamp, units(xx$timestamp))
 #' str(xx)
 #'
 #' ## header = FALSE and units = FALSE:
@@ -303,8 +301,8 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
   if (header && units) colnames(data) <- colnames(var_units)
   if (units) var_units[var_units %in% c("", NA)] <- units_fill
   for (i in seq_len(ncol(data))) {
-    attr(data[, i], "varnames") <- colnames(data)[i]
-    attr(data[, i], "units") <- var_units[, i]
+    varnames(data[, i]) <- colnames(data)[i]
+    units(data[, i]) <- var_units[, i]
   }
   if (check_input) {
     check <- as.vector(data == -10000)
@@ -362,8 +360,8 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' @examples
 #' xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 #' "01.01.2014  01:30:00", "01.01.2014  02:00:00")
-#' attr(xx, "varnames") <- "timestamp"
-#' attr(xx, "units") <- "-"
+#' varnames(xx) <- "timestamp"
+#' units(xx) <- "-"
 #' str(xx)
 #' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", center.by = -900))
 #' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
@@ -383,8 +381,8 @@ strptime_eddy <- function(x, format , freq = 1800, center.by = NULL,
     stop("timestamp does not form regular sequence with specified 'freq'")
   }
   if (!is.null(center.by)) out <- out + center.by
-  attr(out, "varnames") <- "timestamp"
-  attr(out, "units") <- "-"
+  varnames(out) <- "timestamp"
+  units(out) <- "-"
   return(out)
 }
 
@@ -656,7 +654,7 @@ combn_QC <- function(x, qc_names, name_out, additive = FALSE, na.as = NA) {
 #' @return A vector with attributes \code{varnames} and \code{units} is
 #'   produced. \code{varnames} value is set by \code{name_out} argument.
 #'   \code{units} value is extracted from \code{flux} vector by
-#'   \code{\link{get_units}} or set to default \code{"-"}.
+#'   \code{\link{units}} or set to default \code{"-"}.
 #'
 #' @param flux A numeric vector with flux values.
 #' @param name_out A character string providing \code{varnames} value of the
@@ -666,7 +664,7 @@ combn_QC <- function(x, qc_names, name_out, additive = FALSE, na.as = NA) {
 #' @param stp A numeric vector with storage computed using
 #' profile measurement of CO2.
 #'
-#' @seealso \code{\link{get_units}}.
+#' @seealso \code{\link{units}}.
 #'
 #' @examples
 #' aa <- matrix(ncol = 3, nrow = 10, byrow = T, c(-1, 1, 2),
@@ -688,14 +686,14 @@ add_st <- function(flux, name_out, st, stp = NULL) {
     }
     if (!is.numeric(stp)) stop("'stp' must be a numeric vector")
   }
-  units <- get_units(flux)
+  units <- units(flux)
   out <- flux
   out[!is.na(st)] <- flux[!is.na(st)] + st[!is.na(st)]
   if (!is.null(stp)) {
     out[!is.na(stp)] <- flux[!is.na(stp)] + stp[!is.na(stp)]
   }
-  attr(out, "varnames") <- name_out
-  attr(out, "units") <- units
+  varnames(out) <- name_out
+  units(out) <- units
   return(out)
 }
 
@@ -797,10 +795,10 @@ set_OT_input <- function(x, names_in,
   }
   ts <- as.POSIXlt(x$timestamp)
   x <- x[names_in]
-  units <- gsub("\u00B5", "u", get_units(x))
+  units <- gsub("\u00B5", "u", units(x))
   for (i in seq_len(ncol(x))) {
-    attr(x[, i], "varnames") <- names_in[i]
-    attr(x[, i], "units") <- units[i]
+    varnames(x[, i]) <- names_in[i]
+    units(x[, i]) <- units[i]
   }
   names(x) <- names_out
   # Check works for half-hours but for hourly data both 9:00 and 9:30 format
@@ -817,8 +815,8 @@ set_OT_input <- function(x, names_in,
                Hour = ts$hour, Minute = ts$min)
   }
   for (i in seq_len(ncol(out))) {
-    attr(out[, i], "varnames") <- names(out)[i]
-    attr(out[, i], "units") <- "-"
+    varnames(out[, i]) <- names(out)[i]
+    units(out[, i]) <- "-"
   }
   out <- cbind(out, x)
   if (check_VPD && "VPD" %in% names_out) {
