@@ -12,6 +12,9 @@
 #' 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
 #' thr[2]}, QC flag = 2.}
 #'
+#' For \code{flag = "between"} \itemize{ \item If \code{x >= thr[1] & x <=
+#' thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+#'
 #' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 #' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
 #' thr[2]}, QC flag = 2.}
@@ -34,10 +37,12 @@
 #' set.seed(1)
 #' xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
 #' xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
-#' xx$lower  <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
+#' xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
+#' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
-apply_thr <- function(x, thr, name_out, flag = c("higher", "lower")) {
+apply_thr <- function(x, thr, name_out,
+                      flag = c("higher", "between", "lower")) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
@@ -49,16 +54,20 @@ apply_thr <- function(x, thr, name_out, flag = c("higher", "lower")) {
   }
   name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   flag <- match.arg(flag)
+  out <- rep(NA, length(x))
   if (flag == "higher") {
     if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-    out <- rep(NA, length(x))
     out[x <= thr[1]] <- 0L
     out[x >  thr[1]] <- 1L
     out[x >  thr[2]] <- 2L
   }
+  if (flag == "between") {
+    if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
+    out[x >= thr[1] & x <= thr[2]] <- 0L
+    out[x < thr[1] | x > thr[2]] <- 2L
+  }
   if (flag == "lower") {
     if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
-    out <- rep(NA, length(x))
     out[x >= thr[1]] <- 0L
     out[x <  thr[1]] <- 1L
     out[x <  thr[2]] <- 2L

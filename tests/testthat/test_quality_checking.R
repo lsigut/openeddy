@@ -17,6 +17,13 @@ test_that("apply_thr flags higher correctly", {
                set_attributes(rep(2, 3)))
 })
 
+test_that("apply_thr flags between correctly", {
+  expect_equal(apply_thr(c(1:2, 7:9), c(3, 6), "test", "between"),
+               set_attributes(rep(2, 5)))
+  expect_equal(apply_thr(3:6, c(3, 6), "test", "between"),
+               set_attributes(rep(0, 4)))
+})
+
 test_that("apply_thr flags lower correctly", {
   expect_equal(apply_thr(-9:-7, c(-3, -6), "test", "lower"),
                set_attributes(rep(2, 3)))
@@ -28,6 +35,8 @@ test_that("apply_thr flags lower correctly", {
 
 test_that("both thr values identical work in apply_thr correctly", {
   expect_equal(apply_thr(c(2, 2.1), c(2, 2), "test"),
+               set_attributes(c(0, 2)))
+  expect_equal(apply_thr(c(2, 2.1), c(2, 2), "test", "between"),
                set_attributes(c(0, 2)))
   expect_equal(apply_thr(c(2, 1.9), c(2, 2), "test", "lower"),
                set_attributes(c(0, 2)))
