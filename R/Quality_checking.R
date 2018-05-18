@@ -594,7 +594,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' Low Frequency Data Despiking is not an additive QC test. \code{despikeLF}
 #' follows the QC scheme using QC flag range 0 - 2. \code{varnames} attribute of
 #' returned vector follows the 'Naming Strategy' described in
-#' \code{\link{extract_QC}} and is distinguished by suffix spikesLF.
+#' \code{\link{extract_QC}} and is distinguished by suffix \code{"_spikesLF"}.
 #'
 #' The data frame \code{x} is expected to have certain properties. It is
 #' required that it contains column named \code{"timestamp"} of class
@@ -619,7 +619,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' series.
 #'
 #' \code{light} and \code{night_thr} are intended to separate data to nighttime
-#' and daytime subsets with different statistical properties. Despiking is then
+#' and daytime subsets with different statistical properties. \code{NA}s in
+#' \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 #' applied to individual subsets and combined QC flags are returned.
 #'
 #' Despiking is done within blocks of 13 consecutive days to account for
@@ -697,7 +698,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
 despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
-                      light = c("PAR", "GR"), night_thr = 0,
+                      light = c("PAR", "GR"), night_thr = 10,
                       nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -733,7 +734,10 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
   qc_flag <- x[, qc_flag]
   # NA qc is interpreted as flag 2
   qc_flag[is.na(qc_flag)] <- 2L
-  if (!is.null(light)) sun <- x[light]
+  if (!is.null(light)) {
+    sun <- x[light]
+    if (anyNA(sun)) stop(paste0("NAs in x['", light, "'] not allowed"))
+  }
   # Filter for used data (qc below flag 2 and flux is not NA)
   use <- qc_flag < 2 & !is.na(vals)
   # Introduce Spike flag, set a fixed threshold and update filter

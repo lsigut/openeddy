@@ -43,7 +43,7 @@ deficit values should be checked.}
 }
 \description{
 Creates input for gap-filling and flux partitioning tools implemented either
-offline in R (REddyProc) or accessible online
+offline in R (\code{REddyProc} package) or accessible online
 (\href{http://www.bgc-jena.mpg.de/~MDIwork/eddyproc/upload.php}{Online Tool})
 from the data frame \code{x}. Columns of data frame \code{x} ideally have
 assigned attributes \code{varnames} and \code{units}.

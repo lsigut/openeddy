@@ -316,10 +316,10 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' Conversion of Regular Date-time Sequence from Character
 #'
 #' Converts character vector to class \code{"POSIXct"} using
-#' \code{\link{strptime}}. The input has to represent a regular date-time
-#' sequence with given frequency. Additional attributes \code{varnames} and
-#' \code{units} are assigned to returned vector with fixed strings
-#' \code{"timestamp"} and \code{"-"}, respectively.
+#' \code{\link{strptime}} and validates the result. The input has to represent a
+#' regular date-time sequence with given frequency. Additional attributes
+#' \code{varnames} and \code{units} are assigned to returned vector with fixed
+#' strings \code{"timestamp"} and \code{"-"}, respectively.
 #'
 #' Eddy covariance related measurements are usually stored with a timestamp
 #' representing the end of the averaging period (typicaly 1800 s) in standard
@@ -329,18 +329,18 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' any computations. It is also recommended to change the date-time information
 #' to its original state before saving to a file (see Examples section).
 #'
-#' Any unsuccesful attempt to convert date-time information is considered to be
+#' Any unsuccessful attempt to convert date-time information is considered to be
 #' unexpected behaviour and returns an error message instead of \code{NA} value.
-#' It is also a standard to provide continuous time series although no valid
-#' measurements are available for given time interval. Therefore \code{freq}
-#' value is checked against the lagged differences (\code{\link{diff}}) applied
-#' to the converted date-time vector and returns an error message if mismatch is
-#' found.
+#' In case that multiple formats are present in the timestamp, it has to be
+#' corrected prior using \code{strptime_eddy}. It is expected that time series
+#' are continuous although no valid measurements are available for given time
+#' interval. Therefore \code{freq} value is checked against the lagged
+#' differences (\code{\link{diff}}) applied to the converted date-time vector
+#' and returns an error message if mismatch is found.
 #' @param x A character vector containing date-time information to be converted
 #'   to class \code{"POSIXct"}.
-#' @param format A character string. The default for the \code{format} methods
-#'   is \code{"\%Y-\%m-\%d \%H:\%M:\%S"} if any element has a time component
-#'   which is not midnight, and \code{"\%Y-\%m-\%d"} otherwise.
+#' @param format A character string. The default \code{format} is
+#'   \code{"\%Y-\%m-\%d \%H:\%M"}
 #' @param freq A numeric value specifying the frequency (in seconds) of the
 #'   input date-time vector.
 #' @param center.by A numeric value specifying the time shift (in seconds) to be
@@ -364,6 +364,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' units(xx) <- "-"
 #' str(xx)
 #' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", center.by = -900))
+#' ## Convert to original format
 #' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
 #' attributes(yy)
 #' \dontrun{
@@ -372,8 +373,8 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M")
 #' ## freq argument provided incorrectly
 #' strptime_eddy(xx, "%d.%m.%Y %H:%M", freq = 3600)}
-strptime_eddy <- function(x, format , freq = 1800, center.by = NULL,
-                        tz = "GMT", ...) {
+strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", freq = 1800,
+                          center.by = NULL, tz = "GMT", ...) {
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
   if (!length(out)) stop("'x' not supplied correctly")
   if (any(is.na(out))) stop("'x' and/or 'format' not supplied correctly")
@@ -700,7 +701,7 @@ add_st <- function(flux, name_out, st, stp = NULL) {
 #' Create Input for REddyProc/Online Tool
 #'
 #' Creates input for gap-filling and flux partitioning tools implemented either
-#' offline in R (REddyProc) or accessible online
+#' offline in R (\code{REddyProc} package) or accessible online
 #' (\href{http://www.bgc-jena.mpg.de/~MDIwork/eddyproc/upload.php}{Online Tool})
 #' from the data frame \code{x}. Columns of data frame \code{x} ideally have
 #' assigned attributes \code{varnames} and \code{units}.

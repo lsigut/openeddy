@@ -5,7 +5,7 @@
 \title{Low Frequency Data Despiking}
 \usage{
 despikeLF(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
-  light = c("PAR", "GR"), night_thr = 0, nVals = 50, z = 7,
+  light = c("PAR", "GR"), night_thr = 10, nVals = 50, z = 7,
   c = 4.4478)
 }
 \arguments{
@@ -59,7 +59,7 @@ double-differenced time series to identify outliers.
 Low Frequency Data Despiking is not an additive QC test. \code{despikeLF}
 follows the QC scheme using QC flag range 0 - 2. \code{varnames} attribute of
 returned vector follows the 'Naming Strategy' described in
-\code{\link{extract_QC}} and is distinguished by suffix spikesLF.
+\code{\link{extract_QC}} and is distinguished by suffix \code{"_spikesLF"}.
 
 The data frame \code{x} is expected to have certain properties. It is
 required that it contains column named \code{"timestamp"} of class
@@ -84,7 +84,8 @@ are further not used for computing statistics on double-differenced time
 series.
 
 \code{light} and \code{night_thr} are intended to separate data to nighttime
-and daytime subsets with different statistical properties. Despiking is then
+and daytime subsets with different statistical properties. \code{NA}s in
+\code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 applied to individual subsets and combined QC flags are returned.
 
 Despiking is done within blocks of 13 consecutive days to account for

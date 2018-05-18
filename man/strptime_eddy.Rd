@@ -4,15 +4,15 @@
 \alias{strptime_eddy}
 \title{Conversion of Regular Date-time Sequence from Character}
 \usage{
-strptime_eddy(x, format, freq = 1800, center.by = NULL, tz = "GMT", ...)
+strptime_eddy(x, format = "\%Y-\%m-\%d \%H:\%M", freq = 1800,
+  center.by = NULL, tz = "GMT", ...)
 }
 \arguments{
 \item{x}{A character vector containing date-time information to be converted
 to class \code{"POSIXct"}.}
 
-\item{format}{A character string. The default for the \code{format} methods
-is \code{"\%Y-\%m-\%d \%H:\%M:\%S"} if any element has a time component
-which is not midnight, and \code{"\%Y-\%m-\%d"} otherwise.}
+\item{format}{A character string. The default \code{format} is
+\code{"\%Y-\%m-\%d \%H:\%M"}}
 
 \item{freq}{A numeric value specifying the frequency (in seconds) of the
 input date-time vector.}
@@ -28,10 +28,10 @@ for the conversion.}
 }
 \description{
 Converts character vector to class \code{"POSIXct"} using
-\code{\link{strptime}}. The input has to represent a regular date-time
-sequence with given frequency. Additional attributes \code{varnames} and
-\code{units} are assigned to returned vector with fixed strings
-\code{"timestamp"} and \code{"-"}, respectively.
+\code{\link{strptime}} and validates the result. The input has to represent a
+regular date-time sequence with given frequency. Additional attributes
+\code{varnames} and \code{units} are assigned to returned vector with fixed
+strings \code{"timestamp"} and \code{"-"}, respectively.
 }
 \details{
 Eddy covariance related measurements are usually stored with a timestamp
@@ -42,13 +42,14 @@ using \code{center.by} to represent the center of averaging period prior to
 any computations. It is also recommended to change the date-time information
 to its original state before saving to a file (see Examples section).
 
-Any unsuccesful attempt to convert date-time information is considered to be
+Any unsuccessful attempt to convert date-time information is considered to be
 unexpected behaviour and returns an error message instead of \code{NA} value.
-It is also a standard to provide continuous time series although no valid
-measurements are available for given time interval. Therefore \code{freq}
-value is checked against the lagged differences (\code{\link{diff}}) applied
-to the converted date-time vector and returns an error message if mismatch is
-found.
+In case that multiple formats are present in the timestamp, it has to be
+corrected prior using \code{strptime_eddy}. It is expected that time series
+are continuous although no valid measurements are available for given time
+interval. Therefore \code{freq} value is checked against the lagged
+differences (\code{\link{diff}}) applied to the converted date-time vector
+and returns an error message if mismatch is found.
 }
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
@@ -57,6 +58,7 @@ varnames(xx) <- "timestamp"
 units(xx) <- "-"
 str(xx)
 (yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", center.by = -900))
+## Convert to original format
 format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
 attributes(yy)
 \dontrun{
