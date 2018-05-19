@@ -4,7 +4,7 @@
 \alias{despikeLF}
 \title{Low Frequency Data Despiking}
 \usage{
-despikeLF(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
+despikeLF(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
   light = c("PAR", "GR"), night_thr = 10, nVals = 50, z = 7,
   c = 4.4478)
 }
@@ -12,19 +12,18 @@ despikeLF(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
 \item{x}{A data frame with column names representing required variables. See
 'Details' below.}
 
-\item{flux}{A character string. Specifies the column name in \code{x} with
-flux values.}
+\item{var}{A character string. Specifies the variable name in \code{x} with
+values to be despiked.}
 
 \item{qc_flag}{A character string. Specifies the column name in \code{x} with
-\code{flux} related quality control flag.}
+\code{var} related quality control flag.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
 
-\item{flux_thr}{A numeric vector with 2 non-missing values. Specifies fixed
-thresholds for \code{flux} column. Values outside this range will be
-flagged as spikes (flag 2). If \code{flux_thr = NULL}, thresholds are not
-applied.}
+\item{var_thr}{A numeric vector with 2 non-missing values. Specifies fixed
+thresholds for \code{var} values. Values outside this range will be flagged
+as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.}
 
 \item{plot}{A logical value. If \code{FALSE} (the default), a numeric vector
 identifying spikes is produced. If \code{TRUE}, list of
@@ -32,8 +31,8 @@ identifying spikes is produced. If \code{TRUE}, list of
 
 \item{light}{A character string. Selects preferred variable for incoming
 light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
-abbreviated. If \code{light = NULL}, \code{flux} values are not separated
-to nighttime/daytime subsets and \code{night_thr} is not used.}
+abbreviated. If \code{light = NULL}, \code{var} values are not separated to
+nighttime/daytime subsets and \code{night_thr} is not used.}
 
 \item{night_thr}{A numeric value that defines the threshold  between night
 (for \code{light} values equal or lower than \code{night_thr}) and day (for
@@ -56,10 +55,11 @@ Scaled median absolute deviation from the median is applied to
 double-differenced time series to identify outliers.
 }
 \details{
-Low Frequency Data Despiking is not an additive QC test. \code{despikeLF}
-follows the QC scheme using QC flag range 0 - 2. \code{varnames} attribute of
-returned vector follows the 'Naming Strategy' described in
-\code{\link{extract_QC}} and is distinguished by suffix \code{"_spikesLF"}.
+Low Frequency Data Despiking is not an additive quality control (QC) test.
+\code{despikeLF} follows the QC scheme using QC flag range 0 - 2.
+\code{varnames} attribute of returned vector should be chosen to follow the
+'Naming Strategy' described in \code{\link{extract_QC}}, i.e. to be
+distinguished by suffix \code{"_spikesLF"}.
 
 The data frame \code{x} is expected to have certain properties. It is
 required that it contains column named \code{"timestamp"} of class
@@ -67,19 +67,19 @@ required that it contains column named \code{"timestamp"} of class
 (half-)hourly frequency. Any missing values in \code{"timestamp"} are not
 allowed. Thus, if no records exist for given date-time value, it still has to
 be included. It also has to contain required (depends on the argument values)
-column names. If QC flags are not available for given flux, \code{qc_flag}
-still has to be included in \code{x} as a named column with \code{0} values
-(i.e. all values will be checked for outliers).
+column names. If QC flags are not available for \code{var}, \code{qc_flag}
+still has to be included in \code{x} as a named column with all values set to
+\code{0} (i.e. all values will be checked for outliers).
 
-Only non-missing \code{flux} values with corresponing \code{qc_flag} values
-below \code{2} are used to detect the outliers. Missing \code{flux} values or
+Only non-missing \code{var} values with corresponing \code{qc_flag} values
+below \code{2} are used to detect the outliers. Missing \code{var} values or
 those with assigned flag \code{2} or \code{NA} are not checked and marked by
 \code{NA} flag in the output.
 
-\code{flux_thr} is intended for exclusion of data clearly outside of
-theoretically acceptable range for the whole dataset. If \code{flux_thr} is
-specified, \code{flux} values below \code{flux_thr[1]} and above
-\code{flux_thr[2]} are marked as spikes (flag 2) in the output. Such values
+\code{var_thr} is intended for exclusion of data clearly outside of
+theoretically acceptable range for the whole dataset. If \code{var_thr} is
+specified, \code{var} values below \code{var_thr[1]} and above
+\code{var_thr[2]} are marked as spikes (flag 2) in the output. Such values
 are further not used for computing statistics on double-differenced time
 series.
 
@@ -89,26 +89,26 @@ and daytime subsets with different statistical properties. \code{NA}s in
 applied to individual subsets and combined QC flags are returned.
 
 Despiking is done within blocks of 13 consecutive days to account for
-seasonality of measured \code{flux}. Within each block, all records are
-compared with its neighbours and \eqn{d[i]} scores are produced. This is
-achieved by double-differencing: \deqn{d[i] = (flux[i] - flux[i-1]) -
-(flux[i+1] - flux[i])} In order to obtain maximum amount of \eqn{d[i]}
-scores, all missing flux values are removed from the block before \eqn{d[i]}
-scores are produced. \code{flux} values are marked as spikes if \eqn{d[i]} is
-higher (lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled
-median absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i]
-< M[d] - (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
+seasonality of measured variable. Within each block, all records are compared
+with its neighbours and \eqn{d[i]} scores are produced. This is achieved by
+double-differencing: \deqn{d[i] = (var[i] - var[i-1]) - (var[i+1] - var[i])}
+In order to obtain maximum amount of \eqn{d[i]} scores, all missing
+\code{var} values are removed from the block before \eqn{d[i]} scores are
+produced. \code{var} values are marked as spikes if \eqn{d[i]} is higher
+(lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled median
+absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i] < M[d]
+- (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
 M[d]))}
 
 The algorithm tends to flag also values that are neighbours of spikes. To
 prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
-\code{flux} values within given block (\eqn{M[flux]} and \eqn{mad[flux]},
+\code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
 respectively) is computed. Values can be marked as spikes only if
-\deqn{flux[i] > M[flux] + (c * mad)} or \deqn{flux[i] < M[flux] - (c * mad)}
+\deqn{var[i] > M[var] + (c * mad)} or \deqn{var[i] < M[var] - (c * mad)}
 
-Number of available double-differenced flux values (\code{nVals}) is checked
-within each block. If equal or below \code{nVals}, \eqn{d[i]} or
-\eqn{flux[i]} values are checked against the statistics computed using entire
+Number of available double-differenced \code{var} values (\code{nVals}) is
+checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
+\eqn{var[i]} values are checked against the statistics computed using entire
 dataset to ensure robustness.
 }
 \section{Abbreviations}{

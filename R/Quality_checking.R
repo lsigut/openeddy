@@ -491,9 +491,9 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 # xBlock2 serves for computing despiking threshold and can be
 # from the same block as xBlock1 (default) or from the whole year (more
 # conservative when less data available)
-# refBlock1 - flux values from appropriate block for finding false-flagged
+# refBlock1 - var values from appropriate block for finding false-flagged
 # spikes by comparison with scaled median absolute deviation
-# refBlock2 - flux values for computing median and mad from the same block
+# refBlock2 - var values for computing median and mad from the same block
 # as refBlock1 (default) or whole year (more conservative when less data
 # available)
 # c - scale factor for mad (default = 3)
@@ -523,9 +523,9 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 # NEEi = NEE; NEEi-1 = NEE_minus; NEEi+1 = NEE_plus
 # ggplotting - plot = TRUE
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
-  SD_sub$flux_minus <- c(NA, SD_sub$flux[-nrow(SD_sub)])
-  SD_sub$flux_plus <- c(SD_sub$flux[-1], NA)
-  SD_sub$diff <- with(SD_sub, (flux - flux_minus) - (flux_plus - flux))
+  SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
+  SD_sub$var_plus <- c(SD_sub$var[-1], NA)
+  SD_sub$diff <- with(SD_sub, (var - var_minus) - (var_plus - var))
   if (sum(!is.na(SD_sub$diff)) <= nVals) {
     stop("Number of values in subset is below nVals")
   }
@@ -539,7 +539,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
     block <- SD_sub$Date >= SD_Date & SD_sub$Date < SD_Date + 13
     if (sum(block, na.rm = TRUE) > nVals) {
       desp_res <- desp(xBlock1 = SD_sub$diff[block],
-                       refBlock1 = SD_sub$flux[block], z = z, c = c)
+                       refBlock1 = SD_sub$var[block], z = z, c = c)
       SD_sub$Spike[block] <- desp_res$spike
     } else if (sum(block, na.rm = TRUE) == 0) {
       SD_Date <- SD_Date + 13
@@ -547,12 +547,12 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
     } else {
       desp_res <- desp(xBlock1 = SD_sub$diff[block],
                        xBlock2 = SD_sub$diff,
-                       refBlock1 = SD_sub$flux[block],
-                       refBlock2 = SD_sub$flux, z = z, c = c)
+                       refBlock1 = SD_sub$var[block],
+                       refBlock2 = SD_sub$var, z = z, c = c)
       SD_sub$Spike[block] <- desp_res$spike
     }
     if (plot) {
-      x <- na.omit(SD_sub[block, c("timestamp", "diff", "flux")])
+      x <- na.omit(SD_sub[block, c("timestamp", "diff", "var")])
       x <- reshape2::melt(x, id = "timestamp")
       ts_range <- range(SD_sub[block, "timestamp"])
       y_range_d <- with(desp_res$stats, med_block + c(-scaled_MAD, scaled_MAD))
@@ -565,7 +565,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
                       ymin = c(y_range_d[1], y_range_f[1]),
                       ymax = c(y_range_d[2], y_range_f[2]))
       xs1 <- SD_sub[block, ][desp_res$spike_all, c("timestamp", "diff")]
-      xs2 <- SD_sub[block, ][desp_res$spike, c("timestamp", "flux")]
+      xs2 <- SD_sub[block, ][desp_res$spike, c("timestamp", "var")]
       xs <- na.omit(reshape2::melt(merge(xs1, xs2, all = TRUE),
                                    id = "timestamp"))
       plots[[i]] <- ggplot(x, aes(timestamp, value)) +
@@ -591,10 +591,11 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' Scaled median absolute deviation from the median is applied to
 #' double-differenced time series to identify outliers.
 #'
-#' Low Frequency Data Despiking is not an additive QC test. \code{despikeLF}
-#' follows the QC scheme using QC flag range 0 - 2. \code{varnames} attribute of
-#' returned vector follows the 'Naming Strategy' described in
-#' \code{\link{extract_QC}} and is distinguished by suffix \code{"_spikesLF"}.
+#' Low Frequency Data Despiking is not an additive quality control (QC) test.
+#' \code{despikeLF} follows the QC scheme using QC flag range 0 - 2.
+#' \code{varnames} attribute of returned vector should be chosen to follow the
+#' 'Naming Strategy' described in \code{\link{extract_QC}}, i.e. to be
+#' distinguished by suffix \code{"_spikesLF"}.
 #'
 #' The data frame \code{x} is expected to have certain properties. It is
 #' required that it contains column named \code{"timestamp"} of class
@@ -602,19 +603,19 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' (half-)hourly frequency. Any missing values in \code{"timestamp"} are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. It also has to contain required (depends on the argument values)
-#' column names. If QC flags are not available for given flux, \code{qc_flag}
-#' still has to be included in \code{x} as a named column with \code{0} values
-#' (i.e. all values will be checked for outliers).
+#' column names. If QC flags are not available for \code{var}, \code{qc_flag}
+#' still has to be included in \code{x} as a named column with all values set to
+#' \code{0} (i.e. all values will be checked for outliers).
 #'
-#' Only non-missing \code{flux} values with corresponing \code{qc_flag} values
-#' below \code{2} are used to detect the outliers. Missing \code{flux} values or
+#' Only non-missing \code{var} values with corresponing \code{qc_flag} values
+#' below \code{2} are used to detect the outliers. Missing \code{var} values or
 #' those with assigned flag \code{2} or \code{NA} are not checked and marked by
 #' \code{NA} flag in the output.
 #'
-#' \code{flux_thr} is intended for exclusion of data clearly outside of
-#' theoretically acceptable range for the whole dataset. If \code{flux_thr} is
-#' specified, \code{flux} values below \code{flux_thr[1]} and above
-#' \code{flux_thr[2]} are marked as spikes (flag 2) in the output. Such values
+#' \code{var_thr} is intended for exclusion of data clearly outside of
+#' theoretically acceptable range for the whole dataset. If \code{var_thr} is
+#' specified, \code{var} values below \code{var_thr[1]} and above
+#' \code{var_thr[2]} are marked as spikes (flag 2) in the output. Such values
 #' are further not used for computing statistics on double-differenced time
 #' series.
 #'
@@ -624,26 +625,26 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' applied to individual subsets and combined QC flags are returned.
 #'
 #' Despiking is done within blocks of 13 consecutive days to account for
-#' seasonality of measured \code{flux}. Within each block, all records are
-#' compared with its neighbours and \eqn{d[i]} scores are produced. This is
-#' achieved by double-differencing: \deqn{d[i] = (flux[i] - flux[i-1]) -
-#' (flux[i+1] - flux[i])} In order to obtain maximum amount of \eqn{d[i]}
-#' scores, all missing flux values are removed from the block before \eqn{d[i]}
-#' scores are produced. \code{flux} values are marked as spikes if \eqn{d[i]} is
-#' higher (lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled
-#' median absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i]
-#' < M[d] - (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
+#' seasonality of measured variable. Within each block, all records are compared
+#' with its neighbours and \eqn{d[i]} scores are produced. This is achieved by
+#' double-differencing: \deqn{d[i] = (var[i] - var[i-1]) - (var[i+1] - var[i])}
+#' In order to obtain maximum amount of \eqn{d[i]} scores, all missing
+#' \code{var} values are removed from the block before \eqn{d[i]} scores are
+#' produced. \code{var} values are marked as spikes if \eqn{d[i]} is higher
+#' (lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled median
+#' absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i] < M[d]
+#' - (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
 #' M[d]))}
 #'
 #' The algorithm tends to flag also values that are neighbours of spikes. To
 #' prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
-#' \code{flux} values within given block (\eqn{M[flux]} and \eqn{mad[flux]},
+#' \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
 #' respectively) is computed. Values can be marked as spikes only if
-#' \deqn{flux[i] > M[flux] + (c * mad)} or \deqn{flux[i] < M[flux] - (c * mad)}
+#' \deqn{var[i] > M[var] + (c * mad)} or \deqn{var[i] < M[var] - (c * mad)}
 #'
-#' Number of available double-differenced flux values (\code{nVals}) is checked
-#' within each block. If equal or below \code{nVals}, \eqn{d[i]} or
-#' \eqn{flux[i]} values are checked against the statistics computed using entire
+#' Number of available double-differenced \code{var} values (\code{nVals}) is
+#' checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
+#' \eqn{var[i]} values are checked against the statistics computed using entire
 #' dataset to ensure robustness.
 #'
 #' @section Abbreviations: \itemize{\item QC: Quality Control \item PAR:
@@ -670,23 +671,22 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.
-#' @param flux A character string. Specifies the column name in \code{x} with
-#'   flux values.
+#' @param var A character string. Specifies the variable name in \code{x} with
+#'   values to be despiked.
 #' @param qc_flag A character string. Specifies the column name in \code{x} with
-#'   \code{flux} related quality control flag.
+#'   \code{var} related quality control flag.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
-#' @param flux_thr A numeric vector with 2 non-missing values. Specifies fixed
-#'   thresholds for \code{flux} column. Values outside this range will be
-#'   flagged as spikes (flag 2). If \code{flux_thr = NULL}, thresholds are not
-#'   applied.
+#' @param var_thr A numeric vector with 2 non-missing values. Specifies fixed
+#'   thresholds for \code{var} values. Values outside this range will be flagged
+#'   as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.
 #' @param plot A logical value. If \code{FALSE} (the default), a numeric vector
 #'   identifying spikes is produced. If \code{TRUE}, list of
 #'   \code{\link{ggplot}} objects visualizing the spikes is returned instead.
 #' @param light A character string. Selects preferred variable for incoming
 #'   light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
-#'   abbreviated. If \code{light = NULL}, \code{flux} values are not separated
-#'   to nighttime/daytime subsets and \code{night_thr} is not used.
+#'   abbreviated. If \code{light = NULL}, \code{var} values are not separated to
+#'   nighttime/daytime subsets and \code{night_thr} is not used.
 #' @param night_thr A numeric value that defines the threshold  between night
 #'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
 #'   \code{light} values higher than \code{night_thr}) for incoming light.
@@ -697,19 +697,19 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
-despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
+despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
                       light = c("PAR", "GR"), night_thr = 10,
                       nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' has to be of class data.frame with colnames")
   }
-  if (any(!sapply(list(flux, qc_flag, name_out), is.character))) {
-    stop("'flux', 'qc_flag', 'name_out' has to be of class character")
+  if (any(!sapply(list(var, qc_flag, name_out), is.character))) {
+    stop("'var', 'qc_flag', 'name_out' has to be of class character")
   }
-  flux <- flux[1]
+  var <- var[1]
   qc_flag <- qc_flag[1]
-  req_vars <- c("timestamp", flux, qc_flag)
+  req_vars <- c("timestamp", var, qc_flag)
   if (!is.null(light)) {
     light <- match.arg(light)
     req_vars <- c(req_vars, light)
@@ -730,7 +730,7 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
     stop("timestamp does not form regular sequence")
   }
   date <- as.Date(x$timestamp)
-  vals <- x[, flux]
+  vals <- x[, var]
   qc_flag <- x[, qc_flag]
   # NA qc is interpreted as flag 2
   qc_flag[is.na(qc_flag)] <- 2L
@@ -738,24 +738,24 @@ despikeLF <- function(x, flux, qc_flag, name_out, flux_thr = NULL, plot = FALSE,
     sun <- x[light]
     if (anyNA(sun)) stop(paste0("NAs in x['", light, "'] not allowed"))
   }
-  # Filter for used data (qc below flag 2 and flux is not NA)
+  # Filter for used data (qc below flag 2 and var is not NA)
   use <- qc_flag < 2 & !is.na(vals)
   # Introduce Spike flag, set a fixed threshold and update filter
   out <- rep(NA, nrow(x))
-  if (!is.null(flux_thr)) {
-    if (!is.numeric(flux_thr) || length(flux_thr) != 2 || anyNA(flux_thr)) {
-      stop("'flux_thr' must be numeric vector with 2 non-missing values")
+  if (!is.null(var_thr)) {
+    if (!is.numeric(var_thr) || length(var_thr) != 2 || anyNA(var_thr)) {
+      stop("'var_thr' must be numeric vector with 2 non-missing values")
     }
-    if (flux_thr[1] > flux_thr[2]) {
-      stop("'flux_thr[1]' cannot be higher than 'flux_thr[2]'")
+    if (var_thr[1] > var_thr[2]) {
+      stop("'var_thr[1]' cannot be higher than 'var_thr[2]'")
     }
-    out[((vals < flux_thr[1]) | (vals > flux_thr[2])) & use] <- 2L
+    out[((vals < var_thr[1]) | (vals > var_thr[2])) & use] <- 2L
     use <- use & is.na(out)
   }
   # Spike Detection (Papale et al. 2006)
   # Create data frame with dates, vals & sun intensity values
   SD_df <- data.frame(Index = seq_len(nrow(x)), Date = date,
-                      timestamp = x$timestamp, flux = vals, Spike = out)
+                      timestamp = x$timestamp, var = vals, Spike = out)
   if (!is.null(light)) {
     SD_df$Light <- sun[, 1]
   }
