@@ -115,7 +115,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'
 #'   In order to emphasize \code{flux} values with lower quality, \code{test}
 #'   can be specified. Values with QC flag = 1 have green center of the point.
-#'   Values with QC flag = 2 have red center of the point.
+#'   Values with QC flag = 2 or \code{NA} have red center of the point.
 #'
 #'   NB: \code{flux} data with \code{NA} values are always \emph{Excluded data}
 #'   and cannot be emphasized (\code{NA} values are not drawn).
@@ -243,13 +243,10 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   wrap <- function(x) paste("[", x, "]", sep = "")
   date <- as.Date(x$timestamp)
   vals <- x[, flux]
-  if (qc_flag != "none") {
-    qc <- x[, qc_flag]
-    qc[is.na(qc)] <- 2 # NA qc is interpreted as flag 2
-  } else {
-    qc <- 0 # qc_flag 0 (show all data)
-  }
-  exalt <- if (test == "none") 0 else x[, test]
+  qc <- if (qc_flag == "none") 0L else x[, qc_flag] # qc_flag 0: show all data
+  qc[is.na(qc)] <- 2L # NA qc is interpreted as flag 2
+  exalt <- if (test == "none") 0L else x[, test] # exalt = 0: exalt not used
+  exalt[is.na(exalt)] <- 2L # NA qc is interpreted as flag 2
   if (flux_gf != "none") vals_gf <- x[, flux_gf]
   if (NEE_sep) {
     Reco <- x[, "Reco"]
@@ -267,18 +264,18 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   # Graphical display of data in monthly periods ===============================
   # grey = excluded data, green = used data
   # Number of intervals with right side closure (+1)
-  nInt <- length(unique(paste(time$year, time$mon))) + 1
+  nInt <- length(unique(paste(time$year, time$mon))) + 1L
   # Create monthly intervals for plotting
   int <- seq(from = day1, length.out = nInt, by = "1 month")
   op <- par(mfcol = c(4, 1), mar = c(3, 0, 0, 0), oma = c(2, 6, 1, 1))
-  for (i in 1:(nInt - 1)) {
-    mon <- date >= int[i] & date < int[i + 1]
+  for (i in 1:(nInt - 1L)) {
+    mon <- date >= int[i] & date < int[i + 1L]
     # keep the lenght of time[mon] but remove excluded data
     # (needed for lines)
     showVals <- vals[mon]
     showVals[!use[mon]] <- NA
     # xaxis has to be one day longer to simplify plotting
-    xaxis <- seq(from = int[i], to = int[i + 1], by = "1 day")
+    xaxis <- seq(from = int[i], to = int[i + 1L], by = "1 day")
     xaxis <- as.POSIXct(strptime(xaxis, "%Y-%m-%d", tz = "GMT"))
     y <- vals[use]
     f <- mon[use]
@@ -417,7 +414,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     }
     # Graphical display of data in weekly periods===============================
     # Number of intervals with right side closure (+1)
-    nInt <- length(seq(from = day1, to = date[nrow(x)], by = "1 week")) + 1
+    nInt <- length(seq(from = day1, to = date[nrow(x)], by = "1 week")) + 1L
     # Create weekly intervals for plotting
     int <- seq(from = day1, length.out = nInt, by = "1 week")
     # Compute xlim for barplot (60 * 24 = 1440: minutes in day; 7 days in week)
@@ -427,9 +424,9 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     panels <- c(1, 1, 1, 2, 2, 2, 3, 3, 3, 7, 7, 4, 4, 4, 5, 5, 5, 6, 6, 6, 8)
     def_par <- par(no.readonly = TRUE)
     par(mar = c(0, 0, 0, 0), oma = c(2.5, 6, 1, 6))
-    for (i in 1:(nInt - 1)) {
+    for (i in 1:(nInt - 1L)) {
       if (i %% 2 == 1) layout(panels)
-      week <- date >= int[i] & date < int[i + 1]
+      week <- date >= int[i] & date < int[i + 1L]
       if (!length(time[week])) next
       center <- int[i] + 3.5
       mon <- date >= (center - 15) & date < (center + 15)

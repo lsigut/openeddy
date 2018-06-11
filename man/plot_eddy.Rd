@@ -122,7 +122,7 @@ drawn together with auxiliary data in weekly intervals. See 'Modules'.
 
   In order to emphasize \code{flux} values with lower quality, \code{test}
   can be specified. Values with QC flag = 1 have green center of the point.
-  Values with QC flag = 2 have red center of the point.
+  Values with QC flag = 2 or \code{NA} have red center of the point.
 
   NB: \code{flux} data with \code{NA} values are always \emph{Excluded data}
   and cannot be emphasized (\code{NA} values are not drawn).
