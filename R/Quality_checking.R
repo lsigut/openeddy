@@ -619,8 +619,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' are further not used for computing statistics on double-differenced time
 #' series.
 #'
-#' \code{light} and \code{night_thr} are intended to separate data to nighttime
-#' and daytime subsets with different statistical properties. \code{NA}s in
+#' \code{light} and \code{night_thr} are intended to separate data to night
+#' and day subsets with different statistical properties. \code{NA}s in
 #' \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 #' applied to individual subsets and combined QC flags are returned.
 #'
@@ -686,7 +686,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param light A character string. Selects preferred variable for incoming
 #'   light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
 #'   abbreviated. If \code{light = NULL}, \code{var} values are not separated to
-#'   nighttime/daytime subsets and \code{night_thr} is not used.
+#'   night/day subsets and \code{night_thr} is not used.
 #' @param night_thr A numeric value that defines the threshold  between night
 #'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
 #'   \code{light} values higher than \code{night_thr}) for incoming light.
@@ -760,28 +760,24 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
     SD_df$Light <- sun[, 1]
   }
   # filter out all low quality data and create continuous NEE time series
-  SD_df <- SD_df[use, ]
-  if (is.null(light)) {
-    # Daytime & nighttime spike detection (no subsetting)
-    SD_df <- desp_loop(SD_df, date, nVals, z, c, plot)
-    if (plot) return(SD_df)
-    SD_df$Spike[SD_df$Spike == TRUE] <- 2L
-  } else {
-    # Night-time subset spike detection
-    SD_night <- SD_df[SD_df$Light <= night_thr, ] # night-time filter
-    SD_night <- desp_loop(SD_night, date, nVals, z, c, plot)
-    # Daytime subset spike detection
-    SD_day <- SD_df[SD_df$Light > night_thr, ] # daytime filter
-    SD_day <- desp_loop(SD_day, date, nVals, z, c, plot)
-    if (plot) return(list(nighttime = SD_night, daytime = SD_day))
-    # Export the results into the SD dataframe
-    SD_night$Spike[SD_night$Spike == TRUE] <- 2L
-    SD_df$Spike[match(SD_night$Index, SD_df$Index)] <- SD_night$Spike
-    # Export the results into the SD dataframe
-    SD_day$Spike[SD_day$Spike == TRUE] <- 2L
-    SD_df$Spike[match(SD_day$Index, SD_df$Index)] <- SD_day$Spike
+  SD_df <- SD_df[use, ] # it will be used to merge results from SD_l
+  SD_l <- list(all = SD_df)
+  if (!is.null(light)) {
+    night <- SD_l$all$Light <= night_thr # filter to distinguish night/day
+    SD_l <- list(night = SD_l$all[night, ], day = SD_l$all[!night, ])
   }
-  # Export all results into the main dataframe
+  SD_l <- lapply(SD_l, desp_loop, date, nVals, z, c, plot)
+  if (plot) return(SD_l)
+  SD_l <- lapply(SD_l, function(x) {
+    x$Spike[x$Spike == TRUE] <- 2L
+    return(x)
+  })
+  # Export results from spike detection list into the data frame
+  if (!is.null(light)) {
+    SD_df$Spike[match(SD_l$night$Index, SD_df$Index)] <- SD_l$night$Spike
+    SD_df$Spike[match(SD_l$day$Index, SD_df$Index)] <- SD_l$day$Spike
+  } else SD_df <- SD_l$all
+  # Export the results into the output vector
   out[SD_df$Index] <- SD_df$Spike
   attributes(out) <- list(varnames = name_out, units = "-")
   return(out)

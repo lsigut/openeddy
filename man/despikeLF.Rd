@@ -32,7 +32,7 @@ identifying spikes is produced. If \code{TRUE}, list of
 \item{light}{A character string. Selects preferred variable for incoming
 light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
 abbreviated. If \code{light = NULL}, \code{var} values are not separated to
-nighttime/daytime subsets and \code{night_thr} is not used.}
+night/day subsets and \code{night_thr} is not used.}
 
 \item{night_thr}{A numeric value that defines the threshold  between night
 (for \code{light} values equal or lower than \code{night_thr}) and day (for
@@ -83,8 +83,8 @@ specified, \code{var} values below \code{var_thr[1]} and above
 are further not used for computing statistics on double-differenced time
 series.
 
-\code{light} and \code{night_thr} are intended to separate data to nighttime
-and daytime subsets with different statistical properties. \code{NA}s in
+\code{light} and \code{night_thr} are intended to separate data to night
+and day subsets with different statistical properties. \code{NA}s in
 \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 applied to individual subsets and combined QC flags are returned.
 
