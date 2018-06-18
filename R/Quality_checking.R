@@ -568,21 +568,23 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
       xs2 <- SD_sub[block, ][desp_res$spike, c("timestamp", "var")]
       xs <- na.omit(reshape2::melt(merge(xs1, xs2, all = TRUE),
                                    id = "timestamp"))
-      plots[[i]] <- ggplot(x, aes(timestamp, value)) +
-        geom_point() + geom_line() +
-        facet_grid(variable ~ ., scales = "free_y") +
-        ggtitle(paste(SD_Date, "-", SD_Date + 12)) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        geom_rect(data = d, aes(xmin = xmin, xmax = xmax,
-                                ymin = ymin, ymax = ymax),
+      plots[[i]] <- ggplot2::ggplot(x, ggplot2::aes(timestamp, value)) +
+        ggplot2::geom_point() + ggplot2::geom_line() +
+        ggplot2::facet_grid(variable ~ ., scales = "free_y") +
+        ggplot2::ggtitle(paste(SD_Date, "-", SD_Date + 12)) +
+        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
+        ggplot2::geom_rect(data = d, ggplot2::aes(xmin = xmin, xmax = xmax,
+                                                  ymin = ymin, ymax = ymax),
                   inherit.aes = FALSE, alpha = 1/5) +
-        geom_hline(data = d, aes(yintercept = yintercept)) +
-        geom_point(data = xs, aes(x = timestamp, y = value, colour = variable))
+        ggplot2::geom_hline(data = d, ggplot2::aes(yintercept = yintercept)) +
+        ggplot2::geom_point(data = xs, ggplot2::aes(x = timestamp, y = value,
+                                                    colour = variable))
+      names(plots)[i] <- paste(SD_Date, "-", SD_Date + 12)
       i <- i + 1L
     }
     SD_Date <- SD_Date + 13
   }
-  if (plot) return(plots)
+  if (plot) return(list(SD = SD_sub, plots = plots))
   return(SD_sub)
 }
 
@@ -619,8 +621,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' are further not used for computing statistics on double-differenced time
 #' series.
 #'
-#' \code{light} and \code{night_thr} are intended to separate data to night
-#' and day subsets with different statistical properties. \code{NA}s in
+#' \code{light} and \code{night_thr} are intended to separate data to night and
+#' day subsets with different statistical properties. \code{NA}s in
 #' \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 #' applied to individual subsets and combined QC flags are returned.
 #'
@@ -640,12 +642,28 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
 #' \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
 #' respectively) is computed. Values can be marked as spikes only if
-#' \deqn{var[i] > M[var] + (c * mad)} or \deqn{var[i] < M[var] - (c * mad)}
+#' \deqn{var[i] > M[var] + (c * mad / 1.4826)} or \deqn{var[i] < M[var] - (c *
+#' mad / 1.4826)}
 #'
 #' Number of available double-differenced \code{var} values (\code{nVals}) is
 #' checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
 #' \eqn{var[i]} values are checked against the statistics computed using entire
 #' dataset to ensure robustness.
+#'
+#' The whole process is repeated iteratively if \code{iter > 1}. This way new
+#' statistics are produced for each iteration after exclusion of already
+#' detected outliers and new spikes can be identified.
+#'
+#' @section Plotting: Plots are produced as a list of \code{ggplot} objects.
+#'   Thus they can be assigned to an object and modified as needed before actual
+#'   plotting. Each plot consists of two panels. The upper one shows the
+#'   double-differenced time series, the bottom one the actual \code{var}
+#'   values. Grey bands mark the respective intervals in which \code{var} value
+#'   cannot be considered as an outlier. The red points in upper panel show all
+#'   points that would be marked as spikes if \code{c = 0}. Only the points
+#'   marked by blue color (bottom panel) will be considered spikes. The spike
+#'   detection tolerance (width of grey bands) can be modified by scale factors
+#'   \code{z} (upper panel) and \code{c} (bottom panel).
 #'
 #' @section Abbreviations: \itemize{\item QC: Quality Control \item PAR:
 #'   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
@@ -666,8 +684,14 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 #'
 #' @return If \code{plot = FALSE}, an integer vector with attributes
-#'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list of
-#'   \code{ggplot} objects.
+#'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
+#'   elements \code{SD} and \code{plots}. \code{SD} contains identical output as
+#'   produced when \code{plot = FALSE}, \code{plots} contains list of
+#'   \code{ggplot} objects for respective iteration, \code{light} subset and
+#'   13-day period.
+#'
+#'   Side effect: the counts of spikes detected in each iteration are printed to
+#'   console.
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.
@@ -680,9 +704,9 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param var_thr A numeric vector with 2 non-missing values. Specifies fixed
 #'   thresholds for \code{var} values. Values outside this range will be flagged
 #'   as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.
-#' @param plot A logical value. If \code{FALSE} (the default), a numeric vector
-#'   identifying spikes is produced. If \code{TRUE}, list of
-#'   \code{\link{ggplot}} objects visualizing the spikes is returned instead.
+#' @param iter An integer value. Defines number of despiking iterations.
+#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#'   objects visualizing the spikes is also produced.
 #' @param light A character string. Selects preferred variable for incoming
 #'   light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
 #'   abbreviated. If \code{light = NULL}, \code{var} values are not separated to
@@ -690,15 +714,16 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param night_thr A numeric value that defines the threshold  between night
 #'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
 #'   \code{light} values higher than \code{night_thr}) for incoming light.
-#' @param nVals A numeric value. Number of values withing 13 day blocks required
+#' @param nVals A numeric value. Number of values withing 13-day blocks required
 #'   to obtain robust statistics.
-#' @param z A numeric value. \eqn{MAD} scaling factor.
-#' @param c A numeric value. \code{\link{mad}} \code{constant}.
+#' @param z A numeric value. \eqn{MAD} scale factor.
+#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
+#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
-despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
-                      light = c("PAR", "GR"), night_thr = 10,
+despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, iter = 10,
+                      plot = FALSE, light = c("PAR", "GR"), night_thr = 10,
                       nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -729,6 +754,7 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
           mean(diff(as.numeric(x$timestamp))))) {
     stop("timestamp does not form regular sequence")
   }
+  if (iter[1] < 1) stop("set iter = 1 or higher")
   date <- as.Date(x$timestamp)
   vals <- x[, var]
   qc_flag <- x[, qc_flag]
@@ -738,10 +764,10 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
     sun <- x[light]
     if (anyNA(sun)) stop(paste0("NAs in x['", light, "'] not allowed"))
   }
-  # Filter for used data (qc below flag 2 and var is not NA)
+  # Filter for used data (qc not flag 2 or NA and var is not NA)
   use <- qc_flag < 2 & !is.na(vals)
   # Introduce Spike flag, set a fixed threshold and update filter
-  out <- rep(NA, nrow(x))
+  out <- rep(NA, nrow(x)) # Flag NA: if not changed it means not tested
   if (!is.null(var_thr)) {
     if (!is.numeric(var_thr) || length(var_thr) != 2 || anyNA(var_thr)) {
       stop("'var_thr' must be numeric vector with 2 non-missing values")
@@ -750,7 +776,7 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
       stop("'var_thr[1]' cannot be higher than 'var_thr[2]'")
     }
     out[((vals < var_thr[1]) | (vals > var_thr[2])) & use] <- 2L
-    use <- use & is.na(out)
+    use <- use & is.na(out) # Flag NA at this point means eligible for despiking
   }
   # Spike Detection (Papale et al. 2006)
   # Create data frame with dates, vals & sun intensity values
@@ -759,26 +785,55 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
   if (!is.null(light)) {
     SD_df$Light <- sun[, 1]
   }
-  # filter out all low quality data and create continuous NEE time series
-  SD_df <- SD_df[use, ] # it will be used to merge results from SD_l
-  SD_l <- list(all = SD_df)
-  if (!is.null(light)) {
-    night <- SD_l$all$Light <= night_thr # filter to distinguish night/day
-    SD_l <- list(night = SD_l$all[night, ], day = SD_l$all[!night, ])
+  if (plot) plots <- list()
+  for (i in seq_len(iter)) {
+    # Filter out all low quality data and create continuous NEE time series
+    # SD_df after filtering keeps only records to be tested
+    # On first iteration SD_df$Spike contains only NAs (vals not checked yet)
+    # During following iterations SD_df$Spike:
+    #  - has 2 (light = NULL) or 4 (night/day) NAs (boundaries of subsets)
+    #  - otherwise equals 0 (spikes so far not detected)
+    # SD_df is used to merge results from SD_l after despiking
+    # SD_df$Spike is a subset of out (out needs to be matched by SD_df$Index)
+    # length(SD_df$Spike) decreases with iterations
+    SD_df <- SD_df[use, ]
+    SD_l <- list(all = SD_df)
+    if (!is.null(light)) {
+      night <- SD_l$all$Light <= night_thr # filter to distinguish night/day
+      SD_l <- list(night = SD_l$all[night, ], day = SD_l$all[!night, ])
+    }
+    # SD_l data frames have 3 more columns after despiking
+    if (plot) {
+      temp <- lapply(SD_l, desp_loop, date, nVals, z, c, plot)
+      SD_l <- lapply(temp, "[[", "SD") # overwritten every iteration
+      plots[[i]] <- lapply(temp, "[[", "plots") # all iteration results kept
+      names(plots)[i] <- paste("iter", i)
+    } else {
+      SD_l <- lapply(SD_l, desp_loop, date, nVals, z, c, plot)
+    }
+    SD_l <- lapply(SD_l, function(x) {
+      x$Spike[x$Spike == TRUE] <- 2L
+      return(x)
+    })
+    # Export results from spike detection list into the data frame
+    if (!is.null(light)) {
+      SD_df$Spike[match(SD_l$night$Index, SD_df$Index)] <- SD_l$night$Spike
+      SD_df$Spike[match(SD_l$day$Index, SD_df$Index)] <- SD_l$day$Spike
+    } else SD_df$Spike <- SD_l$all$Spike
+    # Export the results into the output vector
+    out[SD_df$Index] <- SD_df$Spike
+    # Count the number of detected spikes in this iteration and report them
+    ns <- sum(SD_df$Spike == 2, na.rm = TRUE)
+    cat(paste0("iter ", i, ": ", ns, "\n"))
+    if (!ns && i < iter) {
+      cat("Further iterations omitted\n")
+      break
+    }
+    # Update use filter - it has to fit the already subsetted SD_df
+    # It has different length for each iteration
+    use <- SD_df$Spike == 0 | is.na(SD_df$Spike)
   }
-  SD_l <- lapply(SD_l, desp_loop, date, nVals, z, c, plot)
-  if (plot) return(SD_l)
-  SD_l <- lapply(SD_l, function(x) {
-    x$Spike[x$Spike == TRUE] <- 2L
-    return(x)
-  })
-  # Export results from spike detection list into the data frame
-  if (!is.null(light)) {
-    SD_df$Spike[match(SD_l$night$Index, SD_df$Index)] <- SD_l$night$Spike
-    SD_df$Spike[match(SD_l$day$Index, SD_df$Index)] <- SD_l$day$Spike
-  } else SD_df <- SD_l$all
-  # Export the results into the output vector
-  out[SD_df$Index] <- SD_df$Spike
+  if (plot) return(list(SD = out, plots = plots))
   attributes(out) <- list(varnames = name_out, units = "-")
   return(out)
 }

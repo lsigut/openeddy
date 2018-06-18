@@ -4,9 +4,9 @@
 \alias{despikeLF}
 \title{Low Frequency Data Despiking}
 \usage{
-despikeLF(x, var, qc_flag, name_out, var_thr = NULL, plot = FALSE,
-  light = c("PAR", "GR"), night_thr = 10, nVals = 50, z = 7,
-  c = 4.4478)
+despikeLF(x, var, qc_flag, name_out, var_thr = NULL, iter = 10,
+  plot = FALSE, light = c("PAR", "GR"), night_thr = 10, nVals = 50,
+  z = 7, c = 4.4478)
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables. See
@@ -25,9 +25,10 @@ of the output.}
 thresholds for \code{var} values. Values outside this range will be flagged
 as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.}
 
-\item{plot}{A logical value. If \code{FALSE} (the default), a numeric vector
-identifying spikes is produced. If \code{TRUE}, list of
-\code{\link{ggplot}} objects visualizing the spikes is returned instead.}
+\item{iter}{An integer value. Defines number of despiking iterations.}
+
+\item{plot}{A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+objects visualizing the spikes is also produced.}
 
 \item{light}{A character string. Selects preferred variable for incoming
 light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
@@ -38,17 +39,24 @@ night/day subsets and \code{night_thr} is not used.}
 (for \code{light} values equal or lower than \code{night_thr}) and day (for
 \code{light} values higher than \code{night_thr}) for incoming light.}
 
-\item{nVals}{A numeric value. Number of values withing 13 day blocks required
+\item{nVals}{A numeric value. Number of values withing 13-day blocks required
 to obtain robust statistics.}
 
-\item{z}{A numeric value. \eqn{MAD} scaling factor.}
+\item{z}{A numeric value. \eqn{MAD} scale factor.}
 
-\item{c}{A numeric value. \code{\link{mad}} \code{constant}.}
+\item{c}{A numeric value. \code{\link{mad}} scale factor. Default is \code{3
+* \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).}
 }
 \value{
 If \code{plot = FALSE}, an integer vector with attributes
-  \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list of
-  \code{ggplot} objects.
+  \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
+  elements \code{SD} and \code{plots}. \code{SD} contains identical output as
+  produced when \code{plot = FALSE}, \code{plots} contains list of
+  \code{ggplot} objects for respective iteration, \code{light} subset and
+  13-day period.
+
+  Side effect: the counts of spikes detected in each iteration are printed to
+  console.
 }
 \description{
 Scaled median absolute deviation from the median is applied to
@@ -83,8 +91,8 @@ specified, \code{var} values below \code{var_thr[1]} and above
 are further not used for computing statistics on double-differenced time
 series.
 
-\code{light} and \code{night_thr} are intended to separate data to night
-and day subsets with different statistical properties. \code{NA}s in
+\code{light} and \code{night_thr} are intended to separate data to night and
+day subsets with different statistical properties. \code{NA}s in
 \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
 applied to individual subsets and combined QC flags are returned.
 
@@ -104,13 +112,31 @@ The algorithm tends to flag also values that are neighbours of spikes. To
 prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
 \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
 respectively) is computed. Values can be marked as spikes only if
-\deqn{var[i] > M[var] + (c * mad)} or \deqn{var[i] < M[var] - (c * mad)}
+\deqn{var[i] > M[var] + (c * mad / 1.4826)} or \deqn{var[i] < M[var] - (c *
+mad / 1.4826)}
 
 Number of available double-differenced \code{var} values (\code{nVals}) is
 checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
 \eqn{var[i]} values are checked against the statistics computed using entire
 dataset to ensure robustness.
+
+The whole process is repeated iteratively if \code{iter > 1}. This way new
+statistics are produced for each iteration after exclusion of already
+detected outliers and new spikes can be identified.
 }
+\section{Plotting}{
+ Plots are produced as a list of \code{ggplot} objects.
+  Thus they can be assigned to an object and modified as needed before actual
+  plotting. Each plot consists of two panels. The upper one shows the
+  double-differenced time series, the bottom one the actual \code{var}
+  values. Grey bands mark the respective intervals in which \code{var} value
+  cannot be considered as an outlier. The red points in upper panel show all
+  points that would be marked as spikes if \code{c = 0}. Only the points
+  marked by blue color (bottom panel) will be considered spikes. The spike
+  detection tolerance (width of grey bands) can be modified by scale factors
+  \code{z} (upper panel) and \code{c} (bottom panel).
+}
+
 \section{Abbreviations}{
  \itemize{\item QC: Quality Control \item PAR:
   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
