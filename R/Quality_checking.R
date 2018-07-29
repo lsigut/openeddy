@@ -485,28 +485,28 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
   return(out)
 }
 
-#' This function is not necessarily easy to use by hand. It is designed to work
-#' well when called from higher level functions. End user should always use
-#' zm().
+#' Apply despiking to a given subset
 #'
-#' These are the basic computing engines called by lm used to fit linear models.
-#' These should usually not be used directly unless by experienced users.
-#' .lm.fit() is bare bone wrapper to the innermost QR-based C code, on which
-#' glm.fit and lsfit are based as well, for even more experienced users.
-
-# despiking function; outputs logical vector; TRUE value flags spike;
-# xBlock1 is the double-differenced NEE time series with appropriate block size
-# (Papale et al., 2006; see below);
-# xBlock2 serves for computing despiking threshold and can be
-# from the same block as xBlock1 (default) or from the whole year (more
-# conservative when less data available)
-# refBlock1 - var values from appropriate block for finding false-flagged
-# spikes by comparison with scaled median absolute deviation
-# refBlock2 - var values for computing median and mad from the same block
-# as refBlock1 (default) or whole year (more conservative when less data
-# available)
-# c - scale factor for mad (default = 3)
-# z - represents the threshold value
+#' This is a low level function not intended to be used on its own. It is
+#' utilized by \code{\link{despikeLF}} that should be used instead.
+#'
+#' @param xBlock1 The double-differenced \code{var} time series with appropriate
+#'   block size.
+#' @param xBlock2 Serves for computing despiking threshold and can be from the
+#'   same block as \code{xBlock1} (default) or from the whole year (more
+#'   conservative when less data available).
+#' @param refBlock1 \code{var} values from appropriate block for finding
+#'   false-flagged spikes by comparison with scaled median absolute deviation.
+#' @param refBlock2 \code{var} values for computing median and mad from the same
+#'   block as \code{refBlock1} (default) or whole year (more conservative when
+#'   less data available).
+#' @param z A numeric value. \eqn{MAD} scale factor.
+#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
+#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#'
+#' @return A logical vector. \code{TRUE} values flag spikes.
+#'
+#' @seealso use \code{\link{despikeLF}} instead.
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
                  refBlock2 = refBlock1, z, c) {
   med_block <- median(xBlock2, na.rm = TRUE)
@@ -527,19 +527,30 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
   return(out)
 }
 
-#' This function is not necessarily easy to use by hand. It is designed to work
-#' well when called from higher level functions. End user should always use
-#' zm().
+#' Apply despiking to all data blocks
 #'
-#' These are the basic computing engines called by lm used to fit linear models.
-#' These should usually not be used directly unless by experienced users.
-#' .lm.fit() is bare bone wrapper to the innermost QR-based C code, on which
-#' glm.fit and lsfit are based as well, for even more experienced users.
-
-# Subset spike detection loop for 13 day blocks (Papale et al., 2006)
-# diff = (NEEi - NEEi-1) - (NEEi+1 - NEEi);
-# NEEi = NEE; NEEi-1 = NEE_minus; NEEi+1 = NEE_plus
-# ggplotting - plot = TRUE
+#' This is a low level function not intended to be used on its own. It is
+#' utilized by \code{\link{despikeLF}} that should be used instead.
+#'
+#' @param SD_sub A data frame prepared by \code{\link{despikeLF}} with expected
+#'   columns Index, Date, timestamp, var, Spike and Light. This is a subset of
+#'   data (\code{x}) provided to \code{\link{despikeLF}} containing only the
+#'   data of good quality.
+#' @param date An unsubsetted vector of class \code{"Date"} extracted from data
+#'   frame \code{x} fed to \code{\link{despikeLF}}.
+#' @param nVals A numeric value. Number of values within 13-day blocks required
+#'   to obtain robust statistics.
+#' @param z A numeric value. \eqn{MAD} scale factor.
+#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
+#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#'   objects visualizing the spikes is also produced.
+#'
+#' @return If \code{plot = FALSE}, an updated data frame \code{SD_sub} with
+#'   identified spikes in column Spike and with three new columns var_minus,
+#'   var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
+#'   data frame identical to the one produced if \code{plot = FALSE}) and
+#'   \code{plots} containing a list of \code{ggplot} objects.
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
   SD_sub$var_plus <- c(SD_sub$var[-1], NA)
@@ -732,7 +743,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param night_thr A numeric value that defines the threshold  between night
 #'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
 #'   \code{light} values higher than \code{night_thr}) for incoming light.
-#' @param nVals A numeric value. Number of values withing 13-day blocks required
+#' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
 #' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3

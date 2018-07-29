@@ -2,15 +2,38 @@
 % Please edit documentation in R/Quality_checking.R
 \name{desp_loop}
 \alias{desp_loop}
-\title{This function is not necessarily easy to use by hand. It is designed to work
-well when called from higher level functions. End user should always use
-zm().}
+\title{Apply despiking to all data blocks}
 \usage{
 desp_loop(SD_sub, date, nVals, z, c, plot = FALSE)
 }
+\arguments{
+\item{SD_sub}{A data frame prepared by \code{\link{despikeLF}} with expected
+columns Index, Date, timestamp, var, Spike and Light. This is a subset of
+data (\code{x}) provided to \code{\link{despikeLF}} containing only the
+data of good quality.}
+
+\item{date}{An unsubsetted vector of class \code{"Date"} extracted from data
+frame \code{x} fed to \code{\link{despikeLF}}.}
+
+\item{nVals}{A numeric value. Number of values withing 13-day blocks required
+to obtain robust statistics.}
+
+\item{z}{A numeric value. \eqn{MAD} scale factor.}
+
+\item{c}{A numeric value. \code{\link{mad}} scale factor. Default is \code{3
+* \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).}
+
+\item{plot}{A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+objects visualizing the spikes is also produced.}
+}
+\value{
+If \code{plot = FALSE}, a data frame \code{SD_sub} with identified
+  spikes in column Spike and with three new columns var_minus, var_plus and
+  diff. If \code{plot = TRUE}, a list with elements \code{SD} (a data frame
+  identical to the one produced if \code{plot = FALSE}) and \code{plots}
+  containing a list of \code{ggplot} objects.
+}
 \description{
-These are the basic computing engines called by lm used to fit linear models.
-These should usually not be used directly unless by experienced users.
-.lm.fit() is bare bone wrapper to the innermost QR-based C code, on which
-glm.fit and lsfit are based as well, for even more experienced users.
+This is a low level function not intended to be used on its own. It is
+utilized by \code{\link{despikeLF}} that should be used instead.
 }
