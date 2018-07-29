@@ -485,6 +485,15 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
   return(out)
 }
 
+#' This function is not necessarily easy to use by hand. It is designed to work
+#' well when called from higher level functions. End user should always use
+#' zm().
+#'
+#' These are the basic computing engines called by lm used to fit linear models.
+#' These should usually not be used directly unless by experienced users.
+#' .lm.fit() is bare bone wrapper to the innermost QR-based C code, on which
+#' glm.fit and lsfit are based as well, for even more experienced users.
+
 # despiking function; outputs logical vector; TRUE value flags spike;
 # xBlock1 is the double-differenced NEE time series with appropriate block size
 # (Papale et al., 2006; see below);
@@ -517,6 +526,15 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
   # this happens for first and last value; has to be treated because of "&"
   return(out)
 }
+
+#' This function is not necessarily easy to use by hand. It is designed to work
+#' well when called from higher level functions. End user should always use
+#' zm().
+#'
+#' These are the basic computing engines called by lm used to fit linear models.
+#' These should usually not be used directly unless by experienced users.
+#' .lm.fit() is bare bone wrapper to the innermost QR-based C code, on which
+#' glm.fit and lsfit are based as well, for even more experienced users.
 
 # Subset spike detection loop for 13 day blocks (Papale et al., 2006)
 # diff = (NEEi - NEEi-1) - (NEEi+1 - NEEi);
@@ -901,5 +919,104 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out) {
   out[x[, fetch_name] <= ROI_boundary[x$sector]] <- 0L
   out[x[, fetch_name] >  ROI_boundary[x$sector]] <- 2L
   attributes(out) <- list(varnames = name_out, units = "-")
+  return(out)
+}
+
+#' Exclude values
+#'
+#' Interactive plots are used for identification and flagging of data for
+#' exclusion based on the visual inspection.
+#'
+#' Five options are available during the interactive session. \enumerate{ \item
+#' flag values: select interval of values to exclude or use double-click to flag
+#' single value \item undo last: allows to change the user flagging input back
+#' to the state before last flagging \item refresh plots: apply current user
+#' flagging input to the plots. It removes excluded points and affects y-axis
+#' range or it can show again excluded points if option 2. (undo last) was
+#' applied before. \item next plot \item jump to plot: any plot within the
+#' existing range (see as a plot title) can be selected }
+#'
+#' The interactive session will be finished succesfully when option 4. (next
+#' plot) is executed while at the last plot.
+#'
+#' @param x A numeric vector with values to inspect.
+#' @param qc_x A numeric vector in the range \code{0 - 2} providing quality
+#'   control information about \code{x}.
+#' @param win_size An integer. Number of \code{x} values displayed per plot.
+#'
+#' @return An integer vector with attributes \code{"varnames"} and
+#'   \code{"units"}.
+exclude <- function(x, qc_x = NULL, win_size = 336) {
+  len <- length(x)
+  if (!is.null(qc_x)) {
+    if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")
+    x <- ifelse(qc_x == 2, NA, x)
+  }
+  x_old <- x # initialized because of opt == 2
+  out <- rep(0L, len)
+  out_old <- out # initialized because of opt == 2
+  n_iter <- ceiling(len/win_size)
+  range <- 1:win_size
+  sel_range <- numeric() # initialized because of opt == 2
+  read_opt <- function(msg) {
+    opt <- readline(prompt = msg)
+    if (!grepl("^[1-5]$", opt)) return(read_opt(msg))
+    return(as.integer(opt))
+  }
+  read_plot_num <- function() {
+    n <- readline(prompt = "\nPlot number: \n")
+    if (!grepl("^[[:digit:]]+$", n)) return(read_plot_num())
+    n <- as.integer(n)
+    if (n < 1 | n > n_iter) return(read_plot_num())
+    return(n)
+  }
+  # Loop with options
+  i <- 1
+  while (i <= n_iter) {
+    plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
+         main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+    filter <- as.logical(out[range]) # to keep red lines with opt == 5
+    lines(range[filter], x[range[filter]],
+          col = 'red', type = "o", pch = 19, cex = 0.5)
+    msg <- paste0("\n", paste0(rep("-", 14), collapse = ""),
+                  "\nChoose option:\n1. flag values\n2. undo last\n",
+                  "3. refresh plots\n4. next plot\n5. jump to plot ...\n\n")
+    repeat {
+      opt <- read_opt(msg)
+      if (opt == 1) {
+        sel <- numeric()
+        for (j in 1:2) {
+          sel[j] <- identify(x, n = 1, plot = FALSE, tolerance = 0.25)
+          points(sel[j], x[sel[j]], col = 'red', pch = 19, cex = 0.5)
+        }
+        sel_range <- sel[1]:sel[2]
+        lines(sel_range, x[sel_range],
+              col = 'red', type = "o", pch = 19, cex = 0.5)
+        out_old <- out
+        x_old <- x
+        out[sel_range] <- 2L
+      }
+      if (opt == 2) {
+        out <- out_old
+        x <- x_old
+        lines(sel_range, x[sel_range], type = "o", pch = 19, cex = 0.5)
+      }
+      if (opt == 3) {
+        x <- ifelse(out == 2, NA, x)
+        plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
+             main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+      }
+      if (opt == 4) {
+        break
+      }
+      if (opt == 5) {
+        n <- read_plot_num()
+        i <- n - 1
+        break
+      }
+    }
+    i <- i + 1
+    range <- ((i - 1) * win_size + 1):(i * win_size)
+  }
   return(out)
 }
