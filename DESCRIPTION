@@ -23,14 +23,14 @@ Description: This package provides utilities for eddy covariance data
     handling, quality checking (similar to Mauder et al., 2013),
     processing, summarising and plotting. It aims to standardise
     the automated quality checking and make data processing reproducible.
-Depends: R (>= 3.4.3)
+Depends: R (>= 3.5.1)
 License: GPL (>= 2)
-Date: 2017-12-01
+Date: 2018-08-02
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Imports:
-    ggplot2 (>= 2.2.1),
+    ggplot2 (>= 3.0.0),
     reshape2 (>= 1.4.3)
 Suggests:
     gridExtra (>= 2.3),
