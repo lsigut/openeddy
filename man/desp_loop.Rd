@@ -15,7 +15,7 @@ data of good quality.}
 \item{date}{An unsubsetted vector of class \code{"Date"} extracted from data
 frame \code{x} fed to \code{\link{despikeLF}}.}
 
-\item{nVals}{A numeric value. Number of values withing 13-day blocks required
+\item{nVals}{A numeric value. Number of values within 13-day blocks required
 to obtain robust statistics.}
 
 \item{z}{A numeric value. \eqn{MAD} scale factor.}
@@ -27,11 +27,11 @@ to obtain robust statistics.}
 objects visualizing the spikes is also produced.}
 }
 \value{
-If \code{plot = FALSE}, a data frame \code{SD_sub} with identified
-  spikes in column Spike and with three new columns var_minus, var_plus and
-  diff. If \code{plot = TRUE}, a list with elements \code{SD} (a data frame
-  identical to the one produced if \code{plot = FALSE}) and \code{plots}
-  containing a list of \code{ggplot} objects.
+If \code{plot = FALSE}, an updated data frame \code{SD_sub} with
+  identified spikes in column Spike and with three new columns var_minus,
+  var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
+  data frame identical to the one produced if \code{plot = FALSE}) and
+  \code{plots} containing a list of \code{ggplot} objects.
 }
 \description{
 This is a low level function not intended to be used on its own. It is

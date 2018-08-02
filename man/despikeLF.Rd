@@ -39,7 +39,7 @@ night/day subsets and \code{night_thr} is not used.}
 (for \code{light} values equal or lower than \code{night_thr}) and day (for
 \code{light} values higher than \code{night_thr}) for incoming light.}
 
-\item{nVals}{A numeric value. Number of values withing 13-day blocks required
+\item{nVals}{A numeric value. Number of values within 13-day blocks required
 to obtain robust statistics.}
 
 \item{z}{A numeric value. \eqn{MAD} scale factor.}

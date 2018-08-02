@@ -4,13 +4,16 @@
 \alias{exclude}
 \title{Exclude values}
 \usage{
-exclude(x, qc_x = NULL, win_size = 336)
+exclude(x, qc_x = NULL, name_out, win_size = 336)
 }
 \arguments{
 \item{x}{A numeric vector with values to inspect.}
 
 \item{qc_x}{A numeric vector in the range \code{0 - 2} providing quality
 control information about \code{x}.}
+
+\item{name_out}{A character string providing \code{varnames} attribute value
+of the output.}
 
 \item{win_size}{An integer. Number of \code{x} values displayed per plot.}
 }
@@ -28,10 +31,10 @@ flag values: select interval of values to exclude or use double-click to flag
 single value \item undo last: allows to change the user flagging input back
 to the state before last flagging \item refresh plots: apply current user
 flagging input to the plots. It removes excluded points and affects y-axis
-range or it can show again excluded points if option 2. (undo last) was
+range or it can show again excluded points if option 2 (undo last) was
 applied before. \item next plot \item jump to plot: any plot within the
 existing range (see as a plot title) can be selected }
 
-The interactive session will be finished succesfully when option 4. (next
+The interactive session will be finished succesfully when option 4 (next
 plot) is executed while at the last plot.
 }

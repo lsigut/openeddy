@@ -943,26 +943,32 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out) {
 #' single value \item undo last: allows to change the user flagging input back
 #' to the state before last flagging \item refresh plots: apply current user
 #' flagging input to the plots. It removes excluded points and affects y-axis
-#' range or it can show again excluded points if option 2. (undo last) was
+#' range or it can show again excluded points if option 2 (undo last) was
 #' applied before. \item next plot \item jump to plot: any plot within the
 #' existing range (see as a plot title) can be selected }
 #'
-#' The interactive session will be finished succesfully when option 4. (next
+#' The interactive session will be finished succesfully when option 4 (next
 #' plot) is executed while at the last plot.
 #'
 #' @param x A numeric vector with values to inspect.
 #' @param qc_x A numeric vector in the range \code{0 - 2} providing quality
 #'   control information about \code{x}.
+#' @param name_out A character string providing \code{varnames} attribute value
+#'   of the output.
 #' @param win_size An integer. Number of \code{x} values displayed per plot.
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
-exclude <- function(x, qc_x = NULL, win_size = 336) {
+exclude <- function(x, qc_x = NULL, name_out, win_size = 336) {
   len <- length(x)
   if (!is.null(qc_x)) {
     if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")
     x <- ifelse(qc_x == 2, NA, x)
   }
+  if (!is.atomic(name_out) || length(name_out) != 1) {
+    stop("atomic type 'name_out' must have length 1")
+  }
+  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   x_old <- x # initialized because of opt == 2
   out <- rep(0L, len)
   out_old <- out # initialized because of opt == 2
@@ -1029,5 +1035,6 @@ exclude <- function(x, qc_x = NULL, win_size = 336) {
     i <- i + 1
     range <- ((i - 1) * win_size + 1):(i * win_size)
   }
+  attributes(out) <- list(varnames = name_out, units = "-")
   return(out)
 }
