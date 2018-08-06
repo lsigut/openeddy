@@ -992,8 +992,8 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
     ggplot2::ggplot(tab_m) +
       ggplot2::aes(x = QC_type, y = value, fill = QC_flag) +
       ggplot2::geom_bar(stat = 'identity',
-                        position = position_stack(reverse = TRUE)) +
-      scale_fill_hue(guide = guide_legend(reverse=TRUE)) +
+                        position = ggplot2::position_stack(reverse = TRUE)) +
+      ggplot2::scale_fill_hue(guide = ggplot2::guide_legend(reverse = TRUE)) +
       ggplot2::labs(title = title, y = y_label) +
       ggplot2::theme(
         plot.title = ggplot2::element_text(hjust = 0.5),
