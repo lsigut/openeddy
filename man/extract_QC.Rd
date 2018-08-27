@@ -88,7 +88,7 @@ Check of missing data in averaging period (missfrac) takes into account
 number of valid records used for given averaging period. This number is
 further reduced by the sum of count of high frequency data spikes out of
 variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
-ts (H); w, h2o (LE) and w, co2 (FCO2).
+ts (H); w, h2o (LE) and w, co2 (NEE).
 }
 \section{Extracted QC Checks}{
  \itemize{ \item Check of plausibility limits
@@ -128,7 +128,7 @@ ts (H); w, h2o (LE) and w, co2 (FCO2).
  \strong{QC prefixes} (specifies which flux is
   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
   relying only on SA (Tau, H) \item qc_SA_IRGA: applicable to fluxes relying
-  both on SA and IRGA (LE, FCO2) \item qc_Tau, qc_H, qc_LE, qc_FCO2: only
+  both on SA and IRGA (LE, NEE) \item qc_Tau, qc_H, qc_LE, qc_NEE: only
   applicable for the respective flux \item qc_ALL: applicable to all fluxes}
 
   \strong{QC suffixes} (specifies which QC check was applied to get this QC
@@ -140,10 +140,10 @@ ts (H); w, h2o (LE) and w, co2 (FCO2).
  \itemize{ \item QC: Quality Control \item SA: Sonic
   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-  m-2] \item FCO2: CO2 flux [umol m-2 s-1] \item u: Longitudinal wind speed
-  component [m s-1] \item w: Vertical wind speed component [m s-1]  \item ts:
-  Sonic temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item
-  co2: CO2 concentration [umol mol-1]}.
+  m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
+  wind speed component [m s-1] \item w: Vertical wind speed component [m s-1]
+  \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
+  mol-1] \item co2: CO2 concentration [umol mol-1]}.
 }
 
 \seealso{

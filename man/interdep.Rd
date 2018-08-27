@@ -22,7 +22,7 @@ A data frame. Each column has attributes \code{"varnames"} and
   \code{"units"}.
 }
 \description{
-Interdependency of H, LE and FCO2 QC flags due to corrections/conversions.
+Interdependency of H, LE and NEE QC flags due to corrections/conversions.
 }
 \details{
 Flux interdependency is an additive QC flag correction. Results follow the QC
@@ -31,25 +31,25 @@ Strategy' described in \code{\link{extract_QC}}. Returned QC flags have QC
 suffix interdep.
 
 To convert buoyancy flux to sensible heat flux (SND or Schotanus correction),
-reliable measurements of LE must be available. To correct LE and FCO2
-measured by open-path IRGA (\code{IRGA = "open"}) for the effects of density
+reliable measurements of LE must be available. To correct LE and NEE
+estimated by open-path IRGA (\code{IRGA = "open"}) for the effects of density
 fluctuations due to temperature and humidity fluctuations (WPL or Webb
 correction), reliable measurements of H must be available. To perform WPL
-correction of FCO2 measured with any kind of IRGA, reliable measurements of
+correction of NEE estimated with any kind of IRGA, reliable measurements of
 LE must be available. Thus following set of rules apply:
 
 If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 |
-is.na(qc_LE) == TRUE}: qc_H and qc_FCO2 flags are increased by 1.} If
+is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
 \code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) ==
 TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H)
 == TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 |
-is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_FCO2 flags are
+is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
 increased by 1.}
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item H: Sensible
-  heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item FCO2: CO2 flux
-  [umol m-2 s-1] \item IRGA: InfraRed Gas Analyzer}.
+  heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
+  ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
 }
 
 \section{References}{

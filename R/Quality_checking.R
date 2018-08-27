@@ -96,7 +96,7 @@ apply_thr <- function(x, thr, name_out,
 #' \code{x} is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
 #' data for computation of Tau and H fluxes. A combination of SA and IRGA
-#' (SA_IRGA) is needed for measurements of LE and FCO2. To confirm the correct
+#' (SA_IRGA) is needed for measurements of LE and NEE. To confirm the correct
 #' performance of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0.
 #' In case of SA_IRGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
 #' must have flag 0. Results are reported according to the QC scheme using QC
@@ -105,11 +105,11 @@ apply_thr <- function(x, thr, name_out,
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
 #'   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-#'   m-2] \item FCO2: CO2 flux [umol m-2 s-1] \item u: Longitudinal wind speed
-#'   component [m s-1] \item v: Cross-wind wind speed component [m s-1] \item w:
-#'   Vertical wind speed component [m s-1] \item ts: Sonic temperature [degC]
-#'   \item h2o: H2O concentration [mmol mol-1] \item co2: CO2 concentration
-#'   [umol mol-1]}.
+#'   m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
+#'   wind speed component [m s-1] \item v: Cross-wind wind speed component [m
+#'   s-1] \item w: Vertical wind speed component [m s-1] \item ts: Sonic
+#'   temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
+#'   concentration [umol mol-1]}.
 #'
 #' @return A data frame with columns \code{"SA"} and \code{"SA_IRGA"}. Each
 #'   column has attributes \code{"varnames"} and \code{"units"} and length equal
@@ -195,7 +195,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #' number of valid records used for given averaging period. This number is
 #' further reduced by the sum of count of high frequency data spikes out of
 #' variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
-#' ts (H); w, h2o (LE) and w, co2 (FCO2).
+#' ts (H); w, h2o (LE) and w, co2 (NEE).
 #'
 #' @section Extracted QC Checks: \itemize{ \item Check of plausibility limits
 #'   (abslim). Test is not additive. \item Check of high frequency data spike
@@ -230,7 +230,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
 #'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
 #'   relying only on SA (Tau, H) \item qc_SA_IRGA: applicable to fluxes relying
-#'   both on SA and IRGA (LE, FCO2) \item qc_Tau, qc_H, qc_LE, qc_FCO2: only
+#'   both on SA and IRGA (LE, NEE) \item qc_Tau, qc_H, qc_LE, qc_NEE: only
 #'   applicable for the respective flux \item qc_ALL: applicable to all fluxes}
 #'
 #'   \strong{QC suffixes} (specifies which QC check was applied to get this QC
@@ -240,10 +240,10 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
 #'   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-#'   m-2] \item FCO2: CO2 flux [umol m-2 s-1] \item u: Longitudinal wind speed
-#'   component [m s-1] \item w: Vertical wind speed component [m s-1]  \item ts:
-#'   Sonic temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item
-#'   co2: CO2 concentration [umol mol-1]}.
+#'   m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
+#'   wind speed component [m s-1] \item w: Vertical wind speed component [m s-1]
+#'   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
+#'   mol-1] \item co2: CO2 concentration [umol mol-1]}.
 #'
 #' @return A data frame. Each column has attributes \code{"varnames"} and
 #'   \code{"units"} .
@@ -356,12 +356,11 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
       mf_Tau   <- mf(x[c("w_spikes", "u_spikes")], ur, mfr)
       mf_H     <- mf(x[c("w_spikes", "ts_spikes")], ur, mfr)
       mf_LE    <- mf(x[c("w_spikes", "h2o_spikes")], ur, mfr)
-      mf_FCO2  <- mf(x[c("w_spikes", "co2_spikes")], ur, mfr)
-      out$qc_Tau_missfrac  <- apply_thr(mf_Tau, missfrac_thr, "qc_Tau_missfrac")
-      out$qc_H_missfrac    <- apply_thr(mf_H, missfrac_thr, "qc_H_missfrac")
-      out$qc_LE_missfrac   <- apply_thr(mf_LE, missfrac_thr, "qc_LE_missfrac")
-      out$qc_FCO2_missfrac <- apply_thr(mf_FCO2, missfrac_thr,
-                                        "qc_FCO2_missfrac")
+      mf_NEE  <- mf(x[c("w_spikes", "co2_spikes")], ur, mfr)
+      out$qc_Tau_missfrac <- apply_thr(mf_Tau, missfrac_thr, "qc_Tau_missfrac")
+      out$qc_H_missfrac   <- apply_thr(mf_H, missfrac_thr, "qc_H_missfrac")
+      out$qc_LE_missfrac  <- apply_thr(mf_LE, missfrac_thr, "qc_LE_missfrac")
+      out$qc_NEE_missfrac <- apply_thr(mf_NEE, missfrac_thr, "qc_NEE_missfrac")
     } else {
       warning("'x$file_records' has no non-missing values, skipped missfrac",
               call. = FALSE)
@@ -372,7 +371,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
     # Flag according to argument 'scf_thr' (spectral correction factor
     # thresholds): scf > scf_thr[1]: flag = 1, scf > scf_thr[2]: flag = 2
     nin <- c("Tau_scf", "H_scf", "LE_scf", "co2_scf")
-    nout <- c("qc_Tau_scf", "qc_H_scf", "qc_LE_scf", "qc_FCO2_scf")
+    nout <- c("qc_Tau_scf", "qc_H_scf", "qc_LE_scf", "qc_NEE_scf")
     for (i in seq_along(nout)) {
       out[, nout[i]] <- apply_thr(x[, nin[i]], scf_thr, nout[i])
     }
@@ -396,7 +395,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
 
 #' Flux Interdependency
 #'
-#' Interdependency of H, LE and FCO2 QC flags due to corrections/conversions.
+#' Interdependency of H, LE and NEE QC flags due to corrections/conversions.
 #'
 #' Flux interdependency is an additive QC flag correction. Results follow the QC
 #' scheme using QC flag range 0 - 2. Returned data frame follows the 'Naming
@@ -404,24 +403,24 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
 #' suffix interdep.
 #'
 #' To convert buoyancy flux to sensible heat flux (SND or Schotanus correction),
-#' reliable measurements of LE must be available. To correct LE and FCO2
-#' measured by open-path IRGA (\code{IRGA = "open"}) for the effects of density
+#' reliable measurements of LE must be available. To correct LE and NEE
+#' estimated by open-path IRGA (\code{IRGA = "open"}) for the effects of density
 #' fluctuations due to temperature and humidity fluctuations (WPL or Webb
 #' correction), reliable measurements of H must be available. To perform WPL
-#' correction of FCO2 measured with any kind of IRGA, reliable measurements of
+#' correction of NEE estimated with any kind of IRGA, reliable measurements of
 #' LE must be available. Thus following set of rules apply:
 #'
 #' If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 |
-#' is.na(qc_LE) == TRUE}: qc_H and qc_FCO2 flags are increased by 1.} If
+#' is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
 #' \code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) ==
 #' TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H)
 #' == TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 |
-#' is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_FCO2 flags are
+#' is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
 #' increased by 1.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item H: Sensible
-#'   heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item FCO2: CO2 flux
-#'   [umol m-2 s-1] \item IRGA: InfraRed Gas Analyzer}.
+#'   heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
+#'   ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
@@ -458,7 +457,7 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
     stop("length(qc_LE) and length(qc_H) must be equal")
   }
   # qc_H is influencing variable only for open path system
-  nout <- c("qc_H_interdep", "qc_LE_interdep", "qc_FCO2_interdep")
+  nout <- c("qc_H_interdep", "qc_LE_interdep", "qc_NEE_interdep")
   out <- data.frame(rep(NA, len), rep(NA, len), rep(NA, len))
   names(out) <- nout
   for (i in nout) {
@@ -475,12 +474,12 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
     qc_H[is.na(qc_H)] <- 2L
     out$qc_LE_interdep[qc_H <  2] <- 0L
     out$qc_LE_interdep[qc_H >= 2] <- 1L
-    out$qc_FCO2_interdep[qc_LE <  2 & qc_H <  2] <- 0L
-    out$qc_FCO2_interdep[qc_LE >= 2 | qc_H >= 2] <- 1L
+    out$qc_NEE_interdep[qc_LE <  2 & qc_H <  2] <- 0L
+    out$qc_NEE_interdep[qc_LE >= 2 | qc_H >= 2] <- 1L
   } else {
     out$qc_LE_interdep <- NULL
-    out$qc_FCO2_interdep[qc_LE <  2] <- 0L
-    out$qc_FCO2_interdep[qc_LE >= 2] <- 1L
+    out$qc_NEE_interdep[qc_LE <  2] <- 0L
+    out$qc_NEE_interdep[qc_LE >= 2] <- 1L
   }
   return(out)
 }
