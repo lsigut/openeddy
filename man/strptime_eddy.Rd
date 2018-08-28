@@ -5,7 +5,7 @@
 \title{Conversion of Regular Date-time Sequence from Character}
 \usage{
 strptime_eddy(x, format = "\%Y-\%m-\%d \%H:\%M", freq = 1800,
-  center.by = NULL, tz = "GMT", ...)
+  shift.by = NULL, tz = "GMT", ...)
 }
 \arguments{
 \item{x}{A character vector containing date-time information to be converted
@@ -17,9 +17,8 @@ to class \code{"POSIXct"}.}
 \item{freq}{A numeric value specifying the frequency (in seconds) of the
 input date-time vector.}
 
-\item{center.by}{A numeric value specifying the time shift (in seconds) to be
-applied to the date-time information so it represents the middle of the
-measurement interval.}
+\item{shift.by}{A numeric value specifying the time shift (in seconds) to be
+applied to the date-time information.}
 
 \item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
 for the conversion.}
@@ -38,7 +37,7 @@ Eddy covariance related measurements are usually stored with a timestamp
 representing the end of the averaging period (typicaly 1800 s) in standard
 time. This can however cause difficulties during data aggregation or
 plotting. Therefore it is recommended to shift the date-time information
-using \code{center.by} to represent the center of averaging period prior to
+using \code{shift.by} to represent the center of averaging period prior to
 any computations. It is also recommended to change the date-time information
 to its original state before saving to a file (see Examples section).
 
@@ -57,7 +56,7 @@ xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 varnames(xx) <- "timestamp"
 units(xx) <- "-"
 str(xx)
-(yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", center.by = -900))
+(yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", shift.by = -900))
 ## Convert to original format
 format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
 attributes(yy)

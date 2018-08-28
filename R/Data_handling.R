@@ -325,7 +325,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' representing the end of the averaging period (typicaly 1800 s) in standard
 #' time. This can however cause difficulties during data aggregation or
 #' plotting. Therefore it is recommended to shift the date-time information
-#' using \code{center.by} to represent the center of averaging period prior to
+#' using \code{shift.by} to represent the center of averaging period prior to
 #' any computations. It is also recommended to change the date-time information
 #' to its original state before saving to a file (see Examples section).
 #'
@@ -343,9 +343,8 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #'   \code{"\%Y-\%m-\%d \%H:\%M"}
 #' @param freq A numeric value specifying the frequency (in seconds) of the
 #'   input date-time vector.
-#' @param center.by A numeric value specifying the time shift (in seconds) to be
-#'   applied to the date-time information so it represents the middle of the
-#'   measurement interval.
+#' @param shift.by A numeric value specifying the time shift (in seconds) to be
+#'   applied to the date-time information.
 #' @param tz A time zone (see \code{\link{time zones}}) specification to be used
 #'   for the conversion.
 #' @param ... Further arguments to be passed from or to other methods.
@@ -363,7 +362,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' varnames(xx) <- "timestamp"
 #' units(xx) <- "-"
 #' str(xx)
-#' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", center.by = -900))
+#' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", shift.by = -900))
 #' ## Convert to original format
 #' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
 #' attributes(yy)
@@ -374,14 +373,14 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' ## freq argument provided incorrectly
 #' strptime_eddy(xx, "%d.%m.%Y %H:%M", freq = 3600)}
 strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", freq = 1800,
-                          center.by = NULL, tz = "GMT", ...) {
+                          shift.by = NULL, tz = "GMT", ...) {
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
   if (!length(out)) stop("'x' not supplied correctly")
   if (any(is.na(out))) stop("'x' and/or 'format' not supplied correctly")
   if (any(diff(as.numeric(out)) != freq)) {
     stop("timestamp does not form regular sequence with specified 'freq'")
   }
-  if (!is.null(center.by)) out <- out + center.by
+  if (!is.null(shift.by)) out <- out + shift.by
   varnames(out) <- "timestamp"
   units(out) <- "-"
   return(out)
