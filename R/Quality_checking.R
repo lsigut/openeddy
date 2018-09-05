@@ -990,6 +990,8 @@ exclude <- function(x, qc_x = NULL, name_out, win_size = 336) {
   i <- 1
   while (i <= n_iter) {
     plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
+         ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
+                                                             na.rm = TRUE),
          main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
     filter <- as.logical(out[range]) # to keep red lines with opt == 5
     lines(range[filter], x[range[filter]],
@@ -1020,6 +1022,8 @@ exclude <- function(x, qc_x = NULL, name_out, win_size = 336) {
       if (opt == 3) {
         x <- ifelse(out == 2, NA, x)
         plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
+             ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
+                                                                 na.rm = TRUE),
              main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
       }
       if (opt == 4) {
