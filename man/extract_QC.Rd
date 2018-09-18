@@ -146,6 +146,17 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   mol-1] \item co2: CO2 concentration [umol mol-1]}.
 }
 
+\section{References}{
+ Foken, T., Wichura, B., 1996. Tools for quality
+  assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
+  83–105. doi:10.1016/0168-1923(95)02248-1
+
+  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
+  Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
+  assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
+  169, 122-135. doi:10.1016/j.agrformet.2012.09.006
+}
+
 \seealso{
 \code{\link{extract_coded}} and \code{\link{apply_thr}}.
 }

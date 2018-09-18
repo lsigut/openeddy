@@ -236,7 +236,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   \strong{QC suffixes} (specifies which QC check was applied to get this QC
 #'   output): \itemize{ \item abslim, spikesHF, missfrac, wresid. See 'Included
 #'   QC Checks' above.}
-
+#'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
 #'   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
@@ -244,6 +244,15 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   wind speed component [m s-1] \item w: Vertical wind speed component [m s-1]
 #'   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
 #'   mol-1] \item co2: CO2 concentration [umol mol-1]}.
+#'
+#' @section References: Foken, T., Wichura, B., 1996. Tools for quality
+#'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
+#'   83–105. doi:10.1016/0168-1923(95)02248-1
+#'
+#'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
+#'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
+#'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
+#'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 #'
 #' @return A data frame. Each column has attributes \code{"varnames"} and
 #'   \code{"units"} .
@@ -321,6 +330,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   }
   # Create output dataframe for saving qc flags
   out <- x[, 0]
+
   # abslim creates composite flags for H, LE and CO2 based on EddyPro
   # absolute_limits_hf column ==================================================
   if (abslim) {
@@ -331,6 +341,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
     out$qc_SA_abslim <- abslim_df$SA
     out$qc_SA_IRGA_abslim <- abslim_df$SA_IRGA
   }
+
   # spikesHF creates composite flags for H, LE and CO2 based on EddyPro
   # spikes_hf column ===========================================================
   if (spikesHF) {
@@ -341,6 +352,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
     out$qc_SA_spikesHF <- spike_df$SA
     out$qc_SA_IRGA_spikesHF <- spike_df$SA_IRGA
   }
+
   # missfrac creates overall flag for halfhours with insufficient
   # high frequency readings ====================================================
   if (missfrac) {
@@ -366,7 +378,8 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
               call. = FALSE)
     }
   }
-  # scf creates flag for halfhours with excessive spectral correction =======
+
+  # scf creates flag for halfhours with excessive spectral correction ==========
   if (scf) {
     # Flag according to argument 'scf_thr' (spectral correction factor
     # thresholds): scf > scf_thr[1]: flag = 1, scf > scf_thr[2]: flag = 2
@@ -376,7 +389,8 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
       out[, nout[i]] <- apply_thr(x[, nin[i]], scf_thr, nout[i])
     }
   }
-  # wresid creates overall flag for halfhours with probable advection =======
+
+  # wresid creates overall flag for halfhours with probable advection ==========
   if (wresid) {
     rotation <- match.arg(rotation)
     message(paste("wresid:", rotation, "rotation - using",
@@ -697,8 +711,10 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
 #'   [W m-2]}
 #'
-#' @section References: Sachs, L., 1996. Angewandte Statistik: Anwendung
-#'   Statistischer Methoden, Springer, Berlin.
+#' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
+#'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
+#'   and uncertainty assessment of long-term eddy-covariance measurements.
+#'   Agric. For. Meteorol. 169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 #'
 #'   Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
 #'   Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
@@ -706,10 +722,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
 #'   doi:10.5194/bgd-3-961-2006
 #'
-#'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
-#'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
-#'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-#'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006
+#'   Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
+#'   Springer, Berlin.
 #'
 #' @return If \code{plot = FALSE}, an integer vector with attributes
 #'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with

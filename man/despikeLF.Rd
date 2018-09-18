@@ -144,8 +144,10 @@ detected outliers and new spikes can be identified.
 }
 
 \section{References}{
- Sachs, L., 1996. Angewandte Statistik: Anwendung
-  Statistischer Methoden, Springer, Berlin.
+ Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
+  Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
+  and uncertainty assessment of long-term eddy-covariance measurements.
+  Agric. For. Meteorol. 169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 
   Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
   Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
@@ -153,10 +155,8 @@ detected outliers and new spikes can be identified.
   algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
   doi:10.5194/bgd-3-961-2006
 
-  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
-  Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
-  assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-  169, 122-135. doi:10.1016/j.agrformet.2012.09.006
+  Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
+  Springer, Berlin.
 }
 
 \seealso{
