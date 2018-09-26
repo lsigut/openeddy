@@ -20,6 +20,8 @@ Description: This package provides utilities for eddy covariance data
     the automated quality checking and make data processing reproducible.
 Depends: R (>= 3.5.1)
 License: GPL (>= 2)
+URL: https://github.com/lsigut/openeddy
+BugReports: https://github.com/lsigut/openeddy/issues
 Date: 2018-09-18
 Encoding: UTF-8
 LazyData: true
