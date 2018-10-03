@@ -4,6 +4,21 @@ openeddy
 
 This package provides utilities for eddy covariance data handling, quality checking (similar to Mauder et al., 2013), processing, summarising and plotting. It aims to standardise the automated quality checking and make data processing reproducible.
 
+Installation
+------------
+
+1.  Install devtools package if not available yet.
+
+    ``` r
+    install.packages("devtools")
+    ```
+
+2.  Install openeddy
+
+    ``` r
+    devtools::install_github("lsigut/openeddy")
+    ```
+
 Example
 -------
 
