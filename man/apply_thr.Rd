@@ -4,7 +4,7 @@
 \alias{apply_thr}
 \title{Apply Thresholds}
 \usage{
-apply_thr(x, thr, name_out, flag = c("higher", "between", "lower"))
+apply_thr(x, thr, name_out, flag = c("higher", "outside", "between", "lower"))
 }
 \arguments{
 \item{x}{A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.}
@@ -36,8 +36,12 @@ For \code{flag = "higher"} \itemize{ \item If \code{x <= thr[1]}, QC flag =
 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
 thr[2]}, QC flag = 2.}
 
-For \code{flag = "between"} \itemize{ \item If \code{x >= thr[1] & x <=
+For \code{flag = "outside"} \itemize{ \item If \code{x >= thr[1] & x <=
 thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+
+For \code{flag = "between"} \itemize{ \item If \code{x <= thr[1] | x >=
+thr[2]}, QC flag = 0. \item If \code{x > thr[1] & x < thr[2]}, QC flag = 2.
+}
 
 For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
@@ -48,6 +52,7 @@ apply_thr(1:10, c(3, 6), "example")
 set.seed(1)
 xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
 xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
+xx$outside <- apply_thr(xx$var, c(-1, 1), "outside", flag = "outside")
 xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
 xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 xx

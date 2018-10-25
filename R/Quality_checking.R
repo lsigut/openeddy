@@ -12,8 +12,12 @@
 #' 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
 #' thr[2]}, QC flag = 2.}
 #'
-#' For \code{flag = "between"} \itemize{ \item If \code{x >= thr[1] & x <=
+#' For \code{flag = "outside"} \itemize{ \item If \code{x >= thr[1] & x <=
 #' thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+#'
+#' For \code{flag = "between"} \itemize{ \item If \code{x <= thr[1] | x >=
+#' thr[2]}, QC flag = 0. \item If \code{x > thr[1] & x < thr[2]}, QC flag = 2.
+#' }
 #'
 #' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 #' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
@@ -37,12 +41,13 @@
 #' set.seed(1)
 #' xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
 #' xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
+#' xx$outside <- apply_thr(xx$var, c(-1, 1), "outside", flag = "outside")
 #' xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
 #' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
 apply_thr <- function(x, thr, name_out,
-                      flag = c("higher", "between", "lower")) {
+                      flag = c("higher", "outside", "between", "lower")) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
@@ -61,10 +66,15 @@ apply_thr <- function(x, thr, name_out,
     out[x >  thr[1]] <- 1L
     out[x >  thr[2]] <- 2L
   }
-  if (flag == "between") {
+  if (flag == "outside") {
     if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
     out[x >= thr[1] & x <= thr[2]] <- 0L
     out[x < thr[1] | x > thr[2]] <- 2L
+  }
+  if (flag == "between") {
+    if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
+    out[x <= thr[1] | x >= thr[2]] <- 0L
+    out[x > thr[1] & x < thr[2]] <- 2L
   }
   if (flag == "lower") {
     if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
