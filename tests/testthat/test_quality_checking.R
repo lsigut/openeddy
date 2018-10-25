@@ -8,6 +8,11 @@ set_attributes <- function(x) {
   return(x)
 }
 
+# Test apply_thr()
+test_that("apply_thr Value is integer", {
+  expect_equal(is.integer(apply_thr(1:9, c(3, 6), "test")), TRUE)
+})
+
 test_that("apply_thr flags higher correctly", {
   expect_equal(apply_thr(1:9, c(3, 6), "test"),
                set_attributes(rep(0:2, rep(3, 3))))
@@ -37,4 +42,20 @@ test_that("both thr values identical work in apply_thr correctly", {
                set_attributes(c(0, 2)))
 })
 
-# apply_thr returns integers
+# Test flag_runs()
+test_that("flag_runs Value is integer", {
+  expect_equal(is.integer(flag_runs(c(1, rep(c(0, NA), 2)), "test")), TRUE)
+})
+
+test_that("flag_runs handles NAs", {
+  expect_equal(flag_runs(c(1, 3, NA, NA, 3), "test"),
+               set_attributes(c(0, 2, NA, NA, 2)))
+})
+
+test_that("flag_runs catches repeated values", {
+  expect_equal(flag_runs(rep(1:6, rep(c(2, 1), 3)), "test"),
+               set_attributes(rep(c(2, 2, 0), 3)))
+})
+
+
+

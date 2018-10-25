@@ -86,6 +86,54 @@ apply_thr <- function(x, thr, name_out,
   return(out)
 }
 
+#' Flag Runs of Equal Values
+#'
+#' Identify and flag values of runs with repeating values in a vector.
+#'
+#' \code{NA} values are omitted before evaluation of runs. Thus \code{NA}s do
+#' not interrupt runs. Flagging is done according to the 0 - 2 quality control
+#' flag scheme.
+#'
+#' @param x A numeric atomic type with NULL dimensions.
+#' @param name_out A character string providing \code{varnames} attribute value
+#'   of the output.
+#' @param length A numeric value.
+#'
+#' @return An integer vector with the same length as \code{x}. Its
+#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
+#'   \code{"-"} values, respectively.
+#'
+#' @examples
+#' (xx <- c(rep(c(0, NA), 5)))
+#' flag_runs(xx, "qc_xx_runs")
+#' (yy <- rep(1:6, rep(c(2, 1), 3)))
+#' flag_runs(yy, "qc_yy_runs")
+flag_runs <- function(x, name_out, length = 2) {
+  if (!is.numeric(x)) stop("'x' must be numeric")
+  # matrix and array is numeric - we do not want them:
+  if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
+  if (!is.atomic(name_out) || length(name_out) != 1) {
+    stop("atomic type 'name_out' must have length 1")
+  }
+  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
+  if (!is.numeric(length) || length(length) != 1 || is.na(length)) {
+    stop("'length' must be non-missing numeric value")
+  }
+  out <- rep(NA, length(x))
+  not_NA <- !is.na(x)
+  x <- x[not_NA]
+  rl <- rle(x)$lengths
+  keep <- rl >= length
+  run_start <- (cumsum(rl) + 1 - rl)[keep]
+  run_end <- cumsum(rl)[keep]
+  df <- data.frame(run_start, run_end)
+  runs <- unlist(apply(df, 1, function(x) x[1]:x[2]))
+  out[not_NA] <- 0L
+  out[not_NA][runs] <- 2L
+  attributes(out) <- list(varnames = name_out, units = "-")
+  return(out)
+}
+
 #' Extract Quality Control Information from Coded Values
 #'
 #' This function is called by \code{\link{extract_QC}} and is not inteded to be
