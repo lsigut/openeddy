@@ -32,12 +32,67 @@ install.packages("devtools")
 devtools::install_github("lsigut/openeddy")
 ```
 
-## Example
+## Extended Example
 
 An extended example describing the intended eddy covariance data processing
 workflow is available at:
 
 https://github.com/lsigut/EC_workflow
+
+## Short Example
+
+Demonstration of generally applicable `openeddy` functions.
+
+```{r}
+library(openeddy)
+library(REddyProc)
+library(ggplot2)
+data(Example_DETha98)
+str(Example_DETha98[1:4])
+DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', 
+                               Year = 'Year', Day = 'DoY', Hour = 'Hour')
+rename <- names(DETha98) %in% c("DateTime", "Rg")
+names(DETha98)[rename] <- c("timestamp", "GR")
+DETha98$qc_NEE <- ifelse(is.na(DETha98$NEE), NA, 0)
+DETha98$qc_NEE_lowcov <- 
+  apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
+table(DETha98$qc_NEE_lowcov)
+DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
+table(DETha98$qc_NEE_runs)
+DETha98$qc_NEE_prelim <- 
+  combn_QC(DETha98, 
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
+           "qc_NEE_prelim", additive = FALSE, na.as = NA)
+DETha98$qc_NEE_despikeLF <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+            light = NULL)
+table(DETha98$qc_NEE_despikeLF)
+
+summary_QC(DETha98, 
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
+           na.as = c(NA, NA, NA, 0))
+summary_QC(DETha98, 
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
+           na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
+DETha98$qc_NEE_composite <- 
+  combn_QC(DETha98, 
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
+           "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+
+DETha98[, c("P", "PAR", "Rn")] <- NA
+(varnames <- varnames(DETha98))
+(units <- openeddy::units(DETha98))
+sub <- DETha98$DoY >= 29 & DETha98$DoY < 43
+DETha98_sub <- DETha98[sub, ]
+openeddy::units(DETha98) <- units
+plot_eddy(DETha98_sub, "NEE", "qc_NEE", "qc_NEE_composite", skip = "monthly",
+          light = "GR")
+
+despikeLF_plots <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+            light = NULL, plot = TRUE)$plots
+despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
+```
 
 ## References
 
