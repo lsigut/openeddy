@@ -709,10 +709,12 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' still has to be included in \code{x} as a named column with all values set to
 #' \code{0} (i.e. all values will be checked for outliers).
 #'
-#' Only non-missing \code{var} values with corresponing \code{qc_flag} values
+#' Only non-missing \code{var} values with corresponding \code{qc_flag} values
 #' below \code{2} are used to detect the outliers. Missing \code{var} values or
 #' those with assigned flag \code{2} or \code{NA} are not checked and marked by
-#' \code{NA} flag in the output.
+#' \code{NA} flag in the output. Thus \code{NA} values of \code{despikeLF}
+#' should be considered as not checked records and therefore interpreted as
+#' \code{0} flag within the \code{0 - 2} quality control scheme.
 #'
 #' \code{var_thr} is intended for exclusion of data clearly outside of
 #' theoretically acceptable range for the whole dataset. If \code{var_thr} is

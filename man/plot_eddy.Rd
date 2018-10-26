@@ -5,9 +5,10 @@
 \title{Plot Time Series of Eddy Covariance Data}
 \usage{
 plot_eddy(x, flux, qc_flag = "none", test = "none", flux_gf = "none",
-  NEE_sep = FALSE, skip_weekly = FALSE, panel_top = c("T_light", "VPD_Rn",
-  "H_err_var"), panel_bottom = c("VPD_Rn", "T_light", "H_err_var"),
-  light = c("PAR", "GR"), GPP_check = TRUE, document = TRUE)
+  NEE_sep = FALSE, skip = c("none", "monthly", "weekly"),
+  panel_top = c("T_light", "VPD_Rn", "H_err_var"),
+  panel_bottom = c("VPD_Rn", "T_light", "H_err_var"), light = c("PAR",
+  "GR"), GPP_check = TRUE, document = TRUE)
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables. See
@@ -32,9 +33,9 @@ gap-filled flux values.}
 visualized. If \code{TRUE}, columns \code{"Reco"} and \code{"GPP"} are
 expected in \code{x}.}
 
-\item{skip_weekly}{A logical value. Determines whether plotting should be
-done also in weekly intervals. If \code{TRUE}, only monthly plots are
-drawn.}
+\item{skip}{A character string. Determines whether plotting should be done in
+monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
+"monthly"}) or both (\code{skip = "none"}).}
 
 \item{panel_top}{A character string. Selects one of the available modules for
 plotting additional variables. This module is displayed above the panel
@@ -73,9 +74,10 @@ available (e.g. \code{"P"}, \code{"Tsoil"}), it still has to be included in
 by argument \code{flux} is the only one that has to contain at least one
 non-missing value.
 
-If \code{skip_weekly = TRUE}, minimum requirements for \code{x} column names
-are \code{"timestamp"} and \code{flux}. If \code{skip_weekly = FALSE},
-\code{"P"} and respective names specified in 'Modules' are also required.
+If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
+\code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
+\code{"monthly"}, \code{"P"} and respective names specified in 'Modules' (see
+below) are also required.
 
 Variable names for plot labels are extracted from required column names of
 \code{x}. Units are extracted from \code{x} if they are present as
@@ -85,20 +87,22 @@ used instead.
 Plotting is separated into two stages. Firstly, \code{flux} time-series data
 are drawn in monthly intervals. Monthly plotting regions consist of four
 figures on top of each other representing separately four consecutive months.
-Secondly, if \code{skip_weekly = FALSE}, \code{flux} time-series data are
-drawn together with auxiliary data in weekly intervals. See 'Modules'.
+Secondly, if \code{skip = "none"} or \code{"monthly"}, \code{flux}
+time-series data are drawn together with auxiliary data in weekly intervals.
+Weekly plotting regions are described in 'Modules' section (see below).
 }
 \section{Modules}{
- Applies only if \code{skip_weekly = FALSE}. Plotting in
-  weekly intervals is simplified by using predefined modules. Their main
-  purpose is to achieve well-arranged display of auxiliary variables. Weekly
-  plotting regions consist of two panels representing separately two
-  consecutive weeks. Each panel contains three figures on top of each other.
-  The middle panel always contains the values from \code{flux} and \code{"P"}
-  columns of \code{x}. Variables used in the upper and lower figure can be
-  changed by \code{panel_top} and \code{panel_bottom}. These arguments
-  specify the respective modules that will be loaded (can be the same) and
-  thus also a certain set of required column names of \code{x} (variables).
+ Applies only if \code{skip = "none"} or \code{"monthly"}.
+  Plotting in weekly intervals is simplified by using predefined modules.
+  Their main purpose is to achieve well-arranged display of auxiliary
+  variables. Weekly plotting regions consist of two figures representing
+  separately two consecutive weeks. Each figure contains three panels on top
+  of each other. The middle panel always contains the values from \code{flux}
+  and \code{"P"} columns of \code{x}. Variables used in the upper and lower
+  panel can be changed by \code{panel_top} and \code{panel_bottom}. These
+  arguments specify the respective modules that will be loaded (can be the
+  same) and thus also a certain set of required column names of \code{x}
+  (variables).
 
   Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
   \code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires

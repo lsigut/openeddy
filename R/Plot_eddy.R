@@ -69,9 +69,10 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' by argument \code{flux} is the only one that has to contain at least one
 #' non-missing value.
 #'
-#' If \code{skip_weekly = TRUE}, minimum requirements for \code{x} column names
-#' are \code{"timestamp"} and \code{flux}. If \code{skip_weekly = FALSE},
-#' \code{"P"} and respective names specified in 'Modules' are also required.
+#' If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
+#' \code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
+#' \code{"monthly"}, \code{"P"} and respective names specified in 'Modules' (see
+#' below) are also required.
 #'
 #' Variable names for plot labels are extracted from required column names of
 #' \code{x}. Units are extracted from \code{x} if they are present as
@@ -81,19 +82,21 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' Plotting is separated into two stages. Firstly, \code{flux} time-series data
 #' are drawn in monthly intervals. Monthly plotting regions consist of four
 #' figures on top of each other representing separately four consecutive months.
-#' Secondly, if \code{skip_weekly = FALSE}, \code{flux} time-series data are
-#' drawn together with auxiliary data in weekly intervals. See 'Modules'.
+#' Secondly, if \code{skip = "none"} or \code{"monthly"}, \code{flux}
+#' time-series data are drawn together with auxiliary data in weekly intervals.
+#' Weekly plotting regions are described in 'Modules' section (see below).
 #'
-#' @section Modules: Applies only if \code{skip_weekly = FALSE}. Plotting in
-#'   weekly intervals is simplified by using predefined modules. Their main
-#'   purpose is to achieve well-arranged display of auxiliary variables. Weekly
-#'   plotting regions consist of two panels representing separately two
-#'   consecutive weeks. Each panel contains three figures on top of each other.
-#'   The middle panel always contains the values from \code{flux} and \code{"P"}
-#'   columns of \code{x}. Variables used in the upper and lower figure can be
-#'   changed by \code{panel_top} and \code{panel_bottom}. These arguments
-#'   specify the respective modules that will be loaded (can be the same) and
-#'   thus also a certain set of required column names of \code{x} (variables).
+#' @section Modules: Applies only if \code{skip = "none"} or \code{"monthly"}.
+#'   Plotting in weekly intervals is simplified by using predefined modules.
+#'   Their main purpose is to achieve well-arranged display of auxiliary
+#'   variables. Weekly plotting regions consist of two figures representing
+#'   separately two consecutive weeks. Each figure contains three panels on top
+#'   of each other. The middle panel always contains the values from \code{flux}
+#'   and \code{"P"} columns of \code{x}. Variables used in the upper and lower
+#'   panel can be changed by \code{panel_top} and \code{panel_bottom}. These
+#'   arguments specify the respective modules that will be loaded (can be the
+#'   same) and thus also a certain set of required column names of \code{x}
+#'   (variables).
 #'
 #'   Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
 #'   \code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires
@@ -158,9 +161,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param NEE_sep A logical value. Determines whether NEE separation should be
 #'   visualized. If \code{TRUE}, columns \code{"Reco"} and \code{"GPP"} are
 #'   expected in \code{x}.
-#' @param skip_weekly A logical value. Determines whether plotting should be
-#'   done also in weekly intervals. If \code{TRUE}, only monthly plots are
-#'   drawn.
+#' @param skip A character string. Determines whether plotting should be done in
+#'   monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
+#'   "monthly"}) or both (\code{skip = "none"}).
 #' @param panel_top A character string. Selects one of the available modules for
 #'   plotting additional variables. This module is displayed above the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
@@ -177,9 +180,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   \code{test} arguments are documented in both monthly and weekly plots.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
-
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
-                      flux_gf = "none", NEE_sep = FALSE, skip_weekly = FALSE,
+                      flux_gf = "none", NEE_sep = FALSE,
+                      skip = c("none", "monthly", "weekly"),
                       panel_top = c("T_light", "VPD_Rn", "H_err_var"),
                       panel_bottom = c("VPD_Rn", "T_light", "H_err_var"),
                       light = c("PAR", "GR"), GPP_check = TRUE,
@@ -195,7 +198,8 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   req <- !c(qc_flag, test, flux_gf) %in% "none"
   req_vars <- c(req_vars, c(qc_flag, test, flux_gf)[req])
   if (NEE_sep) req_vars <- c(req_vars, "Reco", "GPP")
-  if (!skip_weekly) {
+  skip <- match.arg(skip)
+  if (skip != "weekly") {
     req_vars <- c(req_vars, "P")
     panel_top <- match.arg(panel_top)
     panel_bottom <- match.arg(panel_bottom)
@@ -262,77 +266,81 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   day1 <- as.Date(paste(time$year[1] + 1900, "-", time$mon[1] + 1, "-01",
                         sep = ""))
   # Graphical display of data in monthly periods ===============================
-  # grey = excluded data, green = used data
-  # Number of intervals with right side closure (+1)
-  nInt <- length(unique(paste(time$year, time$mon))) + 1L
-  # Create monthly intervals for plotting
-  int <- seq(from = day1, length.out = nInt, by = "1 month")
-  op <- par(mfcol = c(4, 1), mar = c(3, 0, 0, 0), oma = c(2, 6, 1, 1))
-  for (i in 1:(nInt - 1L)) {
-    mon <- date >= int[i] & date < int[i + 1L]
-    # keep the lenght of time[mon] but remove excluded data
-    # (needed for lines)
-    showVals <- vals[mon]
-    showVals[!use[mon]] <- NA
-    # xaxis has to be one day longer to simplify plotting
-    xaxis <- seq(from = int[i], to = int[i + 1L], by = "1 day")
-    xaxis <- as.POSIXct(strptime(xaxis, "%Y-%m-%d", tz = "GMT"))
-    y <- vals[use]
-    f <- mon[use]
-    if (flux_gf != "none") {
-      y <- c(y, vals_gf)
-      f <- c(f, mon)
-    }
-    if (NEE_sep) {
-      y <- c(y, Reco, GPP)
-      f <- c(f, rep(mon, 2))
-    }
-    plot(time[mon], vals[mon], type = "n", xaxt = "n", yaxt = "n",
-         ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
-         xlim = range(xaxis), ylim = setRange(y, f))
-    # Halfday shift of ticks to mark the middle of day
-    axis.POSIXct(1, at = seq(min(xaxis), max(xaxis), by = "5 days") + 12 * 3600,
-                 format = "%Y/%m/%d", padj = -0.5)
-    axis(2)
-    abline(v = xaxis, col = "grey", lty = 3)
-    lines(time[mon], vals[mon], type = "o", pch = 19, cex = 0.75, col = "grey")
-    lines(time[mon], showVals, type = "o", pch = 19, cex = 0.75)
-    if (flux_gf != "none") {
-      lines(time[mon], vals_gf[mon],
-            type = "l", pch = 19, cex = 0.4, col = "forestgreen")
-    }
-    if (NEE_sep) {
-      lines(time[mon], Reco[mon], col = "firebrick3")
-      lines(time[mon], GPP[mon], col = "dodgerblue3")
-    }
-    points(time[mon & (exalt == 1)], vals[mon & (exalt == 1)],
-           col = "green", pch = 19, cex = 0.4)
-    points(time[mon & (exalt == 2)], vals[mon & (exalt == 2)],
-           col = "red", pch = 19, cex = 0.4)
-    mtext(wrap(units[flux]), 2, line = 2.2, cex = 0.8)
-    mtext(flux, 2, line = 3.4, cex = 1.2)
-    if (i %% 4 == 1) {
-      legend("topleft",
-             legend = c("Used data", "Excluded data", "Test flag = 1",
-                        "Test flag = 2"),
-             col = c("black", "grey", "green", "red"),
-             pch = 19, lty = c(1, 1, NA, NA), bty = "n")
-      if (flux_gf != "none" || NEE_sep) {
-        legend("topright",
-               legend = c("Gap-filled data", if (NEE_sep) c("Reco", "GPP")),
-               col = c("forestgreen",
-                       if (NEE_sep) c("firebrick3", "dodgerblue3")),
-               lwd = 2, bty = "n")
+  if (skip != "monthly") {
+    # grey = excluded data, green = used data
+    # Number of intervals with right side closure (+1)
+    nInt <- length(unique(paste(time$year, time$mon))) + 1L
+    # Create monthly intervals for plotting
+    int <- seq(from = day1, length.out = nInt, by = "1 month")
+    op <- par(mfcol = c(4, 1), mar = c(3, 0, 0, 0), oma = c(2, 6, 1, 1))
+    for (i in 1:(nInt - 1L)) {
+      mon <- date >= int[i] & date < int[i + 1L]
+      # keep the lenght of time[mon] but remove excluded data
+      # (needed for lines)
+      showVals <- vals[mon]
+      showVals[!use[mon]] <- NA
+      # xaxis has to be one day longer to simplify plotting
+      xaxis <- seq(from = int[i], to = int[i + 1L], by = "1 day")
+      xaxis <- as.POSIXct(strptime(xaxis, "%Y-%m-%d", tz = "GMT"))
+      y <- vals[use]
+      f <- mon[use]
+      if (flux_gf != "none") {
+        y <- c(y, vals_gf)
+        f <- c(f, mon)
       }
+      if (NEE_sep) {
+        y <- c(y, Reco, GPP)
+        f <- c(f, rep(mon, 2))
+      }
+      plot(time[mon], vals[mon], type = "n", xaxt = "n", yaxt = "n",
+           ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
+           xlim = range(xaxis), ylim = setRange(y, f))
+      # Halfday shift of ticks to mark the middle of day
+      axis.POSIXct(1,
+                   at = seq(min(xaxis), max(xaxis), by = "5 days") + 12 * 3600,
+                   format = "%Y/%m/%d", padj = -0.5)
+      axis(2)
+      abline(v = xaxis, col = "grey", lty = 3)
+      lines(time[mon], vals[mon], type = "o", pch = 19, cex = 0.75,
+            col = "grey")
+      lines(time[mon], showVals, type = "o", pch = 19, cex = 0.75)
+      if (flux_gf != "none") {
+        lines(time[mon], vals_gf[mon],
+              type = "l", pch = 19, cex = 0.4, col = "forestgreen")
+      }
+      if (NEE_sep) {
+        lines(time[mon], Reco[mon], col = "firebrick3")
+        lines(time[mon], GPP[mon], col = "dodgerblue3")
+      }
+      points(time[mon & (exalt == 1)], vals[mon & (exalt == 1)],
+             col = "green", pch = 19, cex = 0.4)
+      points(time[mon & (exalt == 2)], vals[mon & (exalt == 2)],
+             col = "red", pch = 19, cex = 0.4)
+      mtext(wrap(units[flux]), 2, line = 2.2, cex = 0.8)
+      mtext(flux, 2, line = 3.4, cex = 1.2)
+      if (i %% 4 == 1) {
+        legend("topleft",
+               legend = c("Used data", "Excluded data", "Test flag = 1",
+                          "Test flag = 2"),
+               col = c("black", "grey", "green", "red"),
+               pch = 19, lty = c(1, 1, NA, NA), bty = "n")
+        if (flux_gf != "none" || NEE_sep) {
+          legend("topright",
+                 legend = c("Gap-filled data", if (NEE_sep) c("Reco", "GPP")),
+                 col = c("forestgreen",
+                         if (NEE_sep) c("firebrick3", "dodgerblue3")),
+                 lwd = 2, bty = "n")
+        }
+      }
+      if (document && i %% 4 == 3) {
+        mtext(paste("qc_flag = '", qc_flag, "', test = '", test, "'",
+                    sep = ""), side = 3, line = 0, adj = 0, cex = 0.6)
+      }
+      if (i %% 4 == 0) mtext("Day of year", 1, line = 3, cex = 1.2)
     }
-    if (document && i %% 4 == 3) {
-      mtext(paste("qc_flag = '", qc_flag, "', test = '", test, "'",
-                  sep = ""), side = 3, line = 0, adj = 0, cex = 0.6)
-    }
-    if (i %% 4 == 0) mtext("Day of year", 1, line = 3, cex = 1.2)
+    par(op)
   }
-  par(op)
-  if (!skip_weekly) {
+  if (skip != "weekly") {
     P <- x$P
     # Modules ==================================================================
     modules <- list()
