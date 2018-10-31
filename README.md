@@ -29,7 +29,7 @@ An extended example describing the intended eddy covariance data processing work
 Short Example
 -------------
 
-Demonstration of generally applicable `openeddy` functions.
+Demonstration of selected generally applicable `openeddy` functions.
 
 ``` r
 library(openeddy)
@@ -40,6 +40,11 @@ library(openeddy)
 #>     units, units<-
 library(REddyProc)
 library(ggplot2)
+```
+
+Example data from `REddyProc` package do not include statistics extracted from raw data or quality control (QC) flags. Notice that units are included.
+
+``` r
 data(Example_DETha98)
 str(Example_DETha98[1:4])
 #> 'data.frame':    17520 obs. of  4 variables:
@@ -58,9 +63,23 @@ str(Example_DETha98[1:4])
 DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', 
                                Year = 'Year', Day = 'DoY', Hour = 'Hour')
 #> Converted time format 'YDH' to POSIX with column name 'DateTime'.
+```
+
+Certain variable names are expected by `openeddy`, thus DETha98 variable names need to be renamed. Net ecosystem exchange (NEE) is already filtered based on QC information (qc\_NEE) that is not included. Though flag 2 values can be recreated, respective NEE values are missing and flag 1 cannot be resolved.
+
+``` r
 rename <- names(DETha98) %in% c("DateTime", "Rg")
 names(DETha98)[rename] <- c("timestamp", "GR")
 DETha98$qc_NEE <- ifelse(is.na(DETha98$NEE), NA, 0)
+```
+
+Application of three general filters is presented.
+
+1.  Low covariance between vertical wind component and CO<sub>2</sub> concentration ((CO<sub>2</sub>)) can be caused by frozen ultrasonic anemometer or problems with (CO<sub>2</sub>) measurements. Such cases are flagged and saved to qc\_NEE\_lowcov.
+2.  Runs with repeating values are a sign of malfunctioning equipment (qc\_NEE\_runs).
+3.  Spikes in low frequency data cause problems during gap-filling and should be excluded. Since DETha98 was already quality checked, the amount of detected spikes is limited. In order to correctly evaluate spikes, preliminary QC (qc\_NEE\_prelim) that combines available QC tests or filters should be produced and used in `despikeLF`.
+
+``` r
 DETha98$qc_NEE_lowcov <- 
   apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
 table(DETha98$qc_NEE_lowcov)
@@ -87,7 +106,11 @@ table(DETha98$qc_NEE_despikeLF)
 #> 
 #>     0     2 
 #> 11024    26
+```
 
+The QC results can be summarized in tabular or graphical form using `summary_QC`. It is possible to summarize each filter independently or summarize the cummulative effect of applied filters. Note that the fraction of flagged records in this example is negligible as DETha98 dataset was already quality checked.
+
+``` r
 summary_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
            na.as = c(NA, NA, NA, 0))
@@ -102,14 +125,20 @@ summary_QC(DETha98,
            na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
 ```
 
-![](README-unnamed-chunk-2-1.png)
+![](README-unnamed-chunk-6-1.png)
+
+Although individual QC columns should be stored as they are useful to distinguish the reason why certain records were excluded, only the combined QC column (qc\_NEE\_composite) is usually used in further data processing and analysis.
 
 ``` r
 DETha98$qc_NEE_composite <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
            "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+```
 
+Function `plot_eddy` is useful for visualization of the whole dataset including flux values, its respective QC flags and the most important micrometeorological parameters in monthly and weekly time resolution. Only a two week subset is presented here to limit the extent of output.
+
+``` r
 DETha98[, c("P", "PAR", "Rn")] <- NA
 (varnames <- varnames(DETha98))
 #>  [1] "DateTime"         "Year"             "DoY"             
@@ -134,10 +163,11 @@ plot_eddy(DETha98_sub, "NEE", "qc_NEE", "qc_NEE_composite", skip = "monthly",
           light = "GR")
 ```
 
-![](README-unnamed-chunk-2-2.png)
+![](README-unnamed-chunk-8-1.png)
+
+In addition to actual despiking, `despikeLF` can be used also for visualization of the internally computed double-differenced time series in order to inspect selected 13 days blocks. See section Plotting in `despikeLF` help file for further description.
 
 ``` r
-
 despikeLF_plots <- 
   despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
             light = NULL, plot = TRUE)$plots
@@ -148,7 +178,7 @@ despikeLF_plots <-
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
 
-![](README-unnamed-chunk-2-3.png)
+![](README-unnamed-chunk-9-1.png)
 
 References
 ----------
