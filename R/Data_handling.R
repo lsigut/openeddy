@@ -1,3 +1,42 @@
+#' Folder Structure Setup
+#'
+#' Create folder structure for eddy covariance data post-processing with
+#' \code{openeddy}.
+#'
+#' The purpose is to standardize the locations for metadata and post-processing
+#' inputs required to run the proposed workflow
+#' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data in
+#' levels corresponding to processing stage. The folder structure is not
+#' required to succesfully apply the workflow but simplifies its use.
+#'
+#' Data processing stages \itemize{\item Level 0: Raw files with measured high
+#' frequency eddy covariance data and relevant metadata or instrument setup
+#' files. \item Level 1: Processing software setup and output files and a
+#' logbook. \item Level 2: Quality checking results and documentation,
+#' definition of ecosystem boundary, storage flux processing and files used as
+#' inputs for Level 3 data. \item Level 3: gap-filling output and its
+#' documentation, summary of the computed fluxes and meteorological data
+#' including their aggregation.}
+#'
+#' @param root A character string defining the root of created folder structure.
+structure_eddy <- function(root = ".") {
+  md <- function(x, path = paste0(root, x)) {
+    dir.create(path = path, recursive = TRUE)
+  }
+  md("/Level 0/Processing setup/")
+  md("/Level 0/IRGA setup/")
+  md("/Level 0/Raw data/")
+  md("/Level 1/Logbook/")
+  md("/Level 1/Processing/")
+  md("/Level 2/Input for gap-filling/")
+  md("/Level 2/Quality checking/Precheck/WD dependency/")
+  md("/Level 2/Quality checking/QC summary/")
+  md("/Level 2/Storage flux/")
+  md("/Level 3/Gap-filling/Plots/")
+  md("/Level 3/Gap-filling/Ustar filtering/")
+  md("/Level 3/Summary/png/")
+  }
+
 #' Find Rows or Columns with Only NAs Over Array Margins
 #'
 #' \code{allNA} returns a logical vector or array or list indicating whether
