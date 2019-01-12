@@ -85,10 +85,11 @@ covariance (\emph{eddy}) data. Missing values are often reported as
 \code{"-9999.0"} or \code{"-9999"} by post-processing software, therefore
 \code{na.strings = c("NA", "-9999.0", "-9999")} is used as default.
 
-Attribute \code{varnames} contains variable name of respective column that is
-identical with its column name. The main purpose of \code{varnames} attribute
-is to keep variable name of a vector when it is separated from the original
-data frame.
+Attribute \code{varnames} contains original variable name of respective
+column without automated conversion that is done for column name. The main
+purpose of \code{varnames} attribute is to provide control over conversion of
+original column names and keep variable name of a vector when it is separated
+from the original data frame.
 
 Units are expected to be one line below the header in the input file. Instead
 of units of measurement, it is possible to include any space efficient
@@ -128,11 +129,18 @@ str(yy)
 xx$date <- as.Date(xx$timestamp, units(xx$timestamp))
 str(xx)
 
+## Varnames store the original header without automated conversions:
+aa <- read_eddy(text =
+"u*,(z-d)/L,x_70\%
+m s-1,-,m
+1.412908015,-4.05E-02,153.7963035")
+str(aa)
+
 ## header = FALSE and units = FALSE:
-zz <- read_eddy(header = FALSE, units = FALSE, text =
+bb <- read_eddy(header = FALSE, units = FALSE, text =
 "24.1.2015,1.70
 24.1.2016,1.72")
-str(zz)
+str(bb)
 }
 \seealso{
 \code{\link{read.table}} for information about further arguments
