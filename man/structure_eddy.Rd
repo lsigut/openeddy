@@ -4,21 +4,31 @@
 \alias{structure_eddy}
 \title{Folder Structure Setup}
 \usage{
-structure_eddy(root = ".")
+structure_eddy(root = ".", create_dirs = TRUE, ...)
 }
 \arguments{
 \item{root}{A character string defining the root of created folder structure.}
+
+\item{create_dirs}{A logical value. Indicates whether directories should be
+created.}
+
+\item{...}{Further arguments to be passed to \code{dir.create} function.}
+}
+\value{
+A named list with paths to folder structure directories.
+  Corresponding directories are created as a function side effect if
+  \code{create_dirs = TRUE} (default).
 }
 \description{
-Create folder structure for eddy covariance data post-processing with
-\code{openeddy}.
+Folder structure recommended for eddy covariance data processing and
+archivation.
 }
 \details{
 The purpose is to standardize the locations for metadata and post-processing
 inputs required to run the proposed workflow
-(\url{https://github.com/lsigut/EC_workflow}) as well as to store data in
-levels corresponding to processing stage. The folder structure is not
-required to succesfully apply the workflow but simplifies its use.
+(\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
+metadata in levels corresponding to processing stage. The folder structure is
+not required to succesfully apply the workflow but simplifies its use.
 
 Data processing stages \itemize{\item Level 0: Raw files with measured high
 frequency eddy covariance data and relevant metadata or instrument setup

@@ -1,13 +1,13 @@
 #' Folder Structure Setup
 #'
-#' Create folder structure for eddy covariance data post-processing with
-#' \code{openeddy}.
+#' Folder structure recommended for eddy covariance data processing and
+#' archivation.
 #'
 #' The purpose is to standardize the locations for metadata and post-processing
 #' inputs required to run the proposed workflow
-#' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data in
-#' levels corresponding to processing stage. The folder structure is not
-#' required to succesfully apply the workflow but simplifies its use.
+#' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
+#' metadata in levels corresponding to processing stage. The folder structure is
+#' not required to succesfully apply the workflow but simplifies its use.
 #'
 #' Data processing stages \itemize{\item Level 0: Raw files with measured high
 #' frequency eddy covariance data and relevant metadata or instrument setup
@@ -19,23 +19,36 @@
 #' including their aggregation.}
 #'
 #' @param root A character string defining the root of created folder structure.
-structure_eddy <- function(root = ".") {
-  md <- function(x, path = paste0(root, x)) {
-    dir.create(path = path, recursive = TRUE)
-  }
-  md("/Level 0/Processing setup/")
-  md("/Level 0/IRGA setup/")
-  md("/Level 0/Raw data/")
-  md("/Level 1/Logbook/")
-  md("/Level 1/Processing/")
-  md("/Level 2/Input for gap-filling/")
-  md("/Level 2/Quality checking/Precheck/WD dependency/")
-  md("/Level 2/Quality checking/QC summary/")
-  md("/Level 2/Storage flux/")
-  md("/Level 3/Gap-filling/Plots/")
-  md("/Level 3/Gap-filling/Ustar filtering/")
-  md("/Level 3/Summary/png/")
-  }
+#' @param create_dirs A logical value. Indicates whether directories should be
+#'   created.
+#' @param ... Further arguments to be passed to \code{dir.create} function.
+#'
+#' @return A named list with paths to folder structure directories.
+#'   Corresponding directories are created as a function side effect if
+#'   \code{create_dirs = TRUE} (default).
+structure_eddy <- function(root = ".", create_dirs = TRUE, ...) {
+  # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
+  # but needed in order to make the dir accessible with path in the list
+  l <- list(Processing_setup = "/Level 0/Processing setup/",
+            IRGA_setup = "/Level 0/IRGA setup/",
+            Raw_data = "/Level 0/Raw data/",
+            Logbook = "/Level 1/Logbook/",
+            Processing = "/Level 1/Processing/",
+            Quality_checking = "/Level 2/Quality checking/",
+            Precheck = "/Level 2/Quality checking/Precheck/",
+            WD_dependency = "/Level 2/Quality checking/Precheck/WD dependency/",
+            QC_summary = "/Level 2/Quality checking/QC summary/",
+            Storage_flux = "/Level 2/Storage flux/",
+            Input_for_GF = "/Level 2/Input for gap-filling/",
+            Gap_filling = "/Level 3/Gap-filling/",
+            Plots = "/Level 3/Gap-filling/Plots/",
+            Ustar_filtering = "/Level 3/Gap-filling/Ustar filtering/",
+            Summary = "/Level 3/Summary/",
+            png = "/Level 3/Summary/png/")
+  l <- lapply(l, function(x) paste0(root, x))
+  if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
+  return(l)
+}
 
 #' Find Rows or Columns with Only NAs Over Array Margins
 #'
