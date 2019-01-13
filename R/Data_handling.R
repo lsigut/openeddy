@@ -594,6 +594,31 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
               qmethod = qmethod, ...)
 }
 
+#' Correct Character Vector
+#'
+#' Substitute given characters or strings by their alternatives.
+#'
+#' String \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute:
+#' \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item \code{"*"} by
+#' \code{"star"} \item \code{"\%"} by \code{"perc"} \item \code{"-"} and
+#' \code{"/"} by \code{"_"} \item round and square brackets by empty string}
+#' using regular expression patterns.
+#' @param x A character vector.
+#'
+#' @return A corrected character vector.
+#'
+#' @examples
+#' correct(c("[m]", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
+correct <- function(x) {
+  x <- gsub("co2_flux", "NEE", x) # assumption: co2_flux = NEE
+  x[x == "(z-d)/L"] <- "zeta"
+  x <- gsub("\\*", "star", x) # ustar, Tstar
+  x <- gsub("\\%", "perc", x) # signal contribution percentages
+  x <- gsub("\\-|\\/", "_", x)
+  x <- gsub(c("\\[|\\]|\\(|\\)"), "", x) # remove brackets
+  return(x)
+}
+
 #' Combine Quality Checking Results
 #'
 #' Combine quality checking results depending whether they have a fixed or
