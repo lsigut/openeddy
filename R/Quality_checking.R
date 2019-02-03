@@ -1032,7 +1032,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out) {
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
-exclude <- function(x, qc_x = NULL, name_out, win_size = 336) {
+exclude <- function(x, qc_x = NULL, name_out, win_size = 672) {
   len <- length(x)
   if (!is.null(qc_x)) {
     if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")
