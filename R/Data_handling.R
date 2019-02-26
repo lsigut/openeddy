@@ -621,41 +621,57 @@ correct <- function(x) {
 
 #' Combine Quality Checking Results
 #'
-#' Combine quality checking results depending whether they have a fixed or
+#' Combine quality checking results depending on whether they have a fixed or
 #' cumulative effect or any combination of these effects. It is also checked how
 #' should \code{NA}s be interpreted.
 #'
-#' The quality checking results must be provided as a data frame with columns
-#' containing quality flags resulting from individual tests/filters. For all
-#' flags over all rows, the maximum and cumulative sum is taken for columns with
-#' fixed and additive effect, respectively.
+#' The quality checking results to combine must be provided as columns of a data
+#' frame \code{x}, optionally with any number of further columns that will be
+#' ignored. Columns specified by \code{qc_names} will be further separated
+#' according to their additivity. For flags with fixed effect (\code{additive =
+#' FALSE}), maximum is taken over each row. For flags with additive effect
+#' (\code{additive = TRUE}), sum is taken over each row. In case both types of
+#' flags are present, results for both groups are summed together.
 #'
 #' Typical values of argument \code{na.as} are \code{NA}, \code{0} or \code{2}.
-#' \code{NA} value is only formal and does not suggest any change in
-#' interpretation. Value \code{0} is used in the case that the \code{NA} value
-#' of the quality test/filter is an expected result and means that the half-hour
-#' was not checked by or has a good quality according to the given test/filter
-#' (e.g. \code{\link{despikeLF}}). Value \code{2} would be used only if the user
-#' wants to explicitly specify that \code{NA} flag value should not be used for
-#' further analyses.
+#' \code{NA} value does not suggest any change in interpretation (value
+#' corresponding to this flag will be removed within quality checking scheme).
+#' Value \code{0} can be used e.g. in the case that the \code{NA} flag of the
+#' quality checking test/filter is an expected result and means that the
+#' half-hour was not checked by the given test/filter (e.g.
+#' \code{\link{despikeLF}}). Value \code{2} can be used if the user wants to
+#' explicitly specify that the values corresponding to \code{NA} flags should
+#' not be used for further analyses.
 #'
-#' @return A vector with attributes \code{varnames} and \code{units} is
-#'   produced. \code{varnames} value is set by \code{name_out} argument and
-#'   \code{units} value is set to default \code{"-"}.
+#' @section Automated recognition: Default values for \code{additive} and
+#'   \code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
+#'   case that \code{"interdep"} or \code{"wresid"} patterns are found within
+#'   \code{qc_names}, respective values of \code{additive} are changed to
+#'   \code{TRUE}. This is because \code{\link{interdep}} and wresid (see
+#'   \code{\link{extract_QC}}) quality control checks are defined as additive
+#'   within the current quality control scheme. If \code{"spikesLF"} pattern is
+#'   detected within \code{qc_names}, respective values of \code{na.as} are
+#'   changed to \code{0} (see \code{\link{despikeLF}}).
+#'
+#' @return An integer vector with attributes \code{varnames} and \code{units} is
+#'   produced. \code{varnames} value is set by \code{name_out} argument. Default
+#'   value of \code{varnames} and \code{units} is set to \code{"-"}.
 #'
 #' @param x A data frame with column names.
 #' @param qc_names A vector of names of data frame columns to combine.
 #' @param name_out A character string providing \code{varnames} value of the
 #'   output.
-#' @param additive A vector of logical values (\code{TRUE} or \code{FALSE}) for
-#'   the \code{qc_names} subset of \code{x} that determines if the flags should
-#'   be treated as additive (\code{additive = TRUE}) or with fixed effect
-#'   (\code{additive = FALSE}). If only one value is provided, all columns are
-#'   considered to be of the same type.
-#' @param na.as A vector of numeric or \code{NA} values for the \code{qc_names}
-#'   subset of \code{x} that determines how should be the missing flags
-#'   interpreted. If only one value is provided, all columns are treated the
-#'   same way.
+#' @param additive \code{NULL} or a vector of logical values (\code{TRUE} or
+#'   \code{FALSE}) determining additivity of each respective column of \code{x}
+#'   given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+#'   Othewise, values determine if the flags should be treated as additive
+#'   (\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+#'   only one value is provided, all columns are considered to be of the same
+#'   type.
+#' @param na.as \code{NULL} or a vector of integer or \code{NA} values
+#'   determining interpretation of missing flags in each respective column of
+#'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+#'   used. If only one value is provided, all columns are treated the same way.
 #'
 #' @seealso \code{\link{summary_QC}}.
 #'
@@ -673,18 +689,30 @@ correct <- function(x) {
 #' na.as = c(0, NA), name_out = "add_F_na.as_0part")
 #' aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
 #' na.as = 2, name_out = "add_F_na.as_2")
-combn_QC <- function(x, qc_names, name_out, additive = FALSE, na.as = NA) {
+#' str(aa)
+#' aa
+combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
+                     na.as = NULL) {
   x_names <- colnames(x)
   name_out <- name_out[1]
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
   }
   if (!is.character(qc_names)) stop("'qc_names' must be of class character")
-  if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
-    stop("'additive' must be logical vector with non-missing values")
+  if (is.null(additive)) {
+    additive <- grepl("interdep|wresid", qc_names)
+  } else {
+    if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
+      stop("'additive' must be logical vector with non-missing values")
+    }
   }
-  if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
-    stop("'na.as' must be a vector containing numeric or NA values")
+  if (is.null(na.as)) {
+    na.as <- rep(NA, length(qc_names))
+    na.as[grep("spikesLF", qc_names)] <- 0L
+  } else {
+    if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
+      stop("'na.as' must be a vector containing numeric or NA values")
+    }
   }
   if (!is.character(name_out)) stop("'name_out' must be of class character")
   if (length(additive) > 1) {
@@ -726,6 +754,7 @@ combn_QC <- function(x, qc_names, name_out, additive = FALSE, na.as = NA) {
   out_allNA <- allNA(out, 1)
   out[!out_allNA, name_out] <- rowSums(out[!out_allNA, , drop = FALSE])
   out[, name_out][out[name_out] > 2] <- 2L
+  out[, name_out] <- as.integer(out[, name_out])
   attr(out[, name_out], "varnames") <- name_out
   attr(out[, name_out], "units") <- "-"
   return(out[, name_out])

@@ -4,7 +4,7 @@
 \alias{combn_QC}
 \title{Combine Quality Checking Results}
 \usage{
-combn_QC(x, qc_names, name_out, additive = FALSE, na.as = NA)
+combn_QC(x, qc_names, name_out = "-", additive = NULL, na.as = NULL)
 }
 \arguments{
 \item{x}{A data frame with column names.}
@@ -14,42 +14,60 @@ combn_QC(x, qc_names, name_out, additive = FALSE, na.as = NA)
 \item{name_out}{A character string providing \code{varnames} value of the
 output.}
 
-\item{additive}{A vector of logical values (\code{TRUE} or \code{FALSE}) for
-the \code{qc_names} subset of \code{x} that determines if the flags should
-be treated as additive (\code{additive = TRUE}) or with fixed effect
-(\code{additive = FALSE}). If only one value is provided, all columns are
-considered to be of the same type.}
+\item{additive}{\code{NULL} or a vector of logical values (\code{TRUE} or
+\code{FALSE}) determining additivity of each respective column of \code{x}
+given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+Othewise, values determine if the flags should be treated as additive
+(\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+only one value is provided, all columns are considered to be of the same
+type.}
 
-\item{na.as}{A vector of numeric or \code{NA} values for the \code{qc_names}
-subset of \code{x} that determines how should be the missing flags
-interpreted. If only one value is provided, all columns are treated the
-same way.}
+\item{na.as}{\code{NULL} or a vector of integer or \code{NA} values
+determining interpretation of missing flags in each respective column of
+\code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+used. If only one value is provided, all columns are treated the same way.}
 }
 \value{
-A vector with attributes \code{varnames} and \code{units} is
-  produced. \code{varnames} value is set by \code{name_out} argument and
-  \code{units} value is set to default \code{"-"}.
+An integer vector with attributes \code{varnames} and \code{units} is
+  produced. \code{varnames} value is set by \code{name_out} argument. Default
+  value of \code{varnames} and \code{units} is set to \code{"-"}.
 }
 \description{
-Combine quality checking results depending whether they have a fixed or
+Combine quality checking results depending on whether they have a fixed or
 cumulative effect or any combination of these effects. It is also checked how
 should \code{NA}s be interpreted.
 }
 \details{
-The quality checking results must be provided as a data frame with columns
-containing quality flags resulting from individual tests/filters. For all
-flags over all rows, the maximum and cumulative sum is taken for columns with
-fixed and additive effect, respectively.
+The quality checking results to combine must be provided as columns of a data
+frame \code{x}, optionally with any number of further columns that will be
+ignored. Columns specified by \code{qc_names} will be further separated
+according to their additivity. For flags with fixed effect (\code{additive =
+FALSE}), maximum is taken over each row. For flags with additive effect
+(\code{additive = TRUE}), sum is taken over each row. In case both types of
+flags are present, results for both groups are summed together.
 
 Typical values of argument \code{na.as} are \code{NA}, \code{0} or \code{2}.
-\code{NA} value is only formal and does not suggest any change in
-interpretation. Value \code{0} is used in the case that the \code{NA} value
-of the quality test/filter is an expected result and means that the half-hour
-was not checked by or has a good quality according to the given test/filter
-(e.g. \code{\link{despikeLF}}). Value \code{2} would be used only if the user
-wants to explicitly specify that \code{NA} flag value should not be used for
-further analyses.
+\code{NA} value does not suggest any change in interpretation (value
+corresponding to this flag will be removed within quality checking scheme).
+Value \code{0} can be used e.g. in the case that the \code{NA} flag of the
+quality checking test/filter is an expected result and means that the
+half-hour was not checked by the given test/filter (e.g.
+\code{\link{despikeLF}}). Value \code{2} can be used if the user wants to
+explicitly specify that the values corresponding to \code{NA} flags should
+not be used for further analyses.
 }
+\section{Automated recognition}{
+ Default values for \code{additive} and
+  \code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
+  case that \code{"interdep"} or \code{"wresid"} patterns are found within
+  \code{qc_names}, respective values of \code{additive} are changed to
+  \code{TRUE}. This is because \code{\link{interdep}} and wresid (see
+  \code{\link{extract_QC}}) quality control checks are defined as additive
+  within the current quality control scheme. If \code{"spikesLF"} pattern is
+  detected within \code{qc_names}, respective values of \code{na.as} are
+  changed to \code{0} (see \code{\link{despikeLF}}).
+}
+
 \examples{
 set.seed(5)
 aa <- data.frame(xx = sample(c(0:2, NA), 20, replace = T))
@@ -64,6 +82,8 @@ aa$add_F_na.as_0part <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
 na.as = c(0, NA), name_out = "add_F_na.as_0part")
 aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
 na.as = 2, name_out = "add_F_na.as_2")
+str(aa)
+aa
 }
 \seealso{
 \code{\link{summary_QC}}.
