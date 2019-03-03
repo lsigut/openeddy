@@ -4,7 +4,7 @@
 \alias{fetch_filter}
 \title{Apply Fetch Filter}
 \usage{
-fetch_filter(x, fetch_name, wd_name, ROI_boundary, name_out)
+fetch_filter(x, fetch_name, wd_name, ROI_boundary, name_out = "-")
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables.}

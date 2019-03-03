@@ -4,7 +4,7 @@
 \alias{exclude}
 \title{Exclude values}
 \usage{
-exclude(x, qc_x = NULL, name_out, win_size = 672)
+exclude(x, qc_x = NULL, name_out = "-", win_size = 672)
 }
 \arguments{
 \item{x}{A numeric vector with values to inspect.}

@@ -793,7 +793,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' (aa <- as.data.frame(aa))
 #' aa$flux_stc <- add_st(aa$flux, "flux_stc", aa$st, aa$stp)
 #' lapply(aa, attributes)
-add_st <- function(flux, name_out, st, stp = NULL) {
+add_st <- function(flux, name_out = "-", st, stp = NULL) {
   if (length(flux) != length(st)) {
     stop("'flux' and 'st' must be of the same length")
   }

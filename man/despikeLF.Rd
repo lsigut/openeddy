@@ -4,7 +4,7 @@
 \alias{despikeLF}
 \title{Low Frequency Data Despiking}
 \usage{
-despikeLF(x, var, qc_flag, name_out, var_thr = NULL, iter = 10,
+despikeLF(x, var, qc_flag, name_out = "-", var_thr = NULL, iter = 10,
   plot = FALSE, light = c("PAR", "GR"), night_thr = 10, nVals = 50,
   z = 7, c = 4.4478)
 }

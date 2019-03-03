@@ -46,7 +46,7 @@
 #' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
-apply_thr <- function(x, thr, name_out,
+apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower")) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
@@ -108,7 +108,7 @@ apply_thr <- function(x, thr, name_out,
 #' flag_runs(xx, "qc_xx_runs")
 #' (yy <- rep(1:6, rep(c(2, 1), 3)))
 #' flag_runs(yy, "qc_yy_runs")
-flag_runs <- function(x, name_out, length = 2) {
+flag_runs <- function(x, name_out = "-", length = 2) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
@@ -824,9 +824,9 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
-despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, iter = 10,
-                      plot = FALSE, light = c("PAR", "GR"), night_thr = 10,
-                      nVals = 50, z = 7, c = 4.4478) {
+despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
+                      iter = 10, plot = FALSE, light = c("PAR", "GR"),
+                      night_thr = 10, nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' has to be of class data.frame with colnames")
@@ -985,7 +985,7 @@ despikeLF <- function(x, var, qc_flag, name_out, var_thr = NULL, iter = 10,
 #' set.seed(20)
 #' (xx <- data.frame(x_70perc = sample(1:1000, 10), WD = sample(0:360, 10)))
 #' fetch_filter(xx, "x_70perc", "WD", 300, "qc_ALL_fetch70")
-fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out) {
+fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' has to be of class data.frame with colnames")
@@ -1032,7 +1032,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out) {
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
-exclude <- function(x, qc_x = NULL, name_out, win_size = 672) {
+exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   len <- length(x)
   if (!is.null(qc_x)) {
     if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")

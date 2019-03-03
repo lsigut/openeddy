@@ -4,7 +4,7 @@
 \alias{add_st}
 \title{Apply Storage Flux Correction}
 \usage{
-add_st(flux, name_out, st, stp = NULL)
+add_st(flux, name_out = "-", st, stp = NULL)
 }
 \arguments{
 \item{flux}{A numeric vector with flux values.}

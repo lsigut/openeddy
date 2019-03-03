@@ -4,7 +4,8 @@
 \alias{apply_thr}
 \title{Apply Thresholds}
 \usage{
-apply_thr(x, thr, name_out, flag = c("higher", "outside", "between", "lower"))
+apply_thr(x, thr, name_out = "-", flag = c("higher", "outside", "between",
+  "lower"))
 }
 \arguments{
 \item{x}{A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.}
