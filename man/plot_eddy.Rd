@@ -6,9 +6,11 @@
 \usage{
 plot_eddy(x, flux, qc_flag = "none", test = "none", flux_gf = "none",
   NEE_sep = FALSE, skip = c("none", "monthly", "weekly"),
-  panel_top = c("T_light", "VPD_Rn", "H_err_var"),
-  panel_bottom = c("VPD_Rn", "T_light", "H_err_var"), light = c("PAR",
-  "GR"), GPP_check = TRUE, document = TRUE)
+  panel_top = c("T_light", "VPD_Rn", "H_err_var", "blue_red",
+  "violet_orange"), panel_top_vars = NULL, panel_bottom = c("VPD_Rn",
+  "T_light", "H_err_var", "blue_red", "violet_orange"),
+  panel_bottom_vars = NULL, light = c("PAR", "GR"), GPP_check = TRUE,
+  document = TRUE)
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables. See
@@ -41,9 +43,17 @@ monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
 plotting additional variables. This module is displayed above the panel
 with fluxes in weekly plots. Can be abbreviated. See 'Modules'.}
 
+\item{panel_top_vars}{A character vector of length two or \code{NULL}.
+Specifies two variables expected in \code{x} if \code{panel_top =
+"blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
+
 \item{panel_bottom}{A character string. Selects one of the available modules
 for plotting additional variables. This module is displayed below the panel
 with fluxes in weekly plots. Can be abbreviated. See 'Modules'.}
+
+\item{panel_bottom_vars}{A character vector of length two or \code{NULL}.
+Specifies two variables expected in \code{x} if \code{panel_bottom =
+"blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
 
 \item{light}{A character string. Required only for the \code{"T_light"}
 module. Selects preferred variable for incoming light intensity.
@@ -93,21 +103,28 @@ Weekly plotting regions are described in 'Modules' section (see below).
 }
 \section{Modules}{
  Applies only if \code{skip = "none"} or \code{"monthly"}.
-  Plotting in weekly intervals is simplified by using predefined modules.
-  Their main purpose is to achieve well-arranged display of auxiliary
-  variables. Weekly plotting regions consist of two figures representing
-  separately two consecutive weeks. Each figure contains three panels on top
-  of each other. The middle panel always contains the values from \code{flux}
-  and \code{"P"} columns of \code{x}. Variables used in the upper and lower
-  panel can be changed by \code{panel_top} and \code{panel_bottom}. These
-  arguments specify the respective modules that will be loaded (can be the
-  same) and thus also a certain set of required column names of \code{x}
-  (variables).
+  Plotting of auxiliary variables in weekly intervals is simplified by using
+  predefined modules. Their main purpose is to achieve well-arranged display
+  of auxiliary variables. Weekly plotting regions consist of two figures
+  representing separately two consecutive weeks. Each figure contains three
+  panels on top of each other. The middle panel always contains the values
+  from \code{flux} and \code{"P"} columns of \code{x}. Variables used in the
+  upper and lower panel can be changed by \code{panel_top} and
+  \code{panel_bottom}. These arguments specify the respective modules that
+  will be loaded (can be the same) and thus also a certain set of required
+  column names of \code{x} (variables).
 
   Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
   \code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires
   \code{"VPD"} and \code{"Rn"} columns. \item H_err_var: requires
-  \code{"rand_err_H"} and \code{"ts_var"} columns.}
+  \code{"rand_err_H"} and \code{"ts_var"} columns. \item blue_red: requires
+  columns specified by \code{panel_top/bottom_vars}. \item violet_orange:
+  requires columns specified by \code{panel_top/bottom_vars}.}
+
+  Modules T_light, VPD_Rn and H_err_var have predefined color combinations
+  and variables. Modules blue_red and violet_orange provide more flexibility
+  as they only have predefined color combinations. Actual plotted variables
+  are selected by additional argument (see above).
 }
 
 \section{Quality Control}{

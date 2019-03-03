@@ -87,21 +87,28 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' Weekly plotting regions are described in 'Modules' section (see below).
 #'
 #' @section Modules: Applies only if \code{skip = "none"} or \code{"monthly"}.
-#'   Plotting in weekly intervals is simplified by using predefined modules.
-#'   Their main purpose is to achieve well-arranged display of auxiliary
-#'   variables. Weekly plotting regions consist of two figures representing
-#'   separately two consecutive weeks. Each figure contains three panels on top
-#'   of each other. The middle panel always contains the values from \code{flux}
-#'   and \code{"P"} columns of \code{x}. Variables used in the upper and lower
-#'   panel can be changed by \code{panel_top} and \code{panel_bottom}. These
-#'   arguments specify the respective modules that will be loaded (can be the
-#'   same) and thus also a certain set of required column names of \code{x}
-#'   (variables).
+#'   Plotting of auxiliary variables in weekly intervals is simplified by using
+#'   predefined modules. Their main purpose is to achieve well-arranged display
+#'   of auxiliary variables. Weekly plotting regions consist of two figures
+#'   representing separately two consecutive weeks. Each figure contains three
+#'   panels on top of each other. The middle panel always contains the values
+#'   from \code{flux} and \code{"P"} columns of \code{x}. Variables used in the
+#'   upper and lower panel can be changed by \code{panel_top} and
+#'   \code{panel_bottom}. These arguments specify the respective modules that
+#'   will be loaded (can be the same) and thus also a certain set of required
+#'   column names of \code{x} (variables).
 #'
 #'   Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
 #'   \code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires
 #'   \code{"VPD"} and \code{"Rn"} columns. \item H_err_var: requires
-#'   \code{"rand_err_H"} and \code{"ts_var"} columns.}
+#'   \code{"rand_err_H"} and \code{"ts_var"} columns. \item blue_red: requires
+#'   columns specified by \code{panel_top/bottom_vars}. \item violet_orange:
+#'   requires columns specified by \code{panel_top/bottom_vars}.}
+#'
+#'   Modules T_light, VPD_Rn and H_err_var have predefined color combinations
+#'   and variables. Modules blue_red and violet_orange provide more flexibility
+#'   as they only have predefined color combinations. Actual plotted variables
+#'   are selected by additional argument (see above).
 #'
 #' @section Quality Control: \code{qc_flag} and \code{test} relate to QC flags
 #'   available for the specified \code{flux}. Only QC scheme using QC flag range
@@ -167,9 +174,15 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param panel_top A character string. Selects one of the available modules for
 #'   plotting additional variables. This module is displayed above the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
+#' @param panel_top_vars A character vector of length two or \code{NULL}.
+#'   Specifies two variables expected in \code{x} if \code{panel_top =
+#'   "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.
 #' @param panel_bottom A character string. Selects one of the available modules
 #'   for plotting additional variables. This module is displayed below the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
+#' @param panel_bottom_vars A character vector of length two or \code{NULL}.
+#'   Specifies two variables expected in \code{x} if \code{panel_bottom =
+#'   "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.
 #' @param light A character string. Required only for the \code{"T_light"}
 #'   module. Selects preferred variable for incoming light intensity.
 #'   \code{"PAR"} or \code{"GR"} is allowed. Can be abbreviated.
@@ -183,8 +196,12 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       flux_gf = "none", NEE_sep = FALSE,
                       skip = c("none", "monthly", "weekly"),
-                      panel_top = c("T_light", "VPD_Rn", "H_err_var"),
-                      panel_bottom = c("VPD_Rn", "T_light", "H_err_var"),
+                      panel_top = c("T_light", "VPD_Rn", "H_err_var",
+                                    "blue_red", "violet_orange"),
+                      panel_top_vars = NULL,
+                      panel_bottom = c("VPD_Rn", "T_light", "H_err_var",
+                                       "blue_red", "violet_orange"),
+                      panel_bottom_vars = NULL,
                       light = c("PAR", "GR"), GPP_check = TRUE,
                       document = TRUE) {
   x_names <- names(x)
@@ -212,6 +229,15 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     }
     if ("H_err_var" %in% c(panel_top, panel_bottom)) {
       req_vars <- c(req_vars, "rand_err_H", "ts_var")
+    }
+    filter <- c(panel_top, panel_bottom) %in% c("blue_red", "violet_orange")
+    if (any(filter)) {
+      if (!all(sapply(
+        list(panel_top_vars, panel_bottom_vars), is.character)[filter]) ||
+        !all((sapply(
+          list(panel_top_vars, panel_bottom_vars), length) == 2)[filter])) {
+        stop("'panel_top/bottom_vars' must be a character vector of length 2")
+      } else req_vars <- c(req_vars, panel_top_vars, panel_bottom_vars)
     }
   }
   if (!all(req_vars %in% x_names)) {
@@ -420,6 +446,33 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
         }
       }
     }
+    if (any(filter)) { # a, b are variable names, col_comb is color combination
+      modules$two_vars <- function(a, b, col_comb) {
+        var1 <- x[, a]
+        var2 <- x[, b]
+        col_comb <- if (col_comb == "blue_red") c("dodgerblue", "red1") else
+          c("mediumorchid", "chocolate1")
+        plot(time[week], var1[week], xlim = range(xaxis),
+             ylim = setRange(var1, mon), panel.first = grid(nx = NA, ny = NULL),
+             type = "n", xaxt = "n", yaxt = "n", ylab = "", xlab = "")
+        abline(v = xaxis, col = "grey", lty = 3)
+        axis(2, line = 1.8, padj = 0.9, tcl = -0.3)
+        lines(time[week], var1[week], lwd = 2, col = col_comb[1])
+        par(new = TRUE)
+        plot(time[week], var2[week],
+             xlim = range(xaxis), ylim = setRange(var2, mon),
+             type = "l", col = col_comb[2], lwd = 2,
+             xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+        axis(4, padj = -0.9, tcl = -0.3)
+        mtext(paste(a, wrap(units[a])), 2, line = 3.6)
+        mtext(b, 4, line = 2)
+        mtext(wrap(units[b]), 4, line = 3.6, cex = 0.8)
+        if (i %% 2 == 1) {
+          legend("topleft", legend = c(a, b), lty = 1, lwd = 2,
+                 col = col_comb, bty = "n")
+        }
+      }
+    }
     # Graphical display of data in weekly periods===============================
     # Number of intervals with right side closure (+1)
     nInt <- length(seq(from = day1, to = date[nrow(x)], by = "1 week")) + 1L
@@ -441,7 +494,9 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
       # xaxis has to be one day longer to simplify plotting
       xaxis <- seq(from = int[i], to = int[i + 1], by = "1 day")
       xaxis <- as.POSIXct(strptime(xaxis, "%Y-%m-%d", tz = "GMT"))
-      modules[[panel_top]]()
+      if (panel_top %in% c("blue_red", "violet_orange")) {
+        modules[["two_vars"]](panel_top_vars[1], panel_top_vars[2], panel_top)
+      } else modules[[panel_top]]()
       if (document && i %% 2 == 0) {
         mtext(paste("qc_flag = '", qc_flag, "', test = '", test, "'",
                     sep = ""), side = 3, line = 0, adj = 0, cex = 0.6)
@@ -509,7 +564,10 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                  lwd = 2, bty = "n")
         }
       }
-      modules[[panel_bottom]]()
+      if (panel_bottom %in% c("blue_red", "violet_orange")) {
+        modules[["two_vars"]](panel_bottom_vars[1], panel_bottom_vars[2],
+                              panel_bottom)
+      } else modules[[panel_bottom]]()
       # Halfday shift of ticks to mark the middle of day
       axis.POSIXct(1, at = seq(min(xaxis), max(xaxis), by = "days") + 12 * 3600,
                    format = "%Y/%m/%d", padj = -0.5)
