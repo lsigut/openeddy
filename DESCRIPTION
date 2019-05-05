@@ -28,6 +28,7 @@ LazyData: true
 RoxygenNote: 6.0.1
 Imports:
     ggplot2 (>= 3.0.0),
+    lognorm (>= 0.1.5),
     reshape2 (>= 1.4.3)
 Suggests:
     gridExtra (>= 2.3),

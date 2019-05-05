@@ -1,5 +1,129 @@
-# x-data frame, format-format arg of strftime, breaks-breaks arg of cut.POSIXt
-# ...-further arguments passed to or used by methods
+#' Time series summarization
+#'
+#' Utilities that simplify aggregation of data and their uncertainties over
+#' defined time intervals.
+#'
+#' \code{agg_mean} and \code{agg_sum} compute mean and sum over intervals
+#' defined by \code{format} and/or \code{breaks} for all columns.
+#'
+#' \code{agg_fsd} and \code{agg_DT_SD} estimate aggregated mean and summed
+#' uncertainties over defined time periods for \code{REddyProc} package
+#' gap-filling and daytime-based flux partitioning outputs, respectively. The
+#' uncertainty aggregation accounts for autocorrelation among records. It is
+#' performed only for autodetected columns with appropriate suffixes (see
+#' further). Note that uncertainty products of \code{agg_fsd} and
+#' \code{agg_DT_SD} are reported as standard deviations (\code{SD}) and require
+#' further correction to represent uncertainty bounds for given confidence
+#' interval (e.g. \code{SD * 1.96} for 95\% confidence level).
+#'
+#' The summarizations are done on a data frame \code{x} with required timestamp
+#' column (\code{x$timestamp}) of class \code{"POSIXt"}. With exception of
+#' \code{agg_mean}, the timestamp must form regular sequence without \code{NA}s
+#' due to time resolution estimation.
+#'
+#' Change of aggregation interval can be achieved through \code{breaks} and
+#' \code{format} arguments.
+#'
+#' The data frame \code{x} can be \link[=cut.POSIXt]{cut} to custom intervals
+#' using argument \code{breaks}. Note that labels are constructed from the
+#' left-hand end of the intervals and converted to \code{"POSIXct"} class. This
+#' can be useful when aggregating e.g. half-hourly data over hourly
+#' (\code{breaks = "60 mins"}) or three-day (\code{breaks = "3 days"})
+#' intervals.
+#'
+#' The formatting of the timestamp (original or after cutting) using
+#' \code{format} is another (preferable) way to change aggregation intervals.
+#' For example changing original \code{"POSIXt"} time format (\code{"\%Y-\%m-\%d
+#' \%H:\%M:\%S"}) to \code{"\%Y-\%m-\%d"}, \code{"\%W_\%y"}, \code{"\%m-\%y"} or
+#' \code{"\%Y"} will result in daily, weekly, monthly or yearly aggregation
+#' intervals, respectively. Note that improper \code{format} can repress
+#' expected effect of \code{breaks}.
+#'
+#' \code{agg_fsd} and \code{agg_DT_SD} require certain columns with defined
+#' suffixes in order to evaluate uncertainty correctly. These columns are a
+#' product of \code{REddyProc} package gap-filling and flux partitioning methods
+#' and are documented here:
+#' \url{https://www.bgc-jena.mpg.de/bgi/index.php/Services/REddyProcWebOutput}.
+#' Detailed description of uncertainty aggregation is available here:
+#' \url{https://github.com/bgctw/REddyProc/blob/master/vignettes/aggUncertainty.md}.
+#'
+#' \code{agg_fsd} requires columns with suffixes \code{_fall}, \code{_orig},
+#' \code{_fqc} and \code{_fsd} for each variable.
+#'
+#' \code{agg_DT_SD} requires corresponding columns with \code{\link{regexp}}
+#' patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
+#' \code{"^GPP_DT_"}, \code{"^Reco_DT_.*_SD$"} and \code{"^GPP_DT_.*_SD$"}.
+#'
+#' @section Unit Conversion: In case of aggregation using \code{sum}, i.e.
+#'   \code{agg_sum}, \code{agg_fsd} and \code{agg_DT_SD}, appropriate unit
+#'   conversion can be applied to columns defined by \code{quant}, \code{power}
+#'   and \code{carbon} arguments.
+#'
+#' @section Sign Correction: Although the sign convention used for measured NEE
+#'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
+#'   is typically reported with the opposite sign convention and is assumed to
+#'   converge to NEP (Net Ecosystem Production), especially over longer
+#'   aggregation intervals. Similarly, estimated negative GPP (Gross Primary
+#'   Production) typically denotes carbon sink but should be corrected to
+#'   positive values if summed over a time period.
+#'
+#'   \code{agg_sum} automatically detects all NEE and GPP columns in \code{x}
+#'   using regular expressions and changes their sign. For GPP columns, sign
+#'   change is performed only if mean GPP < 0 (sign convention autodetection).
+#'   Note that it assumes that average GPP signal denotes carbon sink and it
+#'   could fail if such sink is missing or negligible (e.g. urban measurements).
+#'   In cases when NEE or its uncertainty is summed (\code{agg_sum} or
+#'   \code{agg_fsd}), NEE is renamed to NEP.
+#'
+#' @section References: Bayley, G. and Hammersley, J., 1946. The "Effective"
+#'   Number of Independent Observations in an Autocorrelated Time Series.
+#'   Supplement to the Journal of the Royal Statistical Society, 8(2), 184-197.
+#'   doi: \url{https://doi.org/10.2307/2983560}
+#'
+#'   Zieba, A. and Ramza, P., 2011. Standard Deviation of the Mean of
+#'   Autocorrelated Observations Estimated with the Use of the Autocorrelation
+#'   Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
+#'   529-542. doi: \url{https://doi.org/10.2478/v10178-011-0052-x}
+#'
+#' @param x A data frame with required timestamp column (\code{x$timestamp}) of
+#'   class \code{"POSIXt"}.
+#' @param format A character string specifying \code{x$timestamp} formatting for
+#'   aggregation through internal \code{\link{strftime}} function.
+#' @param breaks A vector of cut points or number giving the number of intervals
+#'   which \code{x$timestamp} is to be cut into or an interval specification,
+#'   one of \code{"sec"}, \code{"min"}, \code{"hour"}, \code{"day"},
+#'   \code{"DSTday"}, \code{"week"}, \code{"month"}, \code{"quarter"} or
+#'   \code{"year"}, optionally preceded by an integer and a space, or followed
+#'   by \code{"s"}.
+#' @param agg_per A character string providing the time interval of aggregation
+#'   that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
+#'   \code{"month-1"}).
+#' @param quant A character vector listing variable names that require
+#'   conversion from quantum to energy units before aggregation.
+#' @param power A character vector listing variable names that require
+#'   conversion from power to energy units before aggregation.
+#' @param carbon A character vector listing variable names that require
+#'   conversion from CO2 concentration to C mass flux units before aggregation.
+#' @param tz A character string specifying the time zone to be used for the
+#'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
+#'   \code{\link{timezones}}), but \code{""} is the current time zone, and
+#'   \code{"GMT"} is UTC. Invalid values are most commonly treated as UTC, on
+#'   some platforms with a warning.
+#' @param ... Further arguments to be passed to the internal
+#'   \code{\link{aggregate}} function.
+#'
+#' @return \code{agg_mean} and \code{agg_sum} produce a data frame with
+#'   attributes varnames and units assigned to each respective column.
+#'
+#'   \code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
+#'   \code{mean} and \code{sum} with attributes varnames and units assigned to
+#'   each respective column or \code{NULL} value if required columns are not
+#'   recognized.
+#'
+#' @seealso \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
+#'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
+#'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
+#'   \code{\link{varnames}}
 agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -24,9 +148,7 @@ agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
   return(out)
 }
 
-# x: data frame, format: format arg of strftime, breaks: breaks arg of cut.POSIXt
-# agg_per: char string describing integration period in units
-# quant+power+carbon: column names of 'x' - checked against names(x).
+#' @rdname agg_mean
 agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
@@ -123,13 +245,7 @@ agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
   return(out)
 }
 
-# x-data frame, format-format arg of strftime, breaks-breaks arg of cut.POSIXt
-# quant, power and carbon applied only if names available
-# dots arg not making sense here
-# first part - all columns have to fit to fall columns
-# second part - GPP has to fit Reco columns, NEE_orig needed for residuals
-
-# value - NULL if required columns not recognized
+#' @rdname agg_mean
 agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
@@ -277,11 +393,7 @@ agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
   return(out)
 }
 
-# x-data frame, format-format arg of strftime, breaks-breaks arg of cut.POSIXt
-# quant, power and carbon applied only if names available
-# dots arg not making sense here
-# first part - all columns have to fit to fall columns
-# second part - GPP has to fit Reco columns, NEE_orig needed for residuals
+#' @rdname agg_mean
 agg_DT_SD <- function(x, format, breaks = NULL, agg_per = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
                       tz = "GMT") {

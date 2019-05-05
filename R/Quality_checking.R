@@ -264,7 +264,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   Check of mean unrotated w (double rotation) or w residual (planar fit)
 #'   against thresholds (wresid). Additive test.}
 #'
-#' @section Content and format of columns: \itemize{ \item
+#' @section Content and Format of Columns: \itemize{ \item
 #'   \code{"absolute_limits_hf"}: hard flags (passed or failed the test) for
 #'   individual variables for absolute limits. Limits for each variable are set
 #'   in the post-processing software which also reports the resulting flags in a

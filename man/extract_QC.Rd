@@ -101,7 +101,7 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   against thresholds (wresid). Additive test.}
 }
 
-\section{Content and format of columns}{
+\section{Content and Format of Columns}{
  \itemize{ \item
   \code{"absolute_limits_hf"}: hard flags (passed or failed the test) for
   individual variables for absolute limits. Limits for each variable are set
