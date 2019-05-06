@@ -32,4 +32,5 @@ Imports:
     reshape2 (>= 1.4.3)
 Suggests:
     gridExtra (>= 2.3),
+    REddyProc (>= 1.1.6),
     testthat (>= 2.0.0)

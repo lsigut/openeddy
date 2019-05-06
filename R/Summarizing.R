@@ -124,6 +124,29 @@
 #'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
 #'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
 #'   \code{\link{varnames}}
+#'
+#' @examples
+#' \dontrun{
+#' library(REddyProc)
+#' DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+#' Day = 'DoY', Hour = 'Hour')[-(2:4)]
+#' EProc <- sEddyProc$new('DE-Tha', DETha98,
+#' c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
+#' names(DETha98)[1] <- "timestamp"
+#' DETha98$timestamp <- DETha98$timestamp - 60*15
+#' agg_mean(DETha98, "%m-%y")
+#' agg_mean(DETha98, "%m-%y", na.rm = TRUE)
+#' (zz <- agg_sum(DETha98, "%m-%y", agg_per = "month-1"))
+#' units(zz, names = TRUE)
+#'
+#' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
+#' for (i in c('Tair', 'Rg', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
+#' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
+#' agg_fsd(results, "%m-%y", agg_per = "month-1")
+#' EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
+#' EProc$sGLFluxPartition(suffix = "uStar")
+#' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
+#' agg_DT_SD(results, "%m-%y", agg_per = "month-1")}
 agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -149,7 +172,7 @@ agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
 }
 
 #' @rdname agg_mean
-agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
+agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -198,7 +221,7 @@ agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
     cat("Quantum to energy (", openeddy::units(x[quant])[1],
-        " -> ", paste(energy_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(quant, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -210,7 +233,7 @@ agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
   x[power] <- x[power] * tres * 1e-6
   if (length(power) > 0) {
     cat("Power to energy (", openeddy::units(x[power])[1],
-        " -> ", paste(energy_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(power, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -224,7 +247,7 @@ agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
         openeddy::units(x[carbon])[1],
-        " -> ", paste(carbon_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -240,13 +263,14 @@ agg_sum <- function(x, format, breaks = NULL, agg_per = NULL,
   openeddy::varnames(out) <- c("Intervals",
                                openeddy::varnames(x[names(x) != "timestamp"]))
   openeddy::units(out) <- c("-", openeddy::units(x[names(x) != "timestamp"]))
-  openeddy::units(out)[-1] <- paste(openeddy::units(out)[-1], agg_per)
+  if (!is.null(agg_per)) openeddy::units(out)[-1] <-
+    trimws(paste(openeddy::units(out)[-1], agg_per))
   names(out) <- c("Intervals", paste0(names(out[-1]), "_sum"))
   return(out)
 }
 
 #' @rdname agg_mean
-agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
+agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -344,7 +368,7 @@ agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
     cat("Quantum to energy (", openeddy::units(res_sum[quant])[1],
-        " -> ", paste(energy_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(quant, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -357,7 +381,7 @@ agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
     x * tres * 1e-6))
   if (length(power) > 0) {
     cat("Power to energy (", openeddy::units(res_sum[power])[1],
-        " -> ", paste(energy_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(power, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -372,7 +396,7 @@ agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
         openeddy::units(res_sum[carbon])[1],
-        " -> ", paste(carbon_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -387,14 +411,15 @@ agg_fsd <- function(x, format, breaks = NULL, agg_per = NULL,
 
   names(res_mean)[-1] <- paste0(names(res_mean[-1]), "_mean")
   names(res_sum)[-1] <- paste0(names(res_sum[-1]), "_sum")
-  openeddy::units(res_sum)[-1] <- paste(openeddy::units(res_sum)[-1], agg_per)
+  if (!is.null(agg_per)) openeddy::units(res_sum)[-1] <-
+    trimws(paste(openeddy::units(res_sum)[-1], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)
 }
 
 #' @rdname agg_mean
-agg_DT_SD <- function(x, format, breaks = NULL, agg_per = NULL,
+agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
                       tz = "GMT") {
   x_names <- names(x)
@@ -514,7 +539,7 @@ agg_DT_SD <- function(x, format, breaks = NULL, agg_per = NULL,
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
         openeddy::units(res_sum[carbon])[1],
-        " -> ", paste(carbon_units, agg_per), "):\n\n",
+        " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
@@ -524,7 +549,8 @@ agg_DT_SD <- function(x, format, breaks = NULL, agg_per = NULL,
 
   names(res_mean)[-1] <- paste0(names(res_mean[-1]), "_mean")
   names(res_sum)[-1] <- paste0(names(res_sum[-1]), "_sum")
-  openeddy::units(res_sum)[-1] <- paste(openeddy::units(res_sum)[-1], agg_per)
+  if (!is.null(agg_per)) openeddy::units(res_sum)[-1] <-
+    trimws(paste(openeddy::units(res_sum)[-1], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)

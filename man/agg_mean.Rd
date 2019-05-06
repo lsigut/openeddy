@@ -9,18 +9,18 @@
 \usage{
 agg_mean(x, format, breaks = NULL, tz = "GMT", ...)
 
-agg_sum(x, format, breaks = NULL, agg_per = NULL,
+agg_sum(x, format, agg_per = NULL, breaks = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value =
   TRUE), carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
   tz = "GMT", ...)
 
-agg_fsd(x, format, breaks = NULL, agg_per = NULL,
+agg_fsd(x, format, agg_per = NULL, breaks = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value =
   TRUE), carbon = grep("^NEE", names(x), value = TRUE), tz = "GMT")
 
-agg_DT_SD(x, format, breaks = NULL, agg_per = NULL,
+agg_DT_SD(x, format, agg_per = NULL, breaks = NULL,
   carbon = grep("^Reco|^GPP", names(x), value = TRUE), tz = "GMT")
 }
 \arguments{
@@ -161,6 +161,29 @@ patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
   529-542. doi: \url{https://doi.org/10.2478/v10178-011-0052-x}
 }
 
+\examples{
+\dontrun{
+library(REddyProc)
+DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+Day = 'DoY', Hour = 'Hour')[-(2:4)]
+EProc <- sEddyProc$new('DE-Tha', DETha98,
+c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
+names(DETha98)[1] <- "timestamp"
+DETha98$timestamp <- DETha98$timestamp - 60*15
+agg_mean(DETha98, "\%m-\%y")
+agg_mean(DETha98, "\%m-\%y", na.rm = TRUE)
+(zz <- agg_sum(DETha98, "\%m-\%y", agg_per = "month-1"))
+units(zz, names = TRUE)
+
+EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
+for (i in c('Tair', 'Rg', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
+results <- cbind(DETha98["timestamp"], EProc$sExportResults())
+agg_fsd(results, "\%m-\%y", agg_per = "month-1")
+EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
+EProc$sGLFluxPartition(suffix = "uStar")
+results <- cbind(DETha98["timestamp"], EProc$sExportResults())
+agg_DT_SD(results, "\%m-\%y", agg_per = "month-1")}
+}
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
