@@ -1119,3 +1119,136 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
         axis.text.x = ggplot2::element_text(angle = 20, vjust = 1, hjust = 1))
   }
 }
+
+#' Remap Variables
+#'
+#' Extracts and renames specified columns of a data frame, computes mean in case
+#' of \code{\link{regular expression}} pattern matching multiple column names or
+#' initializes one if missing.
+#'
+#' New data frame is created based on \code{x} and specified \code{source}.
+#' Original \code{x} names are changed according to respective \code{new}
+#' elements and kept as \code{varnames} attributes for tracebility. Accordingly,
+#' if \code{qc} is specified, quality control columns are marked by \code{"qc_"}
+#' prefix.
+#'
+#' If \code{regexp = FALSE} (the default), strictly one variable (column) will
+#' be remapped to new name. The \code{source} elements must exactly match
+#' \code{x} names, otherwise expected column is initialized with \code{NA}s. If
+#' \code{qc} is specified, strictly one respective quality control column will
+#' be renamed or skipped if not present.
+#'
+#' If \code{regexp = TRUE}, multiple columns can match the \code{source} element
+#' \code{\link{regular expression}} pattern. In that case \code{\link{rowMeans}}
+#' are produced and names of averaged columns kept as \code{varnames} attributes
+#' for tracebility. Similarly, also quality control flags are averaged over
+#' available columns if \code{qc} is specified. Note that variable names need to
+#' have unique patterns in order to achieve expected results. E.g. precipitation
+#' abbreviated as P will have overlap with PAR; instead, sumP can be used.
+#'
+#' \code{varnames} attribute is expected. If not automatically assigned to
+#' \code{x} through \code{\link{read_eddy}} when read from a file, they should
+#' be assigned before remapping to keep documentation (especially if multiple
+#' columns are combined to a single one).
+#'
+#' @param x data frame
+#' @param new A character vector of new column names for remapping.
+#' @param source A vector of \code{x} column names matching \code{new} to remap.
+#'   If \code{regexp = TRUE}, character vector containing \code{\link{regular
+#'   expression}}s.
+#' @param regexp A logical value. If \code{FALSE} (the default), \code{source}
+#'   will be interpreted literary. If \code{TRUE}, \code{source} elements will
+#'   be used as \code{\link{grep}} \code{pattern}s.
+#' @param qc A character string. A \code{\link{regular expression}}
+#'   \code{\link{grep}} \code{pattern} identifying \code{x} column names that
+#'   carry quality control information for respective \code{source}.
+#' @param na.rm A logical value indicating whether \code{NA} values should be
+#'   stripped before the computation proceeds. \code{na.rm} is used only if
+#'   \code{regexp = TRUE} and multiple columns identified by \code{source} are
+#'   combined by averaging.
+#'
+#' @return A data frame with attributes varnames and units assigned to each
+#'   respective column.
+#'
+#' @seealso \code{\link{varnames}}.
+remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
+                       na.rm = TRUE) {
+  if (!is.data.frame(x) || is.null(names(x))) {
+    stop("'x' must be of class data.frame with colnames")
+  }
+  if (anyDuplicated(names(x))) stop("Duplicated colnames in 'x'")
+  new <- as.character(new)
+  source <- as.character(source)
+  if (length(new) != length(source)) stop(
+    paste0("length of 'new' (", length(new),
+           ") not equal to lenght of 'source' (",
+           length(source), ")"))
+  if (anyDuplicated(new)) stop("Duplicated 'new' elements")
+  names(source) <- new
+  regexp <- as.logical(regexp)
+  if (length(regexp) != 1 || is.na(regexp)) stop(
+    "'regexp' must be 'TRUE' or 'FALSE'")
+  if (!is.null(qc)) {
+    qc <- as.character(qc)
+    if (length(qc) != 1) stop("'qc' must be a character string of length 1")
+  }
+  out <- x[, 0]
+  if (regexp) {
+    qc_index <- if (is.null(qc)) rep(FALSE, length(names(x))) else
+      seq_along(names(x)) %in% grep(qc, names(x))
+    for (i in new) {
+      index <- seq_along(names(x)) %in% grep(source[i], names(x))
+      if (sum(!qc_index & index) >= 2) { # if multiple matches
+        first <- which(!qc_index & index)[1]
+        temp <- rowMeans(x[!qc_index & index], na.rm = na.rm)
+        openeddy::varnames(temp) <-
+          paste0("mean(",
+                 paste(openeddy::varnames(x[!qc_index & index]),
+                       collapse = ", "),
+                 ", na.rm = ", na.rm, ")")
+        openeddy::units(temp) <- openeddy::units(x[first])
+        out[i] <- temp
+        if (!is.null(qc)) {
+          first_qc <- which(qc_index & index)[1]
+          temp_qc <- rowMeans(x[qc_index & index], na.rm = na.rm)
+          openeddy::varnames(temp_qc) <-
+            paste0("mean(",
+                   paste(openeddy::varnames(x[qc_index & index]),
+                         collapse = ", "),
+                   ", na.rm = ", na.rm, ")")
+          openeddy::units(temp_qc) <- openeddy::units(x[first_qc])
+          out[paste0("qc_", i)] <- temp_qc
+        }
+      } else if (sum(!qc_index & index) == 0) { # if no match
+        out[i] <- NA
+        openeddy::varnames(out[i]) <- i
+        openeddy::units(out[i]) <- "-"
+        cat(sprintf("Column with pattern '%s' not found in 'x'\n",
+                    source[i]))
+        cat(sprintf("Respective column '%s' initialized with NA values\n", i))
+      } else { # if one on one case
+        out[i] <- x[!qc_index & index]
+        out[paste0("qc_", i)] <- x[qc_index & index]
+      }
+    }
+  } else { # if regexp = FALSE
+    all_qc <- if (is.null(qc)) FALSE else
+      seq_along(names(x)) %in% grep(qc, names(x))
+    for (i in new) {
+      index <- match(source[i], names(x))
+      qc_index <- if (is.null(qc)) FALSE else
+        match(source[i], gsub(qc, "", names(x)[all_qc]), nomatch = 0)
+      if (is.na(index)) {
+        out[i] <- NA
+        openeddy::varnames(out[i]) <- i
+        openeddy::units(out[i]) <- "-"
+        cat(sprintf("Column '%s' not found in 'x'\n", source[i]))
+        cat(sprintf("Respective column '%s' initialized with NA values\n", i))
+      } else {
+        out[i] <- x[index]
+        if (!is.null(qc)) out[paste0("qc_", i)] <- x[all_qc][qc_index]
+      }
+    }
+  }
+  return(out)
+}
