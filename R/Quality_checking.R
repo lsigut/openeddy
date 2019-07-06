@@ -1029,61 +1029,92 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
 #' @param win_size An integer. Number of \code{x} values displayed per plot.
+#' @param other1 A numeric vector of the same length as \code{x} with the first additional variable to be plotted
+#' @param other2 A numeric vector of the same length as \code{x} with the second additional variable to be plotted
+#' @param other3 A numeric vector of the same length as \code{x} with the third additional variable to be plotted
+#' @param col1 A character assignig a colour for \code{other1}
+#' @param col2 A character assignig a colour for \code{other2}
+#' @param col3 A character assignig a colour for \code{other3}
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
-exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
+exclude<-function (x, qc_x = NULL, name_out = "-", win_size = 672, other1 = NULL, other2 = NULL, other3 = NULL, col1 = NULL, col2 = NULL, col3 = NULL) 
+{
+  if(!exists("other1")) other1 = NA
+  if(!exists("other2")) other2 = NA
+  if(!exists("other3")) other3 = NA
+  if(!exists("col1")) col1 = "black"
+  if(!exists("col2")) col2 = "black"
+  if(!exists("col3")) col3 = "black"
+  
   len <- length(x)
   if (!is.null(qc_x)) {
-    if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")
+    if (len != length(qc_x)) 
+      stop("'qc_x' must be of same lenght as 'x'")
     x <- ifelse(qc_x == 2, NA, x)
   }
   if (!is.atomic(name_out) || length(name_out) != 1) {
     stop("atomic type 'name_out' must have length 1")
   }
-  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
-  x_old <- x # initialized because of opt == 2
+  name_out <- if (name_out %in% c("", NA)) 
+    "-"
+  else as.character(name_out)
+  x_old <- x
   out <- rep(0L, len)
-  out_old <- out # initialized because of opt == 2
+  out_old <- out
   n_iter <- ceiling(len/win_size)
   range <- 1:win_size
-  sel_range <- numeric() # initialized because of opt == 2
+  sel_range <- numeric()
   read_opt <- function(msg) {
     opt <- readline(prompt = msg)
-    if (!grepl("^[1-5]$", opt)) return(read_opt(msg))
+    if (!grepl("^[1-5]$", opt)) 
+      return(read_opt(msg))
     return(as.integer(opt))
   }
   read_plot_num <- function() {
     n <- readline(prompt = "\nPlot number: \n")
-    if (!grepl("^[[:digit:]]+$", n)) return(read_plot_num())
+    if (!grepl("^[[:digit:]]+$", n)) 
+      return(read_plot_num())
     n <- as.integer(n)
-    if (n < 1 | n > n_iter) return(read_plot_num())
+    if (n < 1 | n > n_iter) 
+      return(read_plot_num())
     return(n)
   }
-  # Loop with options
   i <- 1
   while (i <= n_iter) {
-    plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
-         ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
-                                                             na.rm = TRUE),
-         main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
-    filter <- as.logical(out[range]) # to keep red lines with opt == 5
-    lines(range[filter], x[range[filter]],
-          col = 'red', type = "o", pch = 19, cex = 0.5)
-    msg <- paste0("\n", paste0(rep("-", 14), collapse = ""),
-                  "\nChoose option:\n1. flag values\n2. undo last\n",
+    
+    if (all(is.na(x[range]))){ 
+      ylim =  c(0, 0)
+    }else{
+      ylim = range(c(x[range],other1[range],other2[range],other3[range]), na.rm = TRUE)
+    }
+    
+    plot(range, x[range], type = "o", pch = 19, cex = 0.5, 
+         ylim = ylim , main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+    
+    lines(other1,col=col1, type = "o", pch = 19, cex = 0.2)
+    lines(other2,col=col2, type = "o", pch = 19, cex = 0.2)
+    lines(other2,col=col2, type = "o", pch = 19, cex = 0.2)
+    
+    filter <- as.logical(out[range])
+    lines(range[filter], x[range[filter]], col = "red", 
+          type = "o", pch = 19, cex = 0.5)
+    msg <- paste0("\n", paste0(rep("-", 14), 
+                               collapse = ""), "\nChoose option:\n1. flag values\n2. undo last\n", 
                   "3. refresh plots\n4. next plot\n5. jump to plot ...\n\n")
     repeat {
       opt <- read_opt(msg)
       if (opt == 1) {
         sel <- numeric()
         for (j in 1:2) {
-          sel[j] <- identify(x, n = 1, plot = FALSE, tolerance = 0.25)
-          points(sel[j], x[sel[j]], col = 'red', pch = 19, cex = 0.5)
+          sel[j] <- identify(x, n = 1, plot = FALSE, 
+                             tolerance = 0.25)
+          points(sel[j], x[sel[j]], col = "red", 
+                 pch = 19, cex = 0.5)
         }
         sel_range <- sel[1]:sel[2]
-        lines(sel_range, x[sel_range],
-              col = 'red', type = "o", pch = 19, cex = 0.5)
+        lines(sel_range, x[sel_range], col = "red", 
+              type = "o", pch = 19, cex = 0.5)
         out_old <- out
         x_old <- x
         out[sel_range] <- 2L
@@ -1091,14 +1122,17 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
       if (opt == 2) {
         out <- out_old
         x <- x_old
-        lines(sel_range, x[sel_range], type = "o", pch = 19, cex = 0.5)
+        lines(sel_range, x[sel_range], type = "o", 
+              pch = 19, cex = 0.5)
       }
       if (opt == 3) {
         x <- ifelse(out == 2, NA, x)
-        plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
-             ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
-                                                                 na.rm = TRUE),
-             main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+        plot(range, x[range], type = "o", pch = 19, 
+             cex = 0.5, ylim = if (all(is.na(x[range]))) 
+               c(0, 0)
+             else range(x[range], na.rm = TRUE), main = paste0("Plot ", 
+                                                               i, "/", n_iter), ylab = "x", 
+             xlab = "Index")
       }
       if (opt == 4) {
         break
