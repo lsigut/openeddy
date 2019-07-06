@@ -1038,8 +1038,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
-exclude<-function (x, qc_x = NULL, name_out = "-", win_size = 672, other1 = NULL, other2 = NULL, other3 = NULL, col1 = NULL, col2 = NULL, col3 = NULL) 
-{
+exclude<-function (x, qc_x = NULL, name_out = "-", win_size = 672, other1 = NULL, other2 = NULL, other3 = NULL, col1 = NULL, col2 = NULL, col3 = NULL) {
   if(!exists("other1")) other1 = NA
   if(!exists("other2")) other2 = NA
   if(!exists("other3")) other3 = NA
