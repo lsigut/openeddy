@@ -1,4 +1,4 @@
-#' Apply Thresholds
+﻿#' Apply Thresholds
 #'
 #' Values of \code{x} are checked against two specified thresholds to obtain
 #' their quality control (QC) flags.
@@ -1032,9 +1032,9 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @param other1 A numeric vector of the same length as \code{x} with the first additional variable to be plotted
 #' @param other2 A numeric vector of the same length as \code{x} with the second additional variable to be plotted
 #' @param other3 A numeric vector of the same length as \code{x} with the third additional variable to be plotted
-#' @param col1 A character assignig a colour for \code{other1}
-#' @param col2 A character assignig a colour for \code{other2}
-#' @param col3 A character assignig a colour for \code{other3}
+#' @param col1 A character assigning a colour for \code{other1}
+#' @param col2 A character assigning a colour for \code{other2}
+#' @param col3 A character assigning a colour for \code{other3}
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
