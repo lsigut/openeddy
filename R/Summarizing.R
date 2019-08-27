@@ -339,7 +339,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
   )
 
   # SD considered only for measured records (fqc == 0)
-  for (i in seq_along(fsd)) fsd[x[, fqc_names[i]] != 0, i] <- NA
+  for (i in seq_along(fsd)) fsd[which(x[, fqc_names[i]] != 0), i] <- NA
 
   agg_SD <- aggregate(fsd, by = list(Intervals = x$timestamp), function(x)
     if (all(is.na(x))) NA_real_ else mean(x^2, na.rm = TRUE), drop = FALSE)
@@ -496,8 +496,8 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
     "'x' columns '^NEE_.*_fqc$' not fitting '^Reco_DT_.*_SD$' columns"
   )
   # fqc == 0: measured data; fqc != 0 gap-filled (should be excluded)
-  for (i in seq_along(Reco_SD)) Reco_SD[x[, fqc_names[i]] != 0, i] <- NA
-  for (i in seq_along(GPP_SD)) GPP_SD[x[, fqc_names[i]] != 0, i] <- NA
+  for (i in seq_along(Reco_SD)) Reco_SD[which(x[, fqc_names[i]] != 0), i] <- NA
+  for (i in seq_along(GPP_SD)) GPP_SD[which(x[, fqc_names[i]] != 0), i] <- NA
 
   agg_Reco_SD <-
     aggregate(Reco_SD, by = list(Intervals = x$timestamp), function(x)

@@ -29,8 +29,8 @@ stripped before the computation proceeds. \code{na.rm} is used only if
 combined by averaging.}
 }
 \value{
-A data frame with attributes varnames and units assigned to each
-  respective column.
+A data frame with attributes \code{varnames} and \code{units}
+  assigned to each respective column.
 }
 \description{
 Extracts and renames specified columns of a data frame, computes mean in case

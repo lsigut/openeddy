@@ -1167,8 +1167,8 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
 #'   \code{regexp = TRUE} and multiple columns identified by \code{source} are
 #'   combined by averaging.
 #'
-#' @return A data frame with attributes varnames and units assigned to each
-#'   respective column.
+#' @return A data frame with attributes \code{varnames} and \code{units}
+#'   assigned to each respective column.
 #'
 #' @seealso \code{\link{varnames}}.
 remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
