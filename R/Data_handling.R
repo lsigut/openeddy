@@ -566,7 +566,7 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
     units <- lapply(units, function(x) if (
       is.null(x) || x %in% c("", NA) || (length(x) != 1))
       units_fill else as.character(x))
-    header <- as.data.frame(units, stringsAsFactors = FALSE)
+    header <- as.data.frame(units, stringsAsFactors = FALSE, optional = TRUE)
     q_header <- if (isTRUE(quote) || is.numeric(quote)) TRUE else quote
     rn <- FALSE
     rnames <- NULL
