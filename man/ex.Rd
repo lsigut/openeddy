@@ -27,7 +27,7 @@ frames during extraction.
 \details{
 Extraction from atomic types is done as \code{x[i]} ignoring \code{j} and
 \code{drop} (applies also to matrices and arrays). Extraction from data
-frames is done as \code{x[i, j, drop = TRUE]}.
+frames is done as \code{x[i, j, drop]}.
 }
 \seealso{
 \code{\link{Extract}}, \code{\link{drop}} and
