@@ -213,7 +213,7 @@ units <- function(x, names = FALSE) {
 #'
 #' Extraction from atomic types is done as \code{x[i]} ignoring \code{j} and
 #' \code{drop} (applies also to matrices and arrays). Extraction from data
-#' frames is done as \code{x[i, j, drop = TRUE]}.
+#' frames is done as \code{x[i, j, drop]}.
 #'
 #' @return A vector or data frame with \code{varnames} and \code{units}
 #'   attributes.
