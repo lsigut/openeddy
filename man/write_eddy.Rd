@@ -4,9 +4,19 @@
 \alias{write_eddy}
 \title{Eddy Covariance Data Output}
 \usage{
-write_eddy(x, file = "", append = FALSE, quote = TRUE, sep = ",",
-  units_fill = "-", na = "-9999", row.names = FALSE, col.names = TRUE,
-  qmethod = "double", ...)
+write_eddy(
+  x,
+  file = "",
+  append = FALSE,
+  quote = TRUE,
+  sep = ",",
+  units_fill = "-",
+  na = "-9999",
+  row.names = FALSE,
+  col.names = TRUE,
+  qmethod = "double",
+  ...
+)
 }
 \arguments{
 \item{x}{The object that will be written. It is a data frame with optional

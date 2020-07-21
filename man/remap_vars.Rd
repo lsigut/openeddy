@@ -12,8 +12,8 @@ remap_vars(x, new, source, regexp = FALSE, qc = NULL, na.rm = TRUE)
 \item{new}{A character vector of new column names for remapping.}
 
 \item{source}{A vector of \code{x} column names matching \code{new} to remap.
-If \code{regexp = TRUE}, character vector containing \code{\link{regular
-expression}}s.}
+If \code{regexp = TRUE}, character vector containing
+\code{\link[=regexp]{regular expression}}s.}
 
 \item{regexp}{A logical value. If \code{FALSE} (the default), \code{source}
 will be interpreted literary. If \code{TRUE}, \code{source} elements will
@@ -53,7 +53,7 @@ be renamed or skipped if not present.
 If \code{regexp = TRUE}, multiple columns can match the \code{source} element
 \code{\link{regular expression}} pattern. In that case \code{\link{rowMeans}}
 are produced and names of averaged columns kept as \code{varnames} attributes
-for tracebility. Similarly, also quality control flags are averaged over
+for traceability. Similarly, also quality control flags are averaged over
 available columns if \code{qc} is specified. Note that variable names need to
 have unique patterns in order to achieve expected results. E.g. precipitation
 abbreviated as P will have overlap with PAR; instead, sumP can be used.

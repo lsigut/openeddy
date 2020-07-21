@@ -4,8 +4,14 @@
 \alias{strptime_eddy}
 \title{Conversion of Regular Date-time Sequence from Character}
 \usage{
-strptime_eddy(x, format = "\%Y-\%m-\%d \%H:\%M", freq = 1800,
-  shift.by = NULL, tz = "GMT", ...)
+strptime_eddy(
+  x,
+  format = "\%Y-\%m-\%d \%H:\%M",
+  freq = 1800,
+  shift.by = NULL,
+  tz = "GMT",
+  ...
+)
 }
 \arguments{
 \item{x}{A character vector containing date-time information to be converted

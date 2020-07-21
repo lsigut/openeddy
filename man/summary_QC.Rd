@@ -4,8 +4,16 @@
 \alias{summary_QC}
 \title{Quality Control Summary}
 \usage{
-summary_QC(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
-  plot = FALSE, perc = TRUE, flux = NULL)
+summary_QC(
+  x,
+  qc_names,
+  na.as = NA,
+  cumul = FALSE,
+  additive = FALSE,
+  plot = FALSE,
+  perc = TRUE,
+  flux = NULL
+)
 }
 \arguments{
 \item{x}{A data frame with column names.}

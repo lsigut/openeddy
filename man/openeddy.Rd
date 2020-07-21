@@ -3,7 +3,6 @@
 \docType{package}
 \name{openeddy}
 \alias{openeddy}
-\alias{openeddy-package}
 \title{The R Package for Low Frequency Eddy Covariance Data Processing}
 \description{
 This package provides utilities for eddy covariance data handling, quality

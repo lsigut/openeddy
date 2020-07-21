@@ -4,13 +4,22 @@
 \alias{plot_eddy}
 \title{Plot Time Series of Eddy Covariance Data}
 \usage{
-plot_eddy(x, flux, qc_flag = "none", test = "none", flux_gf = "none",
-  NEE_sep = FALSE, skip = c("none", "monthly", "weekly"),
-  panel_top = c("T_light", "VPD_Rn", "H_err_var", "blue_red",
-  "violet_orange"), panel_top_vars = NULL, panel_bottom = c("VPD_Rn",
-  "T_light", "H_err_var", "blue_red", "violet_orange"),
-  panel_bottom_vars = NULL, light = c("PAR", "GR"), GPP_check = TRUE,
-  document = TRUE)
+plot_eddy(
+  x,
+  flux,
+  qc_flag = "none",
+  test = "none",
+  flux_gf = "none",
+  NEE_sep = FALSE,
+  skip = c("none", "monthly", "weekly"),
+  panel_top = c("T_light", "VPD_Rn", "H_err_var", "blue_red", "violet_orange"),
+  panel_top_vars = NULL,
+  panel_bottom = c("VPD_Rn", "T_light", "H_err_var", "blue_red", "violet_orange"),
+  panel_bottom_vars = NULL,
+  light = c("PAR", "GR"),
+  GPP_check = TRUE,
+  document = TRUE
+)
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables. See

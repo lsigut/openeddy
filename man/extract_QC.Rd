@@ -4,11 +4,21 @@
 \alias{extract_QC}
 \title{Extract Quality Control Information}
 \usage{
-extract_QC(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
-  scf = TRUE, wresid = TRUE, rotation = c("double", "planar fit"),
-  prefix = "[8]", split = "[/]", missfrac_thr = c(0.1, 0.1),
-  scf_thr = c(2, 3), w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1,
-  0.15))
+extract_QC(
+  x,
+  abslim = TRUE,
+  spikesHF = TRUE,
+  missfrac = TRUE,
+  scf = TRUE,
+  wresid = TRUE,
+  rotation = c("double", "planar fit"),
+  prefix = "[8]",
+  split = "[/]",
+  missfrac_thr = c(0.1, 0.1),
+  scf_thr = c(2, 3),
+  w_unrot_thr = c(0.35, 0.35),
+  w_rot_thr = c(0.1, 0.15)
+)
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables.}

@@ -35,3 +35,4 @@ apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
 \code{\link{NA}} for general information about NAs and
   \code{\link{apply}} for \code{apply} description.
 }
+\concept{NA handlers}

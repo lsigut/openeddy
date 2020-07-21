@@ -4,10 +4,23 @@
 \alias{read_eddy}
 \title{Data Input with Units}
 \usage{
-read_eddy(file, header = TRUE, units = TRUE, sep = ",", quote = "\\"",
-  dec = ".", units_fill = "-", na.strings = c("NA", "-9999.0", "-9999"),
-  colClasses = NA, nrows = -1, skip = 0, fill = TRUE,
-  comment.char = "", check_input = TRUE, ...)
+read_eddy(
+  file,
+  header = TRUE,
+  units = TRUE,
+  sep = ",",
+  quote = "\\"",
+  dec = ".",
+  units_fill = "-",
+  na.strings = c("NA", "-9999.0", "-9999"),
+  colClasses = NA,
+  nrows = -1,
+  skip = 0,
+  fill = TRUE,
+  comment.char = "",
+  check_input = TRUE,
+  ...
+)
 }
 \arguments{
 \item{file}{The file name with input data to be read. It can be a file name

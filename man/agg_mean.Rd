@@ -9,19 +9,37 @@
 \usage{
 agg_mean(x, format, breaks = NULL, tz = "GMT", ...)
 
-agg_sum(x, format, agg_per = NULL, breaks = NULL,
+agg_sum(
+  x,
+  format,
+  agg_per = NULL,
+  breaks = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
-  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value =
-  TRUE), carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
-  tz = "GMT", ...)
+  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
+  carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
+  tz = "GMT",
+  ...
+)
 
-agg_fsd(x, format, agg_per = NULL, breaks = NULL,
+agg_fsd(
+  x,
+  format,
+  agg_per = NULL,
+  breaks = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
-  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value =
-  TRUE), carbon = grep("^NEE", names(x), value = TRUE), tz = "GMT")
+  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
+  carbon = grep("^NEE", names(x), value = TRUE),
+  tz = "GMT"
+)
 
-agg_DT_SD(x, format, agg_per = NULL, breaks = NULL,
-  carbon = grep("^Reco|^GPP", names(x), value = TRUE), tz = "GMT")
+agg_DT_SD(
+  x,
+  format,
+  agg_per = NULL,
+  breaks = NULL,
+  carbon = grep("^Reco|^GPP", names(x), value = TRUE),
+  tz = "GMT"
+)
 }
 \arguments{
 \item{x}{A data frame with required timestamp column (\code{x$timestamp}) of

@@ -5,10 +5,19 @@
 \alias{set_OT_input}
 \title{Create Input for REddyProc/Online Tool}
 \usage{
-set_OT_input(x, names_in, names_out = c("qcNEE", "NEE", "qcLE", "LE", "qcH",
-  "H", "Rg", "Tair", "Tsoil", "rH", "VPD", "qcTau", "Ustar"),
-  time_format = c("YDH", "YMDHM"), qcTau = TRUE, qcH = TRUE,
-  qcLE = TRUE, qcNEE = TRUE, check_time = TRUE, check_VPD = TRUE)
+set_OT_input(
+  x,
+  names_in,
+  names_out = c("qcNEE", "NEE", "qcLE", "LE", "qcH", "H", "Rg", "Tair", "Tsoil", "rH",
+    "VPD", "qcTau", "Ustar"),
+  time_format = c("YDH", "YMDHM"),
+  qcTau = TRUE,
+  qcH = TRUE,
+  qcLE = TRUE,
+  qcNEE = TRUE,
+  check_time = TRUE,
+  check_VPD = TRUE
+)
 }
 \arguments{
 \item{x}{A data frame with column names and \code{"timestamp"} column in
