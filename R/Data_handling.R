@@ -206,6 +206,43 @@ units <- function(x, names = FALSE) {
   } else stop("'x' must be a data frame or an atomic type")
 }
 
+#' Extract Parts of an Object with Varnames and Units Attributes
+#'
+#' Conserves \code{varnames} and \code{units} attributes of vectors and data
+#' frames during extraction.
+#'
+#' Extraction from atomic types is done as \code{x[i]} ignoring \code{j} and
+#' \code{drop} (applies also to matrices and arrays). Extraction from data
+#' frames is done as \code{x[i, j, drop = TRUE]}.
+#'
+#' @return A vector or data frame with \code{varnames} and \code{units}
+#'   attributes.
+#'
+#' @param x An atomic type or a data frame. Object from which to extract
+#'   element(s).
+#' @param i,j Indices specifying elements to extract as specified in
+#'   \code{\link{Extract}}.
+#' @param drop A logical value. If \code{TRUE} (default), the result is coerced
+#'   to the lowest possible dimension.
+#'
+#' @seealso \code{\link{Extract}}, \code{\link{drop}} and
+#'   \code{\link{varnames}}.
+ex <- function(x, i, j, drop = TRUE) {
+  v <- openeddy::varnames(x, names = TRUE)
+  u <- openeddy::units(x, names = TRUE)
+
+  if (is.atomic(x)) {
+    out <- x[i]
+  } else if (is.data.frame(x)) {
+    out <- x[i, j, drop = drop]
+    v <- v[j]
+    u <- u[j]
+  } else stop("'x' must be either atomic type or data frame")
+  openeddy::varnames(out) <- v
+  openeddy::units(out) <- u
+  return(out)
+}
+
 #' Data Input with Units
 #'
 #' Reads tabular data from a file and represents them as data frame. Attributes
