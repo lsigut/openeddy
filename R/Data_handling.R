@@ -1289,3 +1289,187 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
   }
   return(out)
 }
+
+#' Merge Data Frames on Regular Date-Time Sequence
+#'
+#' Single or multiple data frames are merged either on existing or generated
+#' date-time sequence.
+#'
+#' The primary purpose of \code{merge_eddy} is to combine chunks of data
+#' vertically along their column \code{"timestamp"} with date-time information.
+#' This \code{"timestamp"} is expected to be regular with given
+#' \code{freq}uency. Resulting data frame contains added rows with expected
+#' date-time values that were missing in \code{"timestamp"} column, followed by
+#' \code{NA}s. In case that \code{check_dupl = TRUE} and \code{"timestamp"}
+#' values across \code{x} elements overlap, detected duplicated rows are removed
+#' (the order in which duplicates are evaluated depends on the order of \code{x}
+#' elements). A special case when \code{x} has only one element allows to fill
+#' missing date-time values in \code{"timestamp"} column of given data frame.
+#'
+#'
+#' The list of data frames, each with column \code{"timestamp"}, is sequentially
+#' \code{\link{merge}}d using \code{\link{Reduce}}. A \emph{(full) outer join},
+#' i.e. \code{merge(..., all = TRUE)}, is performed to keep all columns of
+#' \code{x} elements. The order of \code{x} elements can affect the result.
+#' Duplicated column names within \code{x} elements are corrected using
+#' \code{\link{make.unique}}. The merged data frame is then merged on the
+#' validated \code{"timestamp"} column that can be either automatically
+#' extracted from \code{x} or manually specified.
+#'
+#' For horizontal merging (adding columns instead of rows) \code{check_dupl =
+#' FALSE} must be set but simple \code{\link{merge}} could be preferred.
+#' Combination of vertical and horizontal merging should be avoided as it
+#' depends on the order of \code{x} elements and can lead to row duplication.
+#' Instead, data chunks from different data sources should be first separately
+#' vertically merged and then merged horizontally in a following step.
+#'
+#' @param x List of data frames, each with \code{"timestamp"} column of class
+#'   \code{"POSIXt"}. Optionally with attributes \code{varnames} and
+#'   \code{units} for each column.
+#' @param start,end A \code{"POSIXt"} value or character string containing
+#'   date-time information in given \code{format} specifying first (last) value
+#'   of the generated timestamp.
+#' @param check_dupl A logical value specifying whether rows with duplicated
+#'   date-time values checked across \code{x} elements should be excluded before
+#'   merging.
+#' @param freq A numeric value specifying the frequency (in seconds) of the
+#'   generated timestamp.
+#' @param format A character string. The default \code{format} is
+#'   \code{"\%Y-\%m-\%d \%H:\%M"}.
+#' @param tz A time zone (see \code{\link{time zones}}) specification to be used
+#'   for the conversion.
+
+#'
+#' @return A data frame with attributes \code{varnames} and \code{units} for
+#'   each column, containing date-time information in column \code{"timestamp"}.
+#'
+#' @seealso \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
+#'   \code{\link{time zones}}, \code{\link{make.unique}}
+merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
+                       freq = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
+  sq <- seq_len(length(x))
+  check_x <- lapply(x, function(x) any(!is.data.frame(x),
+                                       !inherits(x$timestamp, "POSIXt")))
+  if (any(unlist(check_x)))
+    stop(strwrap("'x' must be list of data frames with 'timestamp'
+         column of POSIXt class", prefix = " ", initial = ""))
+  if (any(sapply(x, function(x) anyNA(x$timestamp))))
+    stop("'timestamp' has missing value(s)")
+  # col dups must be treated within each list element
+    if (any(unlist(lapply(x, function(x) duplicated(names(x)))))) {
+    warning("Duplicated names in 'x' elements: corrected by 'make.unique()'")
+    for (i in sq) names(x[[i]]) <- make.unique(names(x[[i]]))
+  }
+
+  # check if x has duplicated rows
+  # treatment is optional and done across elements before merging
+  if (check_dupl) {
+    # x elements are reduced from data frames to vectors (required by relist)
+    ts <- lapply(x, function(x) x$timestamp)
+    # identify (row) position with duplicated timestamp across data frames
+    dupl <- duplicated(unlist(ts)) # conversion from POSIXt to integer is OK
+    if (any(dupl)) {
+      # relist the dupl vector so it can be matched against the original list 'x'
+      l_dupl <- relist(dupl, ts)
+      xrows <- vector("character", length(x))
+      for (i in sq) {
+        if (any(l_dupl[[i]])) {
+          xrows[i] <- paste0("x[[", i, "]]: row(s) ",
+                             paste(which(l_dupl[[i]]), collapse = ", "),
+                             "\n")
+        } else next
+      }
+      message("removing rows in 'x' elements with duplicated timestamp at:\n",
+              xrows)
+      # remove the duplicated rows from the elements of 'x'
+      for (i in sq) x[[i]] <- openeddy::ex(x[[i]], !l_dupl[[i]], )
+    }
+  }
+
+  # handle single data frame (timestamp correction applied)
+  if (length(x) == 1L) {
+    out <- x[[1]]
+    out_vu <- as.data.frame(do.call(
+      rbind,
+      list(openeddy::varnames(x[[1]], names = TRUE),
+           openeddy::units(x[[1]], names = TRUE))))
+  } else {
+    # normal case of merging multiple data frames in list 'x'
+    out <- Reduce(function(x, y)
+      merge(x, y, by = intersect(names(x), names(y)), all = TRUE), x)
+
+    # extract variables and units and bind within each list element as data frame
+    vu <- lapply(x, function(x) as.data.frame(do.call(
+      rbind,
+      list(openeddy::varnames(x, names = TRUE),
+           openeddy::units(x, names = TRUE)))))
+
+    # merge to get the same order and number of variables as in 'out'
+    out_vu <- Reduce(function(x, y)
+      merge(x, y, by = intersect(names(x), names(y)), all = TRUE, sort = FALSE),
+      vu) # 'sort = TRUE' switches order of rows
+    # needs to be tested:
+    # - merge produces data frame with combinations of varnames and units
+    # - first row seems to correspond fully to varnames, last row to units
+    out_vu <- out_vu[c(1, nrow(out_vu)), ]
+  }
+
+  range <- range(out$timestamp)
+  if (is.null(freq)) {
+    # automated estimation of freq
+    # working on list is more reliable due to possible gaps among its elements
+    freq <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))
+    if (!length(freq)) {
+      stop("not possible to automatically extract 'freq' from 'x'")
+    } else {
+      message("'freq' set to '", format(freq),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'freq' to class 'difftime'
+    freq <- diff(seq(Sys.time(), by = freq, length.out = 2))
+  }
+  if (diff(range) < freq) stop("'freq' is larger than 'timestamp' range")
+
+  # For both start and end arguments:
+  # if NULL - get value automatically from x input
+  # if numeric - the value represents start/end of given year
+  # otherwise expect character representation of specific half hour
+  if (is.null(start)) {
+    start <- range[1]
+  } else if (is.numeric(start)) {
+    start <- ISOdate(start, 1, 1, 0) + as.numeric(freq, units = "secs")
+  } else {
+    start <- strptime(start, format = format, tz = tz)
+  }
+
+  if (is.null(end)) {
+    end <- range[2]
+  } else if (is.numeric(end)) {
+    end <- ISOdatetime(end + 1, 1, 1, 0, 0, 0, tz = tz)
+  } else {
+    end <- strptime(end, format = format, tz = tz)
+  }
+
+  # seq.POSIXt converts to POSIXct so strptime POSIXlt product does not matter
+  # timestamp should not have missing values or reversed order
+    if (start > end) stop("generated 'timestamp' would have reversed order")
+  full_ts <- data.frame(timestamp = seq(start, end, by = freq))
+
+  # It is not possible to reduce both EP and full_ts in one step
+  # First step with Reduce aims to keep all rows and columns of 'x' data frames
+  # Second step trims them according to the specified timestamp range (all.x)
+  out <- merge(full_ts, out, by = "timestamp", all.x = TRUE)
+
+  # Is resulting time series regular? Tested independently on check_dupl
+  if (length(unique(diff(out$timestamp))) > 1) {
+    warning("resulting timestamp does not form regular sequence")
+  }
+
+  # Last merge could move timestamp so names need to be matched
+  pos <- match(names(out), names(out_vu))
+  openeddy::varnames(out) <- t(out_vu)[pos, 1] # t() to extract as vector
+  openeddy::units(out) <- t(out_vu)[pos, 2]
+
+  return(out)
+}
