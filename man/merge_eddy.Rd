@@ -19,30 +19,36 @@ merge_eddy(
 \code{"POSIXt"}. Optionally with attributes \code{varnames} and
 \code{units} for each column.}
 
-\item{start, end}{A \code{"POSIXt"} value or character string containing
-date-time information in given \code{format} specifying first (last) value
-of the generated timestamp.}
+\item{start, end}{A value specifying the first (last) value of the generated
+date-time sequence. If \code{NULL}, \code{\link{min}} (\code{\link{max}})
+is taken across the values in \code{"timestamp"} columns across \code{x}
+elements. If numeric, the value specifies the year for which the first
+(last) date-time value will be generated, considering given \code{freq} and
+convention of assigning of measured records to the end of the time
+interval. Otherwise character representation of specific half hour is
+expected with given \code{format} and \code{tz}.}
 
 \item{check_dupl}{A logical value specifying whether rows with duplicated
 date-time values checked across \code{x} elements should be excluded before
 merging.}
 
 \item{freq}{A numeric value specifying the frequency (in seconds) of the
-generated timestamp.}
+generated date-time sequence.}
 
-\item{format}{A character string. The default \code{format} is
+\item{format}{A character string. Format of \code{start} (\code{end}) if
+provided as a character string.The default \code{\link[=strptime]{format}} is
 \code{"\%Y-\%m-\%d \%H:\%M"}.}
 
 \item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
-for the conversion.}
+for the conversion of \code{start} (\code{end}) if provided as a character
+string.}
 }
 \value{
 A data frame with attributes \code{varnames} and \code{units} for
   each column, containing date-time information in column \code{"timestamp"}.
 }
 \description{
-Single or multiple data frames are merged either on existing or generated
-date-time sequence.
+Single or multiple data frames are merged on a generated date-time sequence.
 }
 \details{
 The primary purpose of \code{merge_eddy} is to combine chunks of data
