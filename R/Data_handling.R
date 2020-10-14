@@ -1290,9 +1290,10 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
   return(out)
 }
 
-#' Merge Data Frames on Regular Date-Time Sequence
+#' Merge Regular Date-Time Sequence and Data Frames
 #'
-#' Single or multiple data frames are merged on a generated date-time sequence.
+#' Merge generated regular date-time sequence with single or multiple data
+#' frames.
 #'
 #' The primary purpose of \code{merge_eddy} is to combine chunks of data
 #' vertically along their column \code{"timestamp"} with date-time information.
@@ -1339,8 +1340,8 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' @param freq A numeric value specifying the frequency (in seconds) of the
 #'   generated date-time sequence.
 #' @param format A character string. Format of \code{start} (\code{end}) if
-#'   provided as a character string.The default \code{\link[=strptime]{format}} is
-#'   \code{"\%Y-\%m-\%d \%H:\%M"}.
+#'   provided as a character string.The default \code{\link[=strptime]{format}}
+#'   is \code{"\%Y-\%m-\%d \%H:\%M"}.
 #' @param tz A time zone (see \code{\link{time zones}}) specification to be used
 #'   for the conversion of \code{start} (\code{end}) if provided as a character
 #'   string.
