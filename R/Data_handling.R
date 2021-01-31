@@ -686,9 +686,10 @@ correct <- function(x) {
 #'   \code{qc_names}, respective values of \code{additive} are changed to
 #'   \code{TRUE}. This is because \code{\link{interdep}} and wresid (see
 #'   \code{\link{extract_QC}}) quality control checks are defined as additive
-#'   within the current quality control scheme. If \code{"spikesLF"} pattern is
-#'   detected within \code{qc_names}, respective values of \code{na.as} are
-#'   changed to \code{0} (see \code{\link{despikeLF}}).
+#'   within the current quality control scheme. If \code{"spikesLF"},
+#'   \code{"fetch70"} or \code{"man"} patterns are detected within
+#'   \code{qc_names}, respective values of \code{na.as} are changed to \code{0}
+#'   (see \code{\link{despikeLF}}).
 #'
 #' @return An integer vector with attributes \code{varnames} and \code{units} is
 #'   produced. \code{varnames} value is set by \code{name_out} argument. Default
@@ -738,6 +739,8 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
   if (!is.character(qc_names)) stop("'qc_names' must be of class character")
   if (is.null(additive)) {
     additive <- grepl("interdep|wresid", qc_names)
+    message("autodetected columns with additive effect: ",
+            paste0(qc_names[additive], collapse = ", "))
   } else {
     if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
       stop("'additive' must be logical vector with non-missing values")
@@ -745,7 +748,10 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
   }
   if (is.null(na.as)) {
     na.as <- rep(NA, length(qc_names))
-    na.as[grep("spikesLF", qc_names)] <- 0L
+    na.as_0 <- grep("spikesLF|fetch70|man", qc_names)
+    na.as[na.as_0] <- 0L
+    message("autodetected columns with 'na.as = 0': ",
+            paste0(qc_names[na.as_0], collapse = ", "))
   } else {
     if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
       stop("'na.as' must be a vector containing numeric or NA values")

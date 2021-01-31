@@ -2,7 +2,7 @@
 % Please edit documentation in R/Data_handling.R
 \name{merge_eddy}
 \alias{merge_eddy}
-\title{Merge Data Frames on Regular Date-Time Sequence}
+\title{Merge Regular Date-Time Sequence and Data Frames}
 \usage{
 merge_eddy(
   x,
@@ -36,8 +36,8 @@ merging.}
 generated date-time sequence.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
-provided as a character string.The default \code{\link[=strptime]{format}} is
-\code{"\%Y-\%m-\%d \%H:\%M"}.}
+provided as a character string.The default \code{\link[=strptime]{format}}
+is \code{"\%Y-\%m-\%d \%H:\%M"}.}
 
 \item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
 for the conversion of \code{start} (\code{end}) if provided as a character
@@ -48,7 +48,8 @@ A data frame with attributes \code{varnames} and \code{units} for
   each column, containing date-time information in column \code{"timestamp"}.
 }
 \description{
-Single or multiple data frames are merged on a generated date-time sequence.
+Merge generated regular date-time sequence with single or multiple data
+frames.
 }
 \details{
 The primary purpose of \code{merge_eddy} is to combine chunks of data

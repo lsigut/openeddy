@@ -63,9 +63,10 @@ not be used for further analyses.
   \code{qc_names}, respective values of \code{additive} are changed to
   \code{TRUE}. This is because \code{\link{interdep}} and wresid (see
   \code{\link{extract_QC}}) quality control checks are defined as additive
-  within the current quality control scheme. If \code{"spikesLF"} pattern is
-  detected within \code{qc_names}, respective values of \code{na.as} are
-  changed to \code{0} (see \code{\link{despikeLF}}).
+  within the current quality control scheme. If \code{"spikesLF"},
+  \code{"fetch70"} or \code{"man"} patterns are detected within
+  \code{qc_names}, respective values of \code{na.as} are changed to \code{0}
+  (see \code{\link{despikeLF}}).
 }
 
 \examples{
