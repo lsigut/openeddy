@@ -710,6 +710,8 @@ correct <- function(x) {
 #'   determining interpretation of missing flags in each respective column of
 #'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
+#' @param no_messages A logical value.
+#'
 #'
 #' @seealso \code{\link{summary_QC}}.
 #'
@@ -730,17 +732,25 @@ correct <- function(x) {
 #' str(aa)
 #' aa
 combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
-                     na.as = NULL) {
+                     na.as = NULL, no_messages = FALSE) {
   x_names <- colnames(x)
-  name_out <- name_out[1]
+  name_out <- as.character(name_out[1])
+  qc_names <- as.character(qc_names)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
   }
-  if (!is.character(qc_names)) stop("'qc_names' must be of class character")
+  if (!all(qc_names %in% x_names)) {
+    stop(paste("missing", paste0(qc_names[!(qc_names %in% x_names)],
+                                 collapse = ", ")))
+  }
   if (is.null(additive)) {
     additive <- grepl("interdep|wresid", qc_names)
-    message("autodetected columns with additive effect: ",
-            paste0(qc_names[additive], collapse = ", "))
+    if (!no_messages) {
+      if (sum(additive)) {
+        message("detected columns with additive effect: ",
+                paste0(qc_names[additive], collapse = ", "))
+      } else message("no columns with additive effect detected")
+    }
   } else {
     if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
       stop("'additive' must be logical vector with non-missing values")
@@ -750,14 +760,17 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
     na.as <- rep(NA, length(qc_names))
     na.as_0 <- grep("spikesLF|fetch70|man", qc_names)
     na.as[na.as_0] <- 0L
-    message("autodetected columns with 'na.as = 0': ",
-            paste0(qc_names[na.as_0], collapse = ", "))
+    if (!no_messages) {
+      if (length(na.as_0)) {
+        message("detected columns with 'na.as = 0': ",
+                paste0(qc_names[na.as_0], collapse = ", "))
+      } else message("no columns with 'na.as = 0' detected")
+    }
   } else {
     if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
       stop("'na.as' must be a vector containing numeric or NA values")
     }
   }
-  if (!is.character(name_out)) stop("'name_out' must be of class character")
   if (length(additive) > 1) {
     if (length(qc_names) != length(additive)) {
       stop("'additive' must be of same lenght as 'qc_names' or length 1")
@@ -769,10 +782,6 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
     }
   } else if (length(na.as) != length(qc_names)) {
     na.as <- rep(na.as, length(qc_names))
-  }
-  if (!all(qc_names %in% x_names)) {
-    stop(paste("missing", paste0(qc_names[!(qc_names %in% x_names)],
-                                 collapse = ", ")))
   }
   df <- x[c(qc_names)]
   if (length(qc_names) == 0) {

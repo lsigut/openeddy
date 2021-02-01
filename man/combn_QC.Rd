@@ -4,7 +4,14 @@
 \alias{combn_QC}
 \title{Combine Quality Checking Results}
 \usage{
-combn_QC(x, qc_names, name_out = "-", additive = NULL, na.as = NULL)
+combn_QC(
+  x,
+  qc_names,
+  name_out = "-",
+  additive = NULL,
+  na.as = NULL,
+  no_messages = FALSE
+)
 }
 \arguments{
 \item{x}{A data frame with column names.}
@@ -26,6 +33,8 @@ type.}
 determining interpretation of missing flags in each respective column of
 \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
 used. If only one value is provided, all columns are treated the same way.}
+
+\item{no_messages}{A logical value.}
 }
 \value{
 An integer vector with attributes \code{varnames} and \code{units} is
