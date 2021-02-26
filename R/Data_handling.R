@@ -25,26 +25,26 @@
 #'
 #' @return A named list with paths to folder structure directories.
 #'   Corresponding directories are created as a function side effect if
-#'   \code{create_dirs = TRUE} (default).
-structure_eddy <- function(root = ".", create_dirs = TRUE, ...) {
+#'   \code{create_dirs = TRUE}.
+structure_eddy <- function(root = ".", create_dirs = FALSE, ...) {
   # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
   # but needed in order to make the dir accessible with path in the list
-  l <- list(Processing_setup = "/Level 0/Processing setup/",
+  l <- list(Processing_setup = "/Level 0/EddyPro setup/",
             IRGA_setup = "/Level 0/IRGA setup/",
             Raw_data = "/Level 0/Raw data/",
             Logbook = "/Level 1/Logbook/",
-            Processing = "/Level 1/Processing/",
+            Processing = "/Level 1/Post-processing/EddyProOutput",
             Quality_checking = "/Level 2/Quality checking/",
             Precheck = "/Level 2/Quality checking/Precheck/",
             WD_dependency = "/Level 2/Quality checking/Precheck/WD dependency/",
             QC_summary = "/Level 2/Quality checking/QC summary/",
             Storage_flux = "/Level 2/Storage flux/",
             Input_for_GF = "/Level 2/Input for gap-filling/",
-            Gap_filling = "/Level 3/Gap-filling/",
-            Plots = "/Level 3/Gap-filling/Plots/",
-            Ustar_filtering = "/Level 3/Gap-filling/Ustar filtering/",
-            Summary = "/Level 3/Summary/",
-            png = "/Level 3/Summary/png/")
+            Gap_filling = "/Level 3/Gap-filling/REddyProc/",
+            Plots = "/Level 3/Gap-filling/REddyProc/Plots/",
+            Ustar_filtering = "/Level 3/Gap-filling/REddyProc/Ustar filtering/",
+            Summary = "/Level 3/Summary/REddyProc/",
+            png = "/Level 3/Summary/REddyProc/png/")
   l <- lapply(l, function(x) paste0(root, x))
   if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
   return(l)

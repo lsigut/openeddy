@@ -4,7 +4,7 @@
 \alias{structure_eddy}
 \title{Folder Structure Setup}
 \usage{
-structure_eddy(root = ".", create_dirs = TRUE, ...)
+structure_eddy(root = ".", create_dirs = FALSE, ...)
 }
 \arguments{
 \item{root}{A character string defining the root of created folder structure.}
@@ -17,7 +17,7 @@ created.}
 \value{
 A named list with paths to folder structure directories.
   Corresponding directories are created as a function side effect if
-  \code{create_dirs = TRUE} (default).
+  \code{create_dirs = TRUE}.
 }
 \description{
 Folder structure recommended for eddy covariance data processing and
