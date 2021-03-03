@@ -9,7 +9,7 @@ merge_eddy(
   start = NULL,
   end = NULL,
   check_dupl = TRUE,
-  freq = NULL,
+  interval = NULL,
   format = "\%Y-\%m-\%d \%H:\%M",
   tz = "GMT"
 )
@@ -23,17 +23,17 @@ merge_eddy(
 date-time sequence. If \code{NULL}, \code{\link{min}} (\code{\link{max}})
 is taken across the values in \code{"timestamp"} columns across \code{x}
 elements. If numeric, the value specifies the year for which the first
-(last) date-time value will be generated, considering given \code{freq} and
-convention of assigning of measured records to the end of the time
-interval. Otherwise character representation of specific half hour is
-expected with given \code{format} and \code{tz}.}
+(last) date-time value will be generated, considering given time
+\code{interval} and convention of assigning of measured records to the end
+of the time interval. Otherwise, character representation of specific half
+hour is expected with given \code{format} and \code{tz}.}
 
 \item{check_dupl}{A logical value specifying whether rows with duplicated
 date-time values checked across \code{x} elements should be excluded before
 merging.}
 
-\item{freq}{A numeric value specifying the frequency (in seconds) of the
-generated date-time sequence.}
+\item{interval}{A numeric value specifying the time interval (in seconds) of
+the generated date-time sequence.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
 provided as a character string.The default \code{\link[=strptime]{format}}
@@ -54,8 +54,8 @@ frames.
 \details{
 The primary purpose of \code{merge_eddy} is to combine chunks of data
 vertically along their column \code{"timestamp"} with date-time information.
-This \code{"timestamp"} is expected to be regular with given
-\code{freq}uency. Resulting data frame contains added rows with expected
+This \code{"timestamp"} is expected to be regular with given time
+\code{interval}. Resulting data frame contains added rows with expected
 date-time values that were missing in \code{"timestamp"} column, followed by
 \code{NA}s. In case that \code{check_dupl = TRUE} and \code{"timestamp"}
 values across \code{x} elements overlap, detected duplicated rows are removed

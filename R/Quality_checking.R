@@ -702,7 +702,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' The data frame \code{x} is expected to have certain properties. It is
 #' required that it contains column named \code{"timestamp"} of class
 #' \code{"POSIXt"} with regular sequence of date-time values, typically with
-#' (half-)hourly frequency. Any missing values in \code{"timestamp"} are not
+#' (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. It also has to contain required (depends on the argument values)
 #' column names. If QC flags are not available for \code{var}, \code{qc_flag}

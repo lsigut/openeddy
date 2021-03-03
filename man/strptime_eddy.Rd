@@ -7,7 +7,7 @@
 strptime_eddy(
   x,
   format = "\%Y-\%m-\%d \%H:\%M",
-  freq = 1800,
+  interval = 1800,
   shift.by = NULL,
   allow_gaps = FALSE,
   tz = "GMT",
@@ -21,15 +21,15 @@ to class \code{"POSIXct"}.}
 \item{format}{A character string. The default \code{format} is
 \code{"\%Y-\%m-\%d \%H:\%M"}}
 
-\item{freq}{A numeric value specifying the frequency (in seconds) of the
-input date-time vector.}
+\item{interval}{A numeric value specifying the time interval (in seconds) of
+the input date-time vector.}
 
 \item{shift.by}{A numeric value specifying the time shift (in seconds) to be
 applied to the date-time information.}
 
 \item{allow_gaps}{A logical value. If \code{TRUE}, date-time information does
 not have to be regular but time differences must be multiples of
-\code{freq}.}
+\code{interval}.}
 
 \item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
 for the conversion.}
@@ -39,7 +39,7 @@ for the conversion.}
 \description{
 Converts character vector to class \code{"POSIXct"} using
 \code{\link{strptime}} and validates the result. The input has to represent a
-regular date-time sequence with given frequency. Additional attributes
+regular date-time sequence with given time interval. Additional attributes
 \code{varnames} and \code{units} are assigned to returned vector with fixed
 strings \code{"timestamp"} and \code{"-"}, respectively.
 }
@@ -57,11 +57,11 @@ unexpected behaviour and returns an error message instead of \code{NA} value.
 In case that multiple formats are present in the timestamp, it has to be
 corrected prior using \code{strptime_eddy}. It is expected that time series
 are continuous although no valid measurements are available for given time
-interval. Therefore \code{freq} value is checked against the lagged
+interval. Therefore \code{interval} value is checked against the lagged
 differences (\code{\link{diff}}) applied to the converted date-time vector
 and returns an error message if mismatch is found. If \code{allow_gaps =
 TRUE}, date-time information does not have to be regular but time differences
-must be multiples of \code{freq}.
+must be multiples of \code{interval}.
 }
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
@@ -78,8 +78,8 @@ strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M", allow_gaps = TRUE)
 \dontrun{
 ## This is not a regular date-time sequence
 strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M")
-## freq argument provided incorrectly
-strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", freq = 3600)}
+## interval argument provided incorrectly
+strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600)}
 }
 \seealso{
 \code{\link{strptime}} provides the details about conversions

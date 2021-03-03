@@ -420,7 +420,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #'
 #' Converts character vector to class \code{"POSIXct"} using
 #' \code{\link{strptime}} and validates the result. The input has to represent a
-#' regular date-time sequence with given frequency. Additional attributes
+#' regular date-time sequence with given time interval. Additional attributes
 #' \code{varnames} and \code{units} are assigned to returned vector with fixed
 #' strings \code{"timestamp"} and \code{"-"}, respectively.
 #'
@@ -437,23 +437,23 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' In case that multiple formats are present in the timestamp, it has to be
 #' corrected prior using \code{strptime_eddy}. It is expected that time series
 #' are continuous although no valid measurements are available for given time
-#' interval. Therefore \code{freq} value is checked against the lagged
+#' interval. Therefore \code{interval} value is checked against the lagged
 #' differences (\code{\link{diff}}) applied to the converted date-time vector
 #' and returns an error message if mismatch is found. If \code{allow_gaps =
 #' TRUE}, date-time information does not have to be regular but time differences
-#' must be multiples of \code{freq}.
+#' must be multiples of \code{interval}.
 #'
 #' @param x A character vector containing date-time information to be converted
 #'   to class \code{"POSIXct"}.
 #' @param format A character string. The default \code{format} is
 #'   \code{"\%Y-\%m-\%d \%H:\%M"}
-#' @param freq A numeric value specifying the frequency (in seconds) of the
-#'   input date-time vector.
+#' @param interval A numeric value specifying the time interval (in seconds) of
+#'   the input date-time vector.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
 #' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
 #'   not have to be regular but time differences must be multiples of
-#'   \code{freq}.
+#'   \code{interval}.
 #' @param tz A time zone (see \code{\link{time zones}}) specification to be used
 #'   for the conversion.
 #' @param ... Further arguments to be passed from or to other methods.
@@ -480,24 +480,24 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' \dontrun{
 #' ## This is not a regular date-time sequence
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M")
-#' ## freq argument provided incorrectly
-#' strptime_eddy(xx, "%d.%m.%Y %H:%M", freq = 3600)}
-strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", freq = 1800,
+#' ## interval argument provided incorrectly
+#' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)}
+strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
                           ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
   if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
-  if (!allow_gaps && any(diff(as.numeric(out)) != freq)) {
-    stop("timestamp does not form regular sequence with specified 'freq'")
+  if (!allow_gaps && any(diff(as.numeric(out)) != interval)) {
+    stop("timestamp does not form regular sequence with specified 'interval'")
   } else {
     tdiff <- diff(as.numeric(out))
     # timestamp without gaps should have only one unique tdiff value
     if (length(unique(diff(as.numeric(out)))) > 1) {
       message("timestamp in 'x' contains gaps")
-      # gaps should be allowed only if they are multiples of freq
-      if (any(diff(as.numeric(out)) %% freq != 0)) {
-        stop("timestamp does not form regular sequence with 'freq' multiples")
+      # gaps should be allowed only if they are multiples of interval
+      if (any(diff(as.numeric(out)) %% interval != 0)) {
+        stop("timestamp does not form regular sequence with 'interval' multiples")
       }
     }
   }
@@ -1330,8 +1330,8 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #'
 #' The primary purpose of \code{merge_eddy} is to combine chunks of data
 #' vertically along their column \code{"timestamp"} with date-time information.
-#' This \code{"timestamp"} is expected to be regular with given
-#' \code{freq}uency. Resulting data frame contains added rows with expected
+#' This \code{"timestamp"} is expected to be regular with given time
+#' \code{interval}. Resulting data frame contains added rows with expected
 #' date-time values that were missing in \code{"timestamp"} column, followed by
 #' \code{NA}s. In case that \code{check_dupl = TRUE} and \code{"timestamp"}
 #' values across \code{x} elements overlap, detected duplicated rows are removed
@@ -1363,15 +1363,15 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #'   date-time sequence. If \code{NULL}, \code{\link{min}} (\code{\link{max}})
 #'   is taken across the values in \code{"timestamp"} columns across \code{x}
 #'   elements. If numeric, the value specifies the year for which the first
-#'   (last) date-time value will be generated, considering given \code{freq} and
-#'   convention of assigning of measured records to the end of the time
-#'   interval. Otherwise character representation of specific half hour is
-#'   expected with given \code{format} and \code{tz}.
+#'   (last) date-time value will be generated, considering given time
+#'   \code{interval} and convention of assigning of measured records to the end
+#'   of the time interval. Otherwise, character representation of specific half
+#'   hour is expected with given \code{format} and \code{tz}.
 #' @param check_dupl A logical value specifying whether rows with duplicated
 #'   date-time values checked across \code{x} elements should be excluded before
 #'   merging.
-#' @param freq A numeric value specifying the frequency (in seconds) of the
-#'   generated date-time sequence.
+#' @param interval A numeric value specifying the time interval (in seconds) of
+#'   the generated date-time sequence.
 #' @param format A character string. Format of \code{start} (\code{end}) if
 #'   provided as a character string.The default \code{\link[=strptime]{format}}
 #'   is \code{"\%Y-\%m-\%d \%H:\%M"}.
@@ -1385,7 +1385,7 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' @seealso \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
 #'   \code{\link{time zones}}, \code{\link{make.unique}}
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
-                       freq = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
+                       interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
   sq <- seq_len(length(x))
   check_x <- lapply(x, function(x) any(!is.data.frame(x),
                                        !inherits(x$timestamp, "POSIXt")))
@@ -1454,21 +1454,22 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   }
 
   range <- range(out$timestamp)
-  if (is.null(freq)) {
-    # automated estimation of freq
+  if (is.null(interval)) {
+    # automated estimation of interval
     # working on list is more reliable due to possible gaps among its elements
-    freq <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))
-    if (!length(freq)) {
-      stop("not possible to automatically extract 'freq' from 'x'")
+    interval <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
     } else {
-      message("'freq' set to '", format(freq),
+      message("'interval' set to '", format(interval),
               "' - specify manually if incorrect")
     }
   } else {
-    # convert 'freq' to class 'difftime'
-    freq <- diff(seq(Sys.time(), by = freq, length.out = 2))
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
   }
-  if (diff(range) < freq) stop("'freq' is larger than 'timestamp' range")
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
 
   # For both start and end arguments:
   # if NULL - get value automatically from x input
@@ -1477,7 +1478,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   if (is.null(start)) {
     start <- range[1]
   } else if (is.numeric(start)) {
-    start <- ISOdate(start, 1, 1, 0) + as.numeric(freq, units = "secs")
+    start <- ISOdate(start, 1, 1, 0) + as.numeric(interval, units = "secs")
   } else {
     start <- strptime(start, format = format, tz = tz)
   }
@@ -1493,7 +1494,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   # seq.POSIXt converts to POSIXct so strptime POSIXlt product does not matter
   # timestamp should not have missing values or reversed order
     if (start > end) stop("generated 'timestamp' would have reversed order")
-  full_ts <- data.frame(timestamp = seq(start, end, by = freq))
+  full_ts <- data.frame(timestamp = seq(start, end, by = interval))
 
   # It is not possible to reduce both EP and full_ts in one step
   # First step with Reduce aims to keep all rows and columns of 'x' data frames
