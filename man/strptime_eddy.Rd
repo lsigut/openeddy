@@ -9,6 +9,7 @@ strptime_eddy(
   format = "\%Y-\%m-\%d \%H:\%M",
   freq = 1800,
   shift.by = NULL,
+  allow_gaps = FALSE,
   tz = "GMT",
   ...
 )
@@ -25,6 +26,10 @@ input date-time vector.}
 
 \item{shift.by}{A numeric value specifying the time shift (in seconds) to be
 applied to the date-time information.}
+
+\item{allow_gaps}{A logical value. If \code{TRUE}, date-time information does
+not have to be regular but time differences must be multiples of
+\code{freq}.}
 
 \item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
 for the conversion.}
@@ -54,7 +59,9 @@ corrected prior using \code{strptime_eddy}. It is expected that time series
 are continuous although no valid measurements are available for given time
 interval. Therefore \code{freq} value is checked against the lagged
 differences (\code{\link{diff}}) applied to the converted date-time vector
-and returns an error message if mismatch is found.
+and returns an error message if mismatch is found. If \code{allow_gaps =
+TRUE}, date-time information does not have to be regular but time differences
+must be multiples of \code{freq}.
 }
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
@@ -66,8 +73,9 @@ str(xx)
 ## Convert to original format
 format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
 attributes(yy)
-\dontrun{
 zz <- xx[-3]
+strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M", allow_gaps = TRUE)
+\dontrun{
 ## This is not a regular date-time sequence
 strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M")
 ## freq argument provided incorrectly

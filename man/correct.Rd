@@ -16,11 +16,11 @@ A corrected character vector.
 Substitute given characters or strings by their alternatives.
 }
 \details{
-String \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute:
-\itemize{\item \code{"co2_flux"} by \code{"NEE"} \item \code{"*"} by
-\code{"star"} \item \code{"\%"} by \code{"perc"} \item \code{"-"} and
-\code{"/"} by \code{"_"} \item round and square brackets by empty string}
-using regular expression patterns.
+Literal string \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute
+within strings: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
+\code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
+\code{"-"} and \code{"/"} by \code{"_"} \item round and square brackets by
+empty string} using regular expression patterns.
 }
 \examples{
 correct(c("[m]", "qc_co2_flux", "(z-d)/L", "x_70\%", "*[-(z-d)/L"))

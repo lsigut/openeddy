@@ -439,7 +439,10 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' are continuous although no valid measurements are available for given time
 #' interval. Therefore \code{freq} value is checked against the lagged
 #' differences (\code{\link{diff}}) applied to the converted date-time vector
-#' and returns an error message if mismatch is found.
+#' and returns an error message if mismatch is found. If \code{allow_gaps =
+#' TRUE}, date-time information does not have to be regular but time differences
+#' must be multiples of \code{freq}.
+#'
 #' @param x A character vector containing date-time information to be converted
 #'   to class \code{"POSIXct"}.
 #' @param format A character string. The default \code{format} is
@@ -448,6 +451,9 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #'   input date-time vector.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
+#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
+#'   not have to be regular but time differences must be multiples of
+#'   \code{freq}.
 #' @param tz A time zone (see \code{\link{time zones}}) specification to be used
 #'   for the conversion.
 #' @param ... Further arguments to be passed from or to other methods.
@@ -469,19 +475,31 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' ## Convert to original format
 #' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
 #' attributes(yy)
-#' \dontrun{
 #' zz <- xx[-3]
+#' strptime_eddy(zz, "%d.%m.%Y %H:%M", allow_gaps = TRUE)
+#' \dontrun{
 #' ## This is not a regular date-time sequence
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M")
 #' ## freq argument provided incorrectly
 #' strptime_eddy(xx, "%d.%m.%Y %H:%M", freq = 3600)}
 strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", freq = 1800,
-                          shift.by = NULL, tz = "GMT", ...) {
+                          shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
+                          ...) {
+  if (anyNA(x)) stop("NAs in 'x' not allowed")
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
-  if (!length(out)) stop("'x' not supplied correctly")
-  if (any(is.na(out))) stop("'x' and/or 'format' not supplied correctly")
-  if (any(diff(as.numeric(out)) != freq)) {
+  if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
+  if (!allow_gaps && any(diff(as.numeric(out)) != freq)) {
     stop("timestamp does not form regular sequence with specified 'freq'")
+  } else {
+    tdiff <- diff(as.numeric(out))
+    # timestamp without gaps should have only one unique tdiff value
+    if (length(unique(diff(as.numeric(out)))) > 1) {
+      message("timestamp in 'x' contains gaps")
+      # gaps should be allowed only if they are multiples of freq
+      if (any(diff(as.numeric(out)) %% freq != 0)) {
+        stop("timestamp does not form regular sequence with 'freq' multiples")
+      }
+    }
   }
   if (!is.null(shift.by)) out <- out + shift.by
   varnames(out) <- "timestamp"
@@ -635,11 +653,11 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #'
 #' Substitute given characters or strings by their alternatives.
 #'
-#' String \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute:
-#' \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item \code{"*"} by
-#' \code{"star"} \item \code{"\%"} by \code{"perc"} \item \code{"-"} and
-#' \code{"/"} by \code{"_"} \item round and square brackets by empty string}
-#' using regular expression patterns.
+#' Literal string \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute
+#' within strings: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
+#' \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
+#' \code{"-"} and \code{"/"} by \code{"_"} \item round and square brackets by
+#' empty string} using regular expression patterns.
 #' @param x A character vector.
 #'
 #' @return A corrected character vector.
