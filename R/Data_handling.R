@@ -401,9 +401,12 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
                      dec = dec, na.strings = na.strings,
                      colClasses = colClasses, nrows = nrows, skip = skip,
                      fill = fill, comment.char = comment.char, ...)
-  if (header && units) colnames(data) <- colnames(var_units)
+  # var_units (and orig_varnames) can have less columns than data
+  # - this can happen if only fragment of header and units is present
+  # - assuming file integrity also assumes left alignment of var_units and data
+  if (header && units) names(data)[1:ncol(var_units)] <- names(var_units)
   if (units) var_units[var_units %in% c("", NA)] <- units_fill
-  for (i in seq_len(ncol(data))) {
+  for (i in seq_len(ncol(var_units))) {
     varnames(data[, i]) <- if (header) orig_varnames[, i] else colnames(data)[i]
     units(data[, i]) <- var_units[, i]
   }
