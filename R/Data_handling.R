@@ -1398,9 +1398,21 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   if (any(sapply(x, function(x) anyNA(x$timestamp))))
     stop("'timestamp' has missing value(s)")
   # col dups must be treated within each list element
-    if (any(unlist(lapply(x, function(x) duplicated(names(x)))))) {
+  if (any(unlist(lapply(x, function(x) duplicated(names(x)))))) {
     warning("Duplicated names in 'x' elements: corrected by 'make.unique()'")
     for (i in sq) names(x[[i]]) <- make.unique(names(x[[i]]))
+  }
+  # POSIXlt causes problems/errors during duplication check and merging
+  is_POSIXlt <- unlist(lapply(x, function(x) "POSIXlt" %in% class(x$timestamp)))
+  if (any(unlist(is_POSIXlt))) {
+    for (i in sq) {
+      if (!is_POSIXlt[i]) next
+      v <- openeddy::varnames(x[[i]], names = TRUE)
+      u <- openeddy::units(x[[i]], names = TRUE)
+      x[[i]]$timestamp <- as.POSIXct(x[[i]]$timestamp)
+      openeddy::varnames(x[[i]]) <- v
+      openeddy::units(x[[i]]) <- u
+    }
   }
 
   # check if x has duplicated rows
