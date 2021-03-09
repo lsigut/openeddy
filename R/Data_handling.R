@@ -656,24 +656,51 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #'
 #' Substitute given characters or strings by their alternatives.
 #'
-#' Literal string \code{"(z-d)/L"} is renamed to \code{"zeta"}. Substitute
-#' within strings: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
+#' The function is intended to simplify the use of variable names and units
+#' within the typical processing workflow employing
+#' \code{\link[openeddy]{openeddy}}.
+#'
+#' If \code{attr = "names"}, correction is meant to arrive to syntactically
+#' valid names with a higher level of control. This assumes that the original
+#' names were preserved during data loading (e.g. by using \code{check.names =
+#' FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
+#' literal string \code{"(z-d)/L"} is renamed to \code{"zeta"} and specified
+#' patterns or characters withing strings are substituted using regular
+#' expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
 #' \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
-#' \code{"-"} and \code{"/"} by \code{"_"} \item round and square brackets by
-#' empty string} using regular expression patterns.
+#' \code{"-"} and \code{"/"} by \code{"_"}.} After the substitutions
+#' \code{make.names(names = x, ...)} is executed.
+#'
+#' If \code{attr = "units"}, round and square brackets are substituted by an
+#' empty string.
+#'
 #' @param x A character vector.
+#' @param attr A character string identifying an attribute type a character
+#'   vector \code{x} to correct. Can be abbreviated.
+#' @param ... Further arguments to be passed to the internal
+#'   \code{\link{make.names}} function.
 #'
 #' @return A corrected character vector.
 #'
+#' @seealso \code{\link{make.names}}.
+#'
 #' @examples
-#' correct(c("[m]", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
-correct <- function(x) {
-  x <- gsub("co2_flux", "NEE", x) # assumption: co2_flux = NEE
-  x[x == "(z-d)/L"] <- "zeta"
-  x <- gsub("\\*", "star", x) # ustar, Tstar
-  x <- gsub("\\%", "perc", x) # signal contribution percentages
-  x <- gsub("\\-|\\/", "_", x)
-  x <- gsub(c("\\[|\\]|\\(|\\)"), "", x) # remove brackets
+#' correct(c("qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
+#' correct(c("qc_co2_flux", "qc_NEE"), unique = TRUE)
+#' correct(c("[m]", "(s)", "kg"), attr = "units")
+correct <- function(x, attr = c("names", "units"), ...) {
+  attr <- match.arg(attr)
+  if (attr == "names") {
+    x <- gsub("co2_flux", "NEE", x) # assumption: co2_flux = NEE
+    x[x == "(z-d)/L"] <- "zeta"
+    x <- gsub("\\*", "star", x) # ustar, Tstar
+    x <- gsub("\\%", "perc", x) # signal contribution percentages
+    x <- gsub("\\-|\\/", "_", x)
+    x <- make.names(names = x, ...)
+  }
+  if (attr == "units") {
+    x <- gsub(c("\\[|\\]|\\(|\\)"), "", x) # remove brackets
+  }
   return(x)
 }
 
