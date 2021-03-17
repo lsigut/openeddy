@@ -36,8 +36,8 @@ structure_eddy <- function(root = ".", create_dirs = FALSE, ...) {
             Processing = "/Level 1/Post-processing/EddyProOutput",
             Quality_checking = "/Level 2/Quality checking/",
             Precheck = "/Level 2/Quality checking/Precheck/",
-            WD_dependency = "/Level 2/Quality checking/Precheck/WD dependency/",
-            QC_summary = "/Level 2/Quality checking/QC summary/",
+            WD_dependency = "/Level 2/Quality checking/Precheck/WD_dependency/",
+            QC_summary = "/Level 2/Quality checking/QC_summary/",
             Storage_flux = "/Level 2/Storage flux/",
             Input_for_GF = "/Level 2/Input for gap-filling/",
             Gap_filling = "/Level 3/Gap-filling/REddyProc/",
@@ -664,10 +664,13 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' valid names with a higher level of control. This assumes that the original
 #' names were preserved during data loading (e.g. by using \code{check.names =
 #' FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
-#' literal string \code{"(z-d)/L"} is renamed to \code{"zeta"} and specified
-#' patterns or characters withing strings are substituted using regular
-#' expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
-#' \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
+#' literal strings are renamed as: \itemize{\item \code{"(z-d)/L"} by
+#' \code{"zeta"} \item \code{"qc_Tau"} by \code{"qc_Tau_SSITC"} \item
+#' \code{"qc_H"} by \code{"qc_H_SSITC"} \item \code{"qc_LE"} by
+#' \code{"qc_LE_SSITC"} \item \code{"qc_co2_flux"} by \code{"qc_NEE_SSITC"} }
+#' and specified patterns or characters withing strings are substituted using
+#' regular expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"}
+#' \item \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
 #' \code{"-"} and \code{"/"} by \code{"_"}.} After the substitutions
 #' \code{make.names(names = x, ...)} is executed.
 #'
@@ -685,14 +688,18 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' @seealso \code{\link{make.names}}.
 #'
 #' @examples
-#' correct(c("qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
-#' correct(c("qc_co2_flux", "qc_NEE"), unique = TRUE)
+#' correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
+#' correct(c("qc_co2_flux", "qc_NEE_SSITC"), unique = TRUE)
 #' correct(c("[m]", "(s)", "kg"), attr = "units")
 correct <- function(x, attr = c("names", "units"), ...) {
   attr <- match.arg(attr)
   if (attr == "names") {
-    x <- gsub("co2_flux", "NEE", x) # assumption: co2_flux = NEE
     x[x == "(z-d)/L"] <- "zeta"
+    x[x == "qc_Tau"] <- "qc_Tau_SSITC"
+    x[x == "qc_H"] <- "qc_H_SSITC"
+    x[x == "qc_LE"] <- "qc_LE_SSITC"
+    x[x == "qc_co2_flux"] <- "qc_NEE_SSITC"
+    x <- gsub("co2_flux", "NEE", x) # assumption: co2_flux = NEE
     x <- gsub("\\*", "star", x) # ustar, Tstar
     x <- gsub("\\%", "perc", x) # signal contribution percentages
     x <- gsub("\\-|\\/", "_", x)
@@ -765,17 +772,17 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #'
 #' @examples
 #' set.seed(5)
-#' aa <- data.frame(xx = sample(c(0:2, NA), 20, replace = T))
-#' aa$yy <- sample(c(0:2, NA), 20, replace = T)
-#' aa$add_F <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+#' aa <- data.frame(xx = sample(c(0:2, NA), 20, replace = TRUE))
+#' aa$yy <- sample(c(0:2, NA), 20, replace = TRUE)
+#' aa$add_F <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 #' name_out = "add_F")
-#' aa$add_T <- combn_QC(aa, qc_names = c("xx", "yy"), additive = T,
+#' aa$add_T <- combn_QC(aa, qc_names = c("xx", "yy"), additive = TRUE,
 #' name_out = "add_T")
-#' aa$add_F_na.as_0 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+#' aa$add_F_na.as_0 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 #' na.as = 0, name_out = "add_F_na.as_0")
-#' aa$add_F_na.as_0part <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
-#' na.as = c(0, NA), name_out = "add_F_na.as_0part")
-#' aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+#' aa$add_F_na.as_0part <- combn_QC(aa, qc_names = c("xx", "yy"),
+#' additive = FALSE, na.as = c(0, NA), name_out = "add_F_na.as_0part")
+#' aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 #' na.as = 2, name_out = "add_F_na.as_2")
 #' str(aa)
 #' aa
@@ -887,7 +894,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' @seealso \code{\link{units}}.
 #'
 #' @examples
-#' aa <- matrix(ncol = 3, nrow = 10, byrow = T, c(-1, 1, 2),
+#' aa <- matrix(ncol = 3, nrow = 10, byrow = TRUE, c(-1, 1, 2),
 #'              dimnames = list(NULL, c("flux", "st", "stp")))
 #' aa[c(4, 8, 9, 11, 15, 18, 22, 25, 27, 29)] <- NA
 #' (aa <- as.data.frame(aa))
@@ -1113,25 +1120,27 @@ set_OT_input <- function(x, names_in,
 #' @examples
 #' set.seed(5)
 #' aa <- as.data.frame(replicate(
-#' 4, sample(c(0:2, NA), 20, replace = T, prob = c(rep(0.3, 3), 0.1))))
+#' 4, sample(c(0:2, NA), 20, replace = TRUE, prob = c(rep(0.3, 3), 0.1))))
 #' names(aa) <- letters[1:4]
 #'
 #' bb <- summary_QC(aa, letters[1:4])
+#' is_add <- c(FALSE, TRUE, FALSE, TRUE)
 #' summary_QC(aa, letters[1:4], na.as = c(NA, 0, NA, 2))
-#' summary_QC(aa, letters[1:4], cumul = T, additive = T)
-#' summary_QC(aa, letters[1:4], cumul = T, additive = F)
-#' summary_QC(aa, letters[1:4], cumul = T, additive = c(F, T, F, T))
-#' cc <- summary_QC(aa, letters[1:4], cumul = F, additive = c(F, T, F, T))
+#' summary_QC(aa, letters[1:4], cumul = TRUE, additive = TRUE)
+#' summary_QC(aa, letters[1:4], cumul = TRUE, additive = FALSE)
+#' summary_QC(aa, letters[1:4], cumul = TRUE, additive = is_add)
+#' cc <- summary_QC(aa, letters[1:4], cumul = FALSE, additive = is_add)
 #' identical(bb, cc) # Argument additive is skipped when cumul = FALSE
 #'
 #' library(ggplot2)
-#' (xx <- summary_QC(aa, letters[1:4], cumul = T, additive = T, plot = T,
-#' flux = "CO2 flux"))
+#' (xx <- summary_QC(aa, letters[1:4], cumul = TRUE, additive = TRUE,
+#' plot = TRUE, flux = "CO2 flux"))
 #' xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
 #'
-#' summary_QC(aa, rep(letters[1:4], 2), cumul = T, additive = T, perc = F)
-#' summary_QC(aa, rep(letters[1:4], 2), cumul = T, additive = T, plot = T,
-#'            perc = F)
+#' summary_QC(aa, rep(letters[1:4], 2),
+#' cumul = TRUE, additive = TRUE, perc = FALSE)
+#' summary_QC(aa, rep(letters[1:4], 2),
+#' cumul = TRUE, additive = TRUE, plot = TRUE, perc = FALSE)
 summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
                        plot = FALSE, perc = TRUE, flux = NULL) {
   x_names <- colnames(x)

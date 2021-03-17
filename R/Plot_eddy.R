@@ -24,9 +24,9 @@
 #' range(aa, finite = TRUE)
 #' setRange(aa, TRUE) # same effect
 #' # Useful when applying filters
-#' aa[rep(c(F, T), each = 5)]
-#' suppressWarnings(range(aa[rep(c(F, T), each = 5)], finite = TRUE))
-#' setRange(aa, rep(c(F, T), each = 5)) # range taken from unfiltered 'aa'
+#' aa[rep(c(FALSE, TRUE), each = 5)]
+#' suppressWarnings(range(aa[rep(c(FALSE, TRUE), each = 5)], finite = TRUE))
+#' setRange(aa, rep(c(FALSE, TRUE), each = 5)) # range taken from unfiltered 'aa'
 #' setRange(aa[c(FALSE, TRUE)]) # No finite values in 'x', applies 'man' range
 setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
   if (!is.numeric(man) || length(man) != 2 || any(!is.finite(man))) {

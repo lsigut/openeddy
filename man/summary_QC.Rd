@@ -68,25 +68,27 @@ skipped.
 \examples{
 set.seed(5)
 aa <- as.data.frame(replicate(
-4, sample(c(0:2, NA), 20, replace = T, prob = c(rep(0.3, 3), 0.1))))
+4, sample(c(0:2, NA), 20, replace = TRUE, prob = c(rep(0.3, 3), 0.1))))
 names(aa) <- letters[1:4]
 
 bb <- summary_QC(aa, letters[1:4])
+is_add <- c(FALSE, TRUE, FALSE, TRUE)
 summary_QC(aa, letters[1:4], na.as = c(NA, 0, NA, 2))
-summary_QC(aa, letters[1:4], cumul = T, additive = T)
-summary_QC(aa, letters[1:4], cumul = T, additive = F)
-summary_QC(aa, letters[1:4], cumul = T, additive = c(F, T, F, T))
-cc <- summary_QC(aa, letters[1:4], cumul = F, additive = c(F, T, F, T))
+summary_QC(aa, letters[1:4], cumul = TRUE, additive = TRUE)
+summary_QC(aa, letters[1:4], cumul = TRUE, additive = FALSE)
+summary_QC(aa, letters[1:4], cumul = TRUE, additive = is_add)
+cc <- summary_QC(aa, letters[1:4], cumul = FALSE, additive = is_add)
 identical(bb, cc) # Argument additive is skipped when cumul = FALSE
 
 library(ggplot2)
-(xx <- summary_QC(aa, letters[1:4], cumul = T, additive = T, plot = T,
-flux = "CO2 flux"))
+(xx <- summary_QC(aa, letters[1:4], cumul = TRUE, additive = TRUE,
+plot = TRUE, flux = "CO2 flux"))
 xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
 
-summary_QC(aa, rep(letters[1:4], 2), cumul = T, additive = T, perc = F)
-summary_QC(aa, rep(letters[1:4], 2), cumul = T, additive = T, plot = T,
-           perc = F)
+summary_QC(aa, rep(letters[1:4], 2),
+cumul = TRUE, additive = TRUE, perc = FALSE)
+summary_QC(aa, rep(letters[1:4], 2),
+cumul = TRUE, additive = TRUE, plot = TRUE, perc = FALSE)
 }
 \seealso{
 \code{\link{combn_QC}}.

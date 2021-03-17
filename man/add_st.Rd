@@ -36,7 +36,7 @@ kept. \code{flux}, \code{st} and \code{stp} (if not NULL) must have the same
 length.
 }
 \examples{
-aa <- matrix(ncol = 3, nrow = 10, byrow = T, c(-1, 1, 2),
+aa <- matrix(ncol = 3, nrow = 10, byrow = TRUE, c(-1, 1, 2),
              dimnames = list(NULL, c("flux", "st", "stp")))
 aa[c(4, 8, 9, 11, 15, 18, 22, 25, 27, 29)] <- NA
 (aa <- as.data.frame(aa))

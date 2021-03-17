@@ -80,17 +80,17 @@ not be used for further analyses.
 
 \examples{
 set.seed(5)
-aa <- data.frame(xx = sample(c(0:2, NA), 20, replace = T))
-aa$yy <- sample(c(0:2, NA), 20, replace = T)
-aa$add_F <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+aa <- data.frame(xx = sample(c(0:2, NA), 20, replace = TRUE))
+aa$yy <- sample(c(0:2, NA), 20, replace = TRUE)
+aa$add_F <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 name_out = "add_F")
-aa$add_T <- combn_QC(aa, qc_names = c("xx", "yy"), additive = T,
+aa$add_T <- combn_QC(aa, qc_names = c("xx", "yy"), additive = TRUE,
 name_out = "add_T")
-aa$add_F_na.as_0 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+aa$add_F_na.as_0 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 na.as = 0, name_out = "add_F_na.as_0")
-aa$add_F_na.as_0part <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
-na.as = c(0, NA), name_out = "add_F_na.as_0part")
-aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = F,
+aa$add_F_na.as_0part <- combn_QC(aa, qc_names = c("xx", "yy"),
+additive = FALSE, na.as = c(0, NA), name_out = "add_F_na.as_0part")
+aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 na.as = 2, name_out = "add_F_na.as_2")
 str(aa)
 aa

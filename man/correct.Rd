@@ -30,10 +30,13 @@ If \code{attr = "names"}, correction is meant to arrive to syntactically
 valid names with a higher level of control. This assumes that the original
 names were preserved during data loading (e.g. by using \code{check.names =
 FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
-literal string \code{"(z-d)/L"} is renamed to \code{"zeta"} and specified
-patterns or characters withing strings are substituted using regular
-expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"} \item
-\code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
+literal strings are renamed as: \itemize{\item \code{"(z-d)/L"} by
+\code{"zeta"} \item \code{"qc_Tau"} by \code{"qc_Tau_SSITC"} \item
+\code{"qc_H"} by \code{"qc_H_SSITC"} \item \code{"qc_LE"} by
+\code{"qc_LE_SSITC"} \item \code{"qc_co2_flux"} by \code{"qc_NEE_SSITC"} }
+and specified patterns or characters withing strings are substituted using
+regular expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"}
+\item \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
 \code{"-"} and \code{"/"} by \code{"_"}.} After the substitutions
 \code{make.names(names = x, ...)} is executed.
 
@@ -41,8 +44,8 @@ If \code{attr = "units"}, round and square brackets are substituted by an
 empty string.
 }
 \examples{
-correct(c("qc_co2_flux", "(z-d)/L", "x_70\%", "*[-(z-d)/L"))
-correct(c("qc_co2_flux", "qc_NEE"), unique = TRUE)
+correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70\%", "*[-(z-d)/L"))
+correct(c("qc_co2_flux", "qc_NEE_SSITC"), unique = TRUE)
 correct(c("[m]", "(s)", "kg"), attr = "units")
 }
 \seealso{
