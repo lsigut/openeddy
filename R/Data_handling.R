@@ -898,9 +898,10 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #'              dimnames = list(NULL, c("flux", "st", "stp")))
 #' aa[c(4, 8, 9, 11, 15, 18, 22, 25, 27, 29)] <- NA
 #' (aa <- as.data.frame(aa))
-#' aa$flux_stc <- add_st(aa$flux, "flux_stc", aa$st, aa$stp)
+#' aa$flux_stc <- add_st(aa$flux, aa$st, aa$stp, "flux_stc")
+#' aa
 #' lapply(aa, attributes)
-add_st <- function(flux, name_out = "-", st, stp = NULL) {
+add_st <- function(flux, st, stp = NULL, name_out = "-") {
   if (length(flux) != length(st)) {
     stop("'flux' and 'st' must be of the same length")
   }

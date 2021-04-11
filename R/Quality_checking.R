@@ -1011,20 +1011,21 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' Interactive plots are used for identification and flagging of data for
 #' exclusion based on the visual inspection.
 #'
-#' Five options are available during the interactive session. \enumerate{ \item
+#' Six options are available during the interactive session. \enumerate{ \item
 #' flag values: select interval of values to exclude or use double-click to flag
-#' single value \item undo last: allows to change the user flagging input back
-#' to the state before last flagging \item refresh plots: apply current user
+#' single value. \item undo last: allows to change the user flagging input back
+#' to the state before last flagging. \item refresh plots: apply current user
 #' flagging input to the plots. It removes excluded points and affects y-axis
 #' range or it can show again excluded points if option 2 (undo last) was
-#' applied before. \item next plot \item jump to plot: any plot within the
-#' existing range (see as a plot title) can be selected }
+#' applied before. \item next plot. \item jump to plot: any plot within the
+#' existing range (see as a plot title) can be selected. \item finalize: finish
+#' the flagging and return the results.}
 #'
-#' The interactive session will be finished succesfully when option 4 (next
-#' plot) is executed while at the last plot.
+#' The interactive session will be finished successfully also when option 4
+#' (next plot) is executed while at the last plot.
 #'
 #' @param x A numeric vector with values to inspect.
-#' @param qc_x A numeric vector in the range \code{0 - 2} providing quality
+#' @param qc_x An integer vector in the range \code{0 - 2} providing quality
 #'   control information about \code{x}.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
@@ -1050,7 +1051,7 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   sel_range <- numeric() # initialized because of opt == 2
   read_opt <- function(msg) {
     opt <- readline(prompt = msg)
-    if (!grepl("^[1-5]$", opt)) return(read_opt(msg))
+    if (!grepl("^[1-6]$", opt)) return(read_opt(msg))
     return(as.integer(opt))
   }
   read_plot_num <- function() {
@@ -1072,7 +1073,8 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
           col = 'red', type = "o", pch = 19, cex = 0.5)
     msg <- paste0("\n", paste0(rep("-", 14), collapse = ""),
                   "\nChoose option:\n1. flag values\n2. undo last\n",
-                  "3. refresh plots\n4. next plot\n5. jump to plot ...\n\n")
+                  "3. refresh plots\n4. next plot\n5. jump to plot ...\n",
+                  "6. finalize\n\n")
     repeat {
       opt <- read_opt(msg)
       if (opt == 1) {
@@ -1105,7 +1107,11 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
       }
       if (opt == 5) {
         n <- read_plot_num()
-        i <- n - 1
+        i <- n - 1 # due to iteration after break
+        break
+      }
+      if (opt == 6) {
+        i <- n_iter # n_iter + 1 after break
         break
       }
     }

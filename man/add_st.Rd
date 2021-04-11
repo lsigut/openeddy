@@ -4,19 +4,19 @@
 \alias{add_st}
 \title{Apply Storage Flux Correction}
 \usage{
-add_st(flux, name_out = "-", st, stp = NULL)
+add_st(flux, st, stp = NULL, name_out = "-")
 }
 \arguments{
 \item{flux}{A numeric vector with flux values.}
-
-\item{name_out}{A character string providing \code{varnames} value of the
-output.}
 
 \item{st}{A numeric vector with storage computed using discrete
 (one point) approach.}
 
 \item{stp}{A numeric vector with storage computed using
 profile measurement of CO2.}
+
+\item{name_out}{A character string providing \code{varnames} value of the
+output.}
 }
 \value{
 A vector with attributes \code{varnames} and \code{units} is
@@ -40,7 +40,8 @@ aa <- matrix(ncol = 3, nrow = 10, byrow = TRUE, c(-1, 1, 2),
              dimnames = list(NULL, c("flux", "st", "stp")))
 aa[c(4, 8, 9, 11, 15, 18, 22, 25, 27, 29)] <- NA
 (aa <- as.data.frame(aa))
-aa$flux_stc <- add_st(aa$flux, "flux_stc", aa$st, aa$stp)
+aa$flux_stc <- add_st(aa$flux, aa$st, aa$stp, "flux_stc")
+aa
 lapply(aa, attributes)
 }
 \seealso{

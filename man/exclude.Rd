@@ -9,7 +9,7 @@ exclude(x, qc_x = NULL, name_out = "-", win_size = 672)
 \arguments{
 \item{x}{A numeric vector with values to inspect.}
 
-\item{qc_x}{A numeric vector in the range \code{0 - 2} providing quality
+\item{qc_x}{An integer vector in the range \code{0 - 2} providing quality
 control information about \code{x}.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
@@ -26,15 +26,16 @@ Interactive plots are used for identification and flagging of data for
 exclusion based on the visual inspection.
 }
 \details{
-Five options are available during the interactive session. \enumerate{ \item
+Six options are available during the interactive session. \enumerate{ \item
 flag values: select interval of values to exclude or use double-click to flag
-single value \item undo last: allows to change the user flagging input back
-to the state before last flagging \item refresh plots: apply current user
+single value. \item undo last: allows to change the user flagging input back
+to the state before last flagging. \item refresh plots: apply current user
 flagging input to the plots. It removes excluded points and affects y-axis
 range or it can show again excluded points if option 2 (undo last) was
-applied before. \item next plot \item jump to plot: any plot within the
-existing range (see as a plot title) can be selected }
+applied before. \item next plot. \item jump to plot: any plot within the
+existing range (see as a plot title) can be selected. \item finalize: finish
+the flagging and return the results.}
 
-The interactive session will be finished succesfully when option 4 (next
-plot) is executed while at the last plot.
+The interactive session will be finished successfully also when option 4
+(next plot) is executed while at the last plot.
 }
