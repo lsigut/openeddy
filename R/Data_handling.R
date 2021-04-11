@@ -721,43 +721,43 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #' frame \code{x}, optionally with any number of further columns that will be
 #' ignored. Columns specified by \code{qc_names} will be further separated
 #' according to their additivity. For flags with fixed effect (\code{additive =
-#' FALSE}), maximum is taken over each row. For flags with additive effect
-#' (\code{additive = TRUE}), sum is taken over each row. In case both types of
-#' flags are present, results for both groups are summed together.
+#' FALSE}; the most typical type), maximum is taken over each row. For flags
+#' with additive effect (\code{additive = TRUE}), sum is taken over each row. In
+#' case both types of flags are present, results for both groups are summed
+#' together.
 #'
-#' Typical values of argument \code{na.as} are \code{NA}, \code{0} or \code{2}.
-#' \code{NA} value does not suggest any change in interpretation (value
+#' The most typical value of argument \code{na.as} is \code{NA}. \code{NA} value
+#' does not suggest any change in interpretation (value of variable
 #' corresponding to this flag will be removed within quality checking scheme).
-#' Value \code{0} can be used e.g. in the case that the \code{NA} flag of the
-#' quality checking test/filter is an expected result and means that the
+#' Exceptionally, value \code{0} can be used in case that the \code{NA} flag of
+#' the quality checking test/filter is an expected result and means that the
 #' half-hour was not checked by the given test/filter (e.g.
-#' \code{\link{despikeLF}}). Value \code{2} can be used if the user wants to
-#' explicitly specify that the values corresponding to \code{NA} flags should
-#' not be used for further analyses.
+#' \code{\link{despikeLF}}).
 #'
 #' @section Automated recognition: Default values for \code{additive} and
 #'   \code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
-#'   case that \code{"interdep"} or \code{"wresid"} patterns are found within
-#'   \code{qc_names}, respective values of \code{additive} are changed to
-#'   \code{TRUE}. This is because \code{\link{interdep}} and wresid (see
-#'   \code{\link{extract_QC}}) quality control checks are defined as additive
-#'   within the current quality control scheme. If \code{"spikesLF"},
-#'   \code{"fetch70"} or \code{"man"} patterns are detected within
-#'   \code{qc_names}, respective values of \code{na.as} are changed to \code{0}
-#'   (see \code{\link{despikeLF}}).
+#'   case that \code{additive_pattern} is found within \code{qc_names} (i.e.
+#'   \code{qc_names} ending with \code{"interdep"} or \code{"wresid"} pattern),
+#'   respective values of \code{additive} are changed to \code{TRUE}. This is
+#'   because \code{\link{interdep}} and wresid (see \code{\link{extract_QC}})
+#'   quality control checks are defined as additive within the current quality
+#'   control scheme. If \code{na.as_0_pattern} is detected within
+#'   \code{qc_names} (i.e. \code{qc_names} ending with \code{"spikesLF"},
+#'   \code{"fetch70"} or \code{"man"} pattern), respective values of
+#'   \code{na.as} are changed to \code{0} (see \code{\link{despikeLF}}).
 #'
 #' @return An integer vector with attributes \code{varnames} and \code{units} is
 #'   produced. \code{varnames} value is set by \code{name_out} argument. Default
 #'   value of \code{varnames} and \code{units} is set to \code{"-"}.
 #'
 #' @param x A data frame with column names.
-#' @param qc_names A vector of names of data frame columns to combine.
+#' @param qc_names A vector of names of data frame \code{x} columns to combine.
 #' @param name_out A character string providing \code{varnames} value of the
 #'   output.
 #' @param additive \code{NULL} or a vector of logical values (\code{TRUE} or
 #'   \code{FALSE}) determining additivity of each respective column of \code{x}
 #'   given by \code{qc_names}. If \code{NULL}, automated recognition is used.
-#'   Othewise, values determine if the flags should be treated as additive
+#'   Otherwise, values determine if the flags should be treated as additive
 #'   (\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
 #'   only one value is provided, all columns are considered to be of the same
 #'   type.
@@ -765,8 +765,13 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #'   determining interpretation of missing flags in each respective column of
 #'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
+#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
+#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#'   of flags with additive effect.
+#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
+#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#'   for which \code{NA} flags are interpreted as zeros.
 #' @param no_messages A logical value.
-#'
 #'
 #' @seealso \code{\link{summary_QC}}.
 #'
@@ -787,7 +792,9 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #' str(aa)
 #' aa
 combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
-                     na.as = NULL, no_messages = FALSE) {
+                     na.as = NULL, additive_pattern = "interdep$|wresid$",
+                     na.as_0_pattern = "spikesLF$|fetch70$|man$",
+                     no_messages = FALSE) {
   x_names <- colnames(x)
   name_out <- as.character(name_out[1])
   qc_names <- as.character(qc_names)
@@ -799,7 +806,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
                                  collapse = ", ")))
   }
   if (is.null(additive)) {
-    additive <- grepl("interdep|wresid", qc_names)
+    additive <- grepl(additive_pattern, qc_names)
     if (!no_messages) {
       if (sum(additive)) {
         message("detected columns with additive effect: ",
@@ -813,7 +820,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
   }
   if (is.null(na.as)) {
     na.as <- rep(NA, length(qc_names))
-    na.as_0 <- grep("spikesLF|fetch70|man", qc_names)
+    na.as_0 <- grep(na.as_0_pattern, qc_names)
     na.as[na.as_0] <- 0L
     if (!no_messages) {
       if (length(na.as_0)) {
