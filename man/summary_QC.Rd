@@ -7,63 +7,81 @@
 summary_QC(
   x,
   qc_names,
-  na.as = NA,
   cumul = FALSE,
-  additive = FALSE,
   plot = FALSE,
   perc = TRUE,
-  flux = NULL
+  flux = NULL,
+  na.as = NULL,
+  na.as_0_pattern = "spikesLF$|fetch70$|man$",
+  additive = NULL,
+  additive_pattern = "interdep$|wresid$",
+  no_messages = FALSE
 )
 }
 \arguments{
 \item{x}{A data frame with column names.}
 
-\item{qc_names}{A vector of names of data frame columns to combine.}
-
-\item{na.as}{A vector of numeric or \code{NA} values for the \code{qc_names}
-subset of \code{x} that determines how should be the missing flags
-interpreted. If only one value is provided, all columns are treated the
-same way.}
+\item{qc_names}{A vector of names of data frame \code{x} columns to combine.}
 
 \item{cumul}{A logical value that determines if cumulative (\code{cumul =
 TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
 flags should be shown.}
 
-\item{additive}{A vector of logical values (\code{TRUE} or \code{FALSE}) for
-the \code{qc_names} subset of \code{x} that determines if the flags should
-be treated as additive (\code{additive = TRUE}) or with fixed effect
-(\code{additive = FALSE}). If only one value is provided, all columns are
-considered to be of the same type.}
-
-\item{plot}{A logical value. If \code{TRUE}, the results are plotted in the
-active graphical device. If \code{FALSE}, they are represented as a table.}
+\item{plot}{A logical value. If \code{TRUE}, the results are represented as a
+ggplot object. If \code{FALSE}, they are represented as a table.}
 
 \item{perc}{A logical value. If \code{TRUE}, the results are reported in
 percentages. If \code{FALSE}, counts are used instead.}
 
 \item{flux}{A character string. Used only if \code{plot = TRUE}. Includes the
-flux name in the plot title to emphasise the relevance of displayed test
-types.}
+flux name in the plot title to emphasize the relevance of displayed quality
+control filters.}
+
+\item{na.as}{\code{NULL} or a vector of integer or \code{NA} values
+determining interpretation of missing flags in each respective column of
+\code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+used. If only one value is provided, all columns are treated the same way.}
+
+\item{na.as_0_pattern}{A character string. A \code{\link[=regexp]{regular
+expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+for which \code{NA} flags are interpreted as zeros.}
+
+\item{additive}{\code{NULL} or a vector of logical values (\code{TRUE} or
+\code{FALSE}) determining additivity of each respective column of \code{x}
+given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+Otherwise, values determine if the flags should be treated as additive
+(\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+only one value is provided, all columns are considered to be of the same
+type.}
+
+\item{additive_pattern}{A character string. A \code{\link[=regexp]{regular
+expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+of flags with additive effect.}
+
+\item{no_messages}{A logical value.}
 }
 \value{
-A table or a plot depending on the \code{plot} argument value.
+A table or a ggplot object depending on the \code{plot} argument
+  value. If \code{length(qc_names) == 0}, \code{NULL} is returned instead.
 }
 \description{
 \code{summary_QC} is a function that summarizes quality checking results in a
 form of table or plot.
 }
 \details{
-\code{summary_QC} loads a data frame \code{x}, extracts quality control
+\code{summary_QC} loads a data frame \code{x}, extracts quality control (QC)
 columns from it based on \code{qc_names} and creates a table (\code{plot =
 FALSE}) or a plot (\code{plot = TRUE}) for these columns. Results are
-displayed in percentage (\code{perc = TRUE}) or counts (\code{perc = FALSE})
-of given flag per dataset.
+displayed as percentages (\code{perc = TRUE}) or counts (\code{perc = FALSE})
+for given flag and QC filter.
 
-\code{cumul = TRUE} specifies that cumulative effect of flags is considered
-for each halfhour. Note that for \code{cumul = TRUE} the results do depend on
-the order of qc_names. The flags on each row are cumulatively summed from
-left to right. \code{additive} is used only if cumul = TRUE, otherwise
-skipped.
+\code{cumul = TRUE} specifies that cumulative effect of gradually applied QC
+filters on resulting flags is considered. Note that for \code{cumul = TRUE}
+the results do depend on the order of qc_names. \code{additive} is considered
+only if \code{cumul = TRUE}, otherwise skipped.
+
+For a detailed description of automated recognition see
+\code{\link{combn_QC}}.
 }
 \examples{
 set.seed(5)
@@ -91,5 +109,5 @@ summary_QC(aa, rep(letters[1:4], 2),
 cumul = TRUE, additive = TRUE, plot = TRUE, perc = FALSE)
 }
 \seealso{
-\code{\link{combn_QC}}.
+\code{\link{combn_QC}}, \code{\link{ggplot}}.
 }

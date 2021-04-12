@@ -849,6 +849,8 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
   if (length(qc_names) == 0) {
     return(df)
   }
+  if (any(df > 2, na.rm = TRUE) || any(df < 0, na.rm = TRUE))
+    stop("QC flags must be within range 0 - 2")
   if (!all(is.na(na.as))) {
     for (i in seq_along(qc_names)) {
       df[is.na(df[i]), i] <- na.as[i]
@@ -1087,43 +1089,55 @@ set_OT_input <- function(x, names_in,
 #' \code{summary_QC} is a function that summarizes quality checking results in a
 #' form of table or plot.
 #'
-#' \code{summary_QC} loads a data frame \code{x}, extracts quality control
+#' \code{summary_QC} loads a data frame \code{x}, extracts quality control (QC)
 #' columns from it based on \code{qc_names} and creates a table (\code{plot =
 #' FALSE}) or a plot (\code{plot = TRUE}) for these columns. Results are
-#' displayed in percentage (\code{perc = TRUE}) or counts (\code{perc = FALSE})
-#' of given flag per dataset.
+#' displayed as percentages (\code{perc = TRUE}) or counts (\code{perc = FALSE})
+#' for given flag and QC filter.
 #'
-#' \code{cumul = TRUE} specifies that cumulative effect of flags is considered
-#' for each halfhour. Note that for \code{cumul = TRUE} the results do depend on
-#' the order of qc_names. The flags on each row are cumulatively summed from
-#' left to right. \code{additive} is used only if cumul = TRUE, otherwise
-#' skipped.
+#' \code{cumul = TRUE} specifies that cumulative effect of gradually applied QC
+#' filters on resulting flags is considered. Note that for \code{cumul = TRUE}
+#' the results do depend on the order of qc_names. \code{additive} is considered
+#' only if \code{cumul = TRUE}, otherwise skipped.
 #'
-#' @return A table or a plot depending on the \code{plot} argument value.
+#' For a detailed description of automated recognition see
+#' \code{\link{combn_QC}}.
+#'
+#' @return A table or a ggplot object depending on the \code{plot} argument
+#'   value. If \code{length(qc_names) == 0}, \code{NULL} is returned instead.
 #'
 #' @param x A data frame with column names.
-#' @param qc_names A vector of names of data frame columns to combine.
-#' @param na.as A vector of numeric or \code{NA} values for the \code{qc_names}
-#'   subset of \code{x} that determines how should be the missing flags
-#'   interpreted. If only one value is provided, all columns are treated the
-#'   same way.
+#' @param qc_names A vector of names of data frame \code{x} columns to combine.
 #' @param cumul A logical value that determines if cumulative (\code{cumul =
 #'   TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
 #'   flags should be shown.
-#' @param additive A vector of logical values (\code{TRUE} or \code{FALSE}) for
-#'   the \code{qc_names} subset of \code{x} that determines if the flags should
-#'   be treated as additive (\code{additive = TRUE}) or with fixed effect
-#'   (\code{additive = FALSE}). If only one value is provided, all columns are
-#'   considered to be of the same type.
-#' @param plot A logical value. If \code{TRUE}, the results are plotted in the
-#'   active graphical device. If \code{FALSE}, they are represented as a table.
+#' @param plot A logical value. If \code{TRUE}, the results are represented as a
+#'   ggplot object. If \code{FALSE}, they are represented as a table.
 #' @param perc A logical value. If \code{TRUE}, the results are reported in
 #'   percentages. If \code{FALSE}, counts are used instead.
 #' @param flux A character string. Used only if \code{plot = TRUE}. Includes the
-#'   flux name in the plot title to emphasise the relevance of displayed test
-#'   types.
+#'   flux name in the plot title to emphasize the relevance of displayed quality
+#'   control filters.
+#' @param na.as \code{NULL} or a vector of integer or \code{NA} values
+#'   determining interpretation of missing flags in each respective column of
+#'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+#'   used. If only one value is provided, all columns are treated the same way.
+#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
+#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#'   for which \code{NA} flags are interpreted as zeros.
+#' @param additive \code{NULL} or a vector of logical values (\code{TRUE} or
+#'   \code{FALSE}) determining additivity of each respective column of \code{x}
+#'   given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+#'   Otherwise, values determine if the flags should be treated as additive
+#'   (\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+#'   only one value is provided, all columns are considered to be of the same
+#'   type.
+#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
+#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#'   of flags with additive effect.
+#' @param no_messages A logical value.
 #'
-#' @seealso \code{\link{combn_QC}}.
+#' @seealso \code{\link{combn_QC}}, \code{\link{ggplot}}.
 #'
 #' @examples
 #' set.seed(5)
@@ -1149,15 +1163,35 @@ set_OT_input <- function(x, names_in,
 #' cumul = TRUE, additive = TRUE, perc = FALSE)
 #' summary_QC(aa, rep(letters[1:4], 2),
 #' cumul = TRUE, additive = TRUE, plot = TRUE, perc = FALSE)
-summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
-                       plot = FALSE, perc = TRUE, flux = NULL) {
+summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
+                       flux = NULL, na.as = NULL,
+                       na.as_0_pattern = "spikesLF$|fetch70$|man$",
+                       additive = NULL, additive_pattern = "interdep$|wresid$",
+                       no_messages = FALSE) {
   x_names <- colnames(x)
+  qc_names <- as.character(qc_names)
+  if (length(qc_names) == 0) return(NULL)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
   }
-  if (!is.character(qc_names)) stop("'qc_names' must be of class character")
-  if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
-    stop("'na.as' must be a vector containing numeric or NA values")
+  if (!all(qc_names %in% x_names)) {
+    stop(paste("missing", paste0(qc_names[!(qc_names %in% x_names)],
+                                 collapse = ", ")))
+  }
+  if (is.null(na.as)) {
+    na.as <- rep(NA, length(qc_names))
+    na.as_0 <- grep(na.as_0_pattern, qc_names)
+    na.as[na.as_0] <- 0L
+    if (!no_messages) {
+      if (length(na.as_0)) {
+        message("detected columns with 'na.as = 0': ",
+                paste0(qc_names[na.as_0], collapse = ", "))
+      } else message("no columns with 'na.as = 0' detected")
+    }
+  } else {
+    if (length(na.as) == 0 || (!is.numeric(na.as) && !all(is.na(na.as)))) {
+      stop("'na.as' must be a vector containing numeric or NA values")
+    }
   }
   if (length(na.as) > 1) {
     if (length(qc_names) != length(na.as)) {
@@ -1166,19 +1200,31 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
   } else if (length(na.as) != length(qc_names)) {
     na.as <- rep(na.as, length(qc_names))
   }
-  if (!all(qc_names %in% x_names)) {
-    stop(paste("missing", paste0(qc_names[!(qc_names %in% x_names)],
-                                 collapse = ", ")))
-  }
-  df <- x[1:nrow(x), qc_names]
+  df <- x[c(qc_names)]
+  if (any(df > 2, na.rm = TRUE) || any(df < 0, na.rm = TRUE))
+    stop("QC flags must be within range 0 - 2")
   if (!all(is.na(na.as))) {
     for (i in seq_along(qc_names)) {
       df[is.na(df[i]), i] <- na.as[i]
     }
   }
-  if (cumul) {
-    if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
-      stop("'additive' must be logical vector with non-missing values")
+  # for cumul = TRUE & length(qc_names) == 1 apply() drops dimensions which
+  # causes problems during plotting (transposition does not revert to columns)
+  # - this can be avoided as cumulative effect is observable only if
+  #   length(qc_names) > 1
+  if (cumul && length(qc_names) > 1) {
+    if (is.null(additive)) {
+      additive <- grepl(additive_pattern, qc_names)
+      if (!no_messages) {
+        if (sum(additive)) {
+          message("detected columns with additive effect: ",
+                  paste0(qc_names[additive], collapse = ", "))
+        } else message("no columns with additive effect detected")
+      }
+    } else {
+      if (!is.logical(additive) || anyNA(additive) || length(additive) == 0) {
+        stop("'additive' must be logical vector with non-missing values")
+      }
     }
     if (length(additive) > 1) {
       if (length(qc_names) != length(additive)) {
@@ -1201,9 +1247,11 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
       }
       df <- tmp
     }
+    df[df > 2] <- 2
   }
-  df_m <- reshape2::melt(df, id.vars = NULL, variable.name = "QC_type",
+  df_m <- reshape2::melt(df, id.vars = NULL, variable.name = "QC_filter",
                         value.name = "QC_flag")
+  df_m$QC_flag <- as.factor(paste0("flag_", df_m$QC_flag))
   if (perc) {
     tab <- round(table(df_m, useNA = "ifany") / (nrow(df) / 100), 1)
   } else {
@@ -1212,13 +1260,7 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
   if (!plot) {
     return(tab)
   } else {
-    tab_m <- reshape2::melt(tab, variable.name = "QC_type")
-    if (cumul) {
-      high5 <- tab_m$QC_flag > 5
-      high5[is.na(high5)] <- FALSE
-      tab_m[high5, "QC_flag"] <- "6+"
-    }
-    tab_m$QC_flag <- as.factor(paste("Flag", tab_m$QC_flag, sep = "_"))
+    tab_m <- reshape2::melt(tab, variable.name = "QC_filter")
     title <- ifelse(cumul,
                     paste0(c(flux, "Cumulative effect of QC flags"),
                            collapse = " - "),
@@ -1226,7 +1268,7 @@ summary_QC <- function(x, qc_names, na.as = NA, cumul = FALSE, additive = FALSE,
                            collapse = " - "))
     y_label <- ifelse(perc, "Percentage", "Count")
     ggplot2::ggplot(tab_m) +
-      ggplot2::aes(x = QC_type, y = value, fill = QC_flag) +
+      ggplot2::aes(x = QC_filter, y = value, fill = QC_flag) +
       ggplot2::geom_bar(stat = 'identity',
                         position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::scale_fill_hue(guide = ggplot2::guide_legend(reverse = TRUE)) +
