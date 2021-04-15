@@ -1193,7 +1193,9 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
   } else if (length(na.as) != length(qc_names)) {
     na.as <- rep(na.as, length(qc_names))
   }
-  df <- x[c(qc_names)]
+  # Explicit row subsetting [1:nrow(x)] to strip varnames and units attributes
+  # - reshape2::melt() otherwise throws warning if they differ among QC filters
+  df <- x[1:nrow(x), qc_names, drop = FALSE]
   if (any(df > 2, na.rm = TRUE) || any(df < 0, na.rm = TRUE))
     stop("QC flags must be within range 0 - 2")
   if (!all(is.na(na.as))) {
