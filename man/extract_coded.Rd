@@ -16,7 +16,7 @@ identifying the prefix of coded values.}
 identifying the separator of variable names in \code{units} attribute.}
 }
 \value{
-A data frame with columns \code{"SA"} and \code{"SA_IRGA"}. Each
+A data frame with columns \code{"SA"} and \code{"SAGA"}. Each
   column has attributes \code{"varnames"} and \code{"units"} and length equal
   to that of \code{x}.
 }
@@ -39,21 +39,20 @@ given variable (\code{NA}).}
 
 \code{x} is interpreted in respect to instruments required to measure given
 fluxes. SA is required for measurements of all fluxes and solely provides
-data for computation of Tau and H fluxes. A combination of SA and IRGA
-(SA_IRGA) is needed for measurements of LE and NEE. To confirm the correct
-performance of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0.
-In case of SA_IRGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
-must have flag 0. Results are reported according to the QC scheme using QC
-flag range 0 - 2.
+data for computation of Tau and H fluxes. A combination of SA and GA (SAGA)
+is needed for measurements of LE and NEE. To confirm the correct performance
+of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0. In case of
+SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"} must have flag
+0. Results are reported according to the QC scheme using QC flag range 0 - 2.
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item SA: Sonic
-  Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
-  m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-  m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
-  wind speed component [m s-1] \item v: Cross-wind wind speed component [m
-  s-1] \item w: Vertical wind speed component [m s-1] \item ts: Sonic
-  temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
+  Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
+  \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
+  \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
+  speed component [m s-1] \item v: Cross-wind wind speed component [m s-1]
+  \item w: Vertical wind speed component [m s-1] \item ts: Sonic temperature
+  [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
   concentration [umol mol-1]}.
 }
 

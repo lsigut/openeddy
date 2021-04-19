@@ -153,23 +153,22 @@ flag_runs <- function(x, name_out = "-", length = 2) {
 #'
 #' \code{x} is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
-#' data for computation of Tau and H fluxes. A combination of SA and IRGA
-#' (SA_IRGA) is needed for measurements of LE and NEE. To confirm the correct
-#' performance of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0.
-#' In case of SA_IRGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
-#' must have flag 0. Results are reported according to the QC scheme using QC
-#' flag range 0 - 2.
+#' data for computation of Tau and H fluxes. A combination of SA and GA (SAGA)
+#' is needed for measurements of LE and NEE. To confirm the correct performance
+#' of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0. In case of
+#' SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"} must have flag
+#' 0. Results are reported according to the QC scheme using QC flag range 0 - 2.
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
-#'   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-#'   m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
-#'   wind speed component [m s-1] \item v: Cross-wind wind speed component [m
-#'   s-1] \item w: Vertical wind speed component [m s-1] \item ts: Sonic
-#'   temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
+#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
+#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
+#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
+#'   speed component [m s-1] \item v: Cross-wind wind speed component [m s-1]
+#'   \item w: Vertical wind speed component [m s-1] \item ts: Sonic temperature
+#'   [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
 #'   concentration [umol mol-1]}.
 #'
-#' @return A data frame with columns \code{"SA"} and \code{"SA_IRGA"}. Each
+#' @return A data frame with columns \code{"SA"} and \code{"SAGA"}. Each
 #'   column has attributes \code{"varnames"} and \code{"units"} and length equal
 #'   to that of \code{x}.
 #'
@@ -217,12 +216,12 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   df <- as.data.frame(t(sapply(l, handleNA, vars)))
   names(df) <- vars
   out <- data.frame(SA = apply(df[c("u", "v", "w", "ts")], 1, max))
-  out$SA_IRGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")], 1, max)
+  out$SAGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")], 1, max)
   # values above 0 are interpreted as flag 2 for given variable
   out$SA[out$SA == 1]           <- 2L
-  out$SA_IRGA[out$SA_IRGA == 1] <- 2L
+  out$SAGA[out$SAGA == 1] <- 2L
   for (i in seq_len(ncol(out))) {
-    varnames(out[, i]) <- c("SA", "SA_IRGA")[i]
+    varnames(out[, i]) <- c("SA", "SAGA")[i]
     units(out[, i]) <- "-"
   }
   return(out)
@@ -287,8 +286,8 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'
 #' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
 #'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
-#'   relying only on SA (Tau, H) \item qc_SA_IRGA: applicable to fluxes relying
-#'   both on SA and IRGA (LE, NEE) \item qc_Tau, qc_H, qc_LE, qc_NEE: only
+#'   relying only on SA (Tau, H) \item qc_SAGA: applicable to fluxes relying
+#'   both on SA and GA (LE, NEE) \item qc_Tau, qc_H, qc_LE, qc_NEE: only
 #'   applicable for the respective flux \item qc_ALL: applicable to all fluxes}
 #'
 #'   \strong{QC suffixes} (specifies which QC check was applied to get this QC
@@ -296,10 +295,10 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   QC Checks' above.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item IRGA: InfraRed Gas Analyzer \item Tau: Momentum flux [kg
-#'   m-1 s-2] \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W
-#'   m-2] \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
-#'   wind speed component [m s-1] \item w: Vertical wind speed component [m s-1]
+#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
+#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
+#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
+#'   speed component [m s-1] \item w: Vertical wind speed component [m s-1]
 #'   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
 #'   mol-1] \item co2: CO2 concentration [umol mol-1]}.
 #'
@@ -394,10 +393,10 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   if (abslim) {
     abslim_df <- extract_coded(x$absolute_limits_hf, prefix, split)
     for (i in 1:2) {
-      varnames(abslim_df[, i]) <- c("qc_SA_abslim", "qc_SA_IRGA_abslim")[i]
+      varnames(abslim_df[, i]) <- c("qc_SA_abslim", "qc_SAGA_abslim")[i]
     }
     out$qc_SA_abslim <- abslim_df$SA
-    out$qc_SA_IRGA_abslim <- abslim_df$SA_IRGA
+    out$qc_SAGA_abslim <- abslim_df$SAGA
   }
 
   # spikesHF creates composite flags for H, LE and CO2 based on EddyPro
@@ -405,10 +404,10 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   if (spikesHF) {
     spike_df <- extract_coded(x$spikes_hf, prefix, split)
     for (i in 1:2) {
-      varnames(spike_df[, i]) <- c("qc_SA_spikesHF", "qc_SA_IRGA_spikesHF")[i]
+      varnames(spike_df[, i]) <- c("qc_SA_spikesHF", "qc_SAGA_spikesHF")[i]
     }
     out$qc_SA_spikesHF <- spike_df$SA
-    out$qc_SA_IRGA_spikesHF <- spike_df$SA_IRGA
+    out$qc_SAGA_spikesHF <- spike_df$SAGA
   }
 
   # missfrac creates overall flag for halfhours with insufficient
