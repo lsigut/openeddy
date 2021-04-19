@@ -286,9 +286,11 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'
 #' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
 #'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
-#'   relying only on SA (Tau, H) \item qc_SAGA: applicable to fluxes relying
-#'   both on SA and GA (LE, NEE) \item qc_Tau, qc_H, qc_LE, qc_NEE: only
-#'   applicable for the respective flux \item qc_ALL: applicable to all fluxes}
+#'   relying only on SA (Tau, H) \item qc_GA: applicable to fluxes relying on GA
+#'   (LE, NEE); only GA issues considered \item qc_SAGA: applicable to fluxes
+#'   relying both on SA and GA (LE, NEE); SA and GA issues considered \item
+#'   qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
+#'   qc_ALL: applicable to all fluxes}
 #'
 #'   \strong{QC suffixes} (specifies which QC check was applied to get this QC
 #'   output): \itemize{ \item abslim, spikesHF, missfrac, wresid. See 'Included
