@@ -26,6 +26,7 @@
 #' @return A named list with paths to folder structure directories.
 #'   Corresponding directories are created as a function side effect if
 #'   \code{create_dirs = TRUE}.
+#' @export
 structure_eddy <- function(root = ".", create_dirs = FALSE, ...) {
   # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
   # but needed in order to make the dir accessible with path in the list
@@ -74,6 +75,7 @@ structure_eddy <- function(root = ".", create_dirs = FALSE, ...) {
 #' ## returns c(17, -Inf, 19, 20) and a warning message}
 #' ## Skip the allNA row in apply()
 #' apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
+#' @keywords internal
 allNA <- function(x, margin) {
   apply(x, margin, function(x) all(is.na(x)))
 }
@@ -117,6 +119,7 @@ allNA <- function(x, margin) {
 #' varnames(yy) <- names(yy)
 #' units(yy) <- units
 #' str(yy)
+#' @export
 varnames <- function(x, names = FALSE) {
   if (is.data.frame(x)) {
     varnames <- lapply(x, attr, "varnames")
@@ -134,6 +137,7 @@ varnames <- function(x, names = FALSE) {
 }
 
 #' @rdname varnames
+#' @export
 `varnames<-` <- function(x, value) {
   if (!is.atomic(value)) stop("'value' must be of atomic type")
   if (is.data.frame(x)) {
@@ -161,6 +165,7 @@ varnames <- function(x, names = FALSE) {
 }
 
 #' @rdname varnames
+#' @export
 units <- function(x, names = FALSE) {
   if (is.data.frame(x)) {
     units <- lapply(x, attr, "units")
@@ -178,6 +183,7 @@ units <- function(x, names = FALSE) {
 }
 
 #' @rdname varnames
+#' @export
 `units<-` <- function(x, value) {
   if (!is.atomic(value)) stop("'value' must be of atomic type")
   if (is(x, "difftime")) stop(
@@ -227,6 +233,7 @@ units <- function(x, names = FALSE) {
 #'
 #' @seealso \code{\link{Extract}}, \code{\link{drop}} and
 #'   \code{\link{varnames}}.
+#' @export
 ex <- function(x, i, j, drop = TRUE) {
   v <- openeddy::varnames(x, names = TRUE)
   u <- openeddy::units(x, names = TRUE)
@@ -363,6 +370,7 @@ ex <- function(x, i, j, drop = TRUE) {
 #' "24.1.2015,1.70
 #' 24.1.2016,1.72")
 #' str(bb)
+#' @export
 read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
                       quote = "\"", dec = ".", units_fill = "-",
                       na.strings = c("NA", "-9999.0", "-9999"), colClasses = NA,
@@ -485,6 +493,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M")
 #' ## interval argument provided incorrectly
 #' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)}
+#' @export
 strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
                           ...) {
@@ -605,6 +614,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800,
 #' (ex_data <- read_eddy("ex.data", row.names = 1))
 #' str(ex_data)
 #' unlink("ex.data")}
+#' @export
 write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
                        units_fill = "-", na = "-9999", row.names = FALSE,
                        col.names = TRUE, qmethod = "double", ...) {
@@ -691,6 +701,7 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
 #' correct(c("qc_co2_flux", "qc_NEE_SSITC"), unique = TRUE)
 #' correct(c("[m]", "(s)", "kg"), attr = "units")
+#' @export
 correct <- function(x, attr = c("names", "units"), ...) {
   attr <- match.arg(attr)
   if (attr == "names") {
@@ -791,6 +802,7 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #' na.as = 2, name_out = "add_F_na.as_2")
 #' str(aa)
 #' aa
+#' @export
 combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
                      na.as = NULL, additive_pattern = "interdep$|wresid$",
                      na.as_0_pattern = "spikesLF$|fetch70$|man$",
@@ -910,6 +922,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' aa$flux_stc <- add_st(aa$flux, aa$st, aa$stp, "flux_stc")
 #' aa
 #' lapply(aa, attributes)
+#' @export
 add_st <- function(flux, st, stp = NULL, name_out = "-") {
   if (length(flux) != length(st)) {
     stop("'flux' and 'st' must be of the same length")
@@ -1008,6 +1021,7 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
 #' @encoding UTF-8
+#' @export
 set_OT_input <- function(x, names_in,
                          names_out = c("qcNEE", "NEE", "qcLE", "LE", "qcH",
                                        "H", "Rg", "Tair", "Tsoil", "rH", "VPD",
@@ -1156,6 +1170,7 @@ set_OT_input <- function(x, names_in,
 #' (xx <- summary_QC(aa, letters[1:6], cumul = TRUE, plot = TRUE,
 #' flux = "CO2 flux"))
 #' xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
+#' @export
 summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
                        flux = NULL, na.as = NULL,
                        na.as_0_pattern = "spikesLF$|fetch70$|man$",
@@ -1325,6 +1340,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #'   assigned to each respective column.
 #'
 #' @seealso \code{\link{varnames}}.
+#' @export
 remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
                        na.rm = TRUE) {
   if (!is.data.frame(x) || is.null(names(x))) {
@@ -1468,6 +1484,7 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #'
 #' @seealso \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
 #'   \code{\link{time zones}}, \code{\link{make.unique}}
+#' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
                        interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
   sq <- seq_len(length(x))

@@ -36,3 +36,4 @@ utilized by \code{\link{despikeLF}} that should be used instead.
 \seealso{
 use \code{\link{despikeLF}} instead.
 }
+\keyword{internal}

@@ -46,6 +46,7 @@
 #' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
+#' @export
 apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower")) {
   if (!is.numeric(x)) stop("'x' must be numeric")
@@ -108,6 +109,7 @@ apply_thr <- function(x, thr, name_out = "-",
 #' flag_runs(xx, "qc_xx_runs")
 #' (yy <- rep(1:6, rep(c(2, 1), 3)))
 #' flag_runs(yy, "qc_yy_runs")
+#' @export
 flag_runs <- function(x, name_out = "-", length = 2) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
@@ -189,6 +191,7 @@ flag_runs <- function(x, name_out = "-", length = 2) {
 #' is.na(xx) <- c(2, 5)
 #' units(xx) <- "8u/v/w/ts/h2o/co2"
 #' cbind(xx, extract_coded(xx))
+#' @export
 extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   if (!is.atomic(x)) stop("'x' must be an atomic type")
   units <- units(x)
@@ -353,6 +356,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   thresholds for rotated w used if \code{wresid = TRUE}.
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
+#' @export
 extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
                        scf = TRUE, wresid = TRUE, rotation = c("double",
                        "planar fit"), prefix = "[8]", split = "[/]",
@@ -512,6 +516,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
 #'   \code{"open"} for open path systems. Can be abbreviated.
 #'
 #' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
+#' @export
 interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
   if (!is.atomic(qc_LE) || !is.atomic(qc_H)) {
     stop("'qc_LE' and 'qc_H' must be an atomic type")
@@ -579,6 +584,7 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 #' @return A logical vector. \code{TRUE} values flag spikes.
 #'
 #' @seealso use \code{\link{despikeLF}} instead.
+#' @keywords internal
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
                  refBlock2 = refBlock1, z, c) {
   med_block <- median(xBlock2, na.rm = TRUE)
@@ -623,6 +629,7 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'   var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
 #'   data frame identical to the one produced if \code{plot = FALSE}) and
 #'   \code{plots} containing a list of \code{ggplot} objects.
+#' @keywords internal
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
   SD_sub$var_plus <- c(SD_sub$var[-1], NA)
@@ -825,6 +832,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
+#' @export
 despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
                       iter = 10, plot = FALSE, light = c("PAR", "GR"),
                       night_thr = 10, nVals = 50, z = 7, c = 4.4478) {
@@ -986,6 +994,7 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 #' set.seed(20)
 #' (xx <- data.frame(x_70perc = sample(1:1000, 10), WD = sample(0:360, 10)))
 #' fetch_filter(xx, "x_70perc", "WD", 300, "qc_ALL_fetch70")
+#' @export
 fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -1034,6 +1043,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
+#' @export
 exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   len <- length(x)
   if (!is.null(qc_x)) {

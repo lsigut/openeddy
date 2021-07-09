@@ -37,3 +37,4 @@ If \code{plot = FALSE}, an updated data frame \code{SD_sub} with
 This is a low level function not intended to be used on its own. It is
 utilized by \code{\link{despikeLF}} that should be used instead.
 }
+\keyword{internal}

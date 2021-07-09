@@ -41,3 +41,4 @@ setRange(aa[c(FALSE, TRUE)]) # No finite values in 'x', applies 'man' range
 \seealso{
 \code{\link{range}}.
 }
+\keyword{internal}

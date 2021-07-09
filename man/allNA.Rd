@@ -36,3 +36,4 @@ apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
   \code{\link{apply}} for \code{apply} description.
 }
 \concept{NA handlers}
+\keyword{internal}

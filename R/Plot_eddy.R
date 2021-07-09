@@ -28,6 +28,7 @@
 #' suppressWarnings(range(aa[rep(c(FALSE, TRUE), each = 5)], finite = TRUE))
 #' setRange(aa, rep(c(FALSE, TRUE), each = 5)) # range taken from unfiltered 'aa'
 #' setRange(aa[c(FALSE, TRUE)]) # No finite values in 'x', applies 'man' range
+#' @keywords internal
 setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
   if (!is.numeric(man) || length(man) != 2 || any(!is.finite(man))) {
     stop("'man' must be numeric vector with 2 finite values")
@@ -193,6 +194,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   \code{test} arguments are documented in both monthly and weekly plots.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
+#' @export
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       flux_gf = "none", NEE_sep = FALSE,
                       skip = c("none", "monthly", "weekly"),

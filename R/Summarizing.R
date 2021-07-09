@@ -147,6 +147,7 @@
 #' EProc$sGLFluxPartition(suffix = "uStar")
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
 #' agg_DT_SD(results, "%m-%y", agg_per = "month-1")}
+#' @export
 agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -172,6 +173,7 @@ agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
 }
 
 #' @rdname agg_mean
+#' @export
 agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
@@ -270,6 +272,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
 }
 
 #' @rdname agg_mean
+#' @export
 agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
@@ -419,6 +422,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
 }
 
 #' @rdname agg_mean
+#' @export
 agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
                       tz = "GMT") {
