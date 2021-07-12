@@ -2,6 +2,7 @@
 
 export("units<-")
 export("varnames<-")
+export(Griebel20_budgets)
 export(add_st)
 export(agg_DT_SD)
 export(agg_fsd)
