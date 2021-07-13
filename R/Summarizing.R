@@ -696,7 +696,7 @@ calc_space_eq <- function (df, year, targetCol, interval, conv_fac, normalize,
 # Modified Griebel-GRL_2020
 # https://github.com/AnneGriebel/Griebel-GRL_2020/
 # function to calculate space-time equitable budgets where every wind sector
-# contributes equally
+# contributes equally and sector contributions are made time-uniform
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
@@ -731,6 +731,83 @@ calc_spti_eq <- function (df, year, targetCol, interval, conv_fac, normalize) {
     spti_eq_budget_year <- spti_eq_budget_year/obs_year*nrow(subsetted)
   }
   return(spti_eq_budget_year)
+}
+
+# function used for bootstrapping within calc_spti_boot()
+# x = fluxes within each bin
+# min_rec = smallest nRec across bins
+#' @keywords internal
+boot <- function(x, min_rec) {
+  mean(sample(x, size = min_rec, replace = TRUE), na.rm = TRUE)
+}
+
+# Modified Griebel-GRL_2020
+# https://github.com/AnneGriebel/Griebel-GRL_2020/
+# function to calculate space-time equitable budgets where every wind sector
+# contributes equally and sector contributions are made time-uniform
+# uncertainty bounds estimated using bootstrapping within each bin
+# size of sample according to smallest nRec across bins
+# must be applied to cleaned data frame
+# conv_fac from umol/m2/s to grams/m2/s (period treated internally)
+#' @keywords internal
+calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
+                            samples, normalize) {
+  #subset data frame by year
+  subsetted <- df[df$Year==year, ]
+  # subset by sectors
+  dfsub_sp <- split(subsetted, subsetted$eight_sec)
+  # subset each sector by time intervals and return mean
+  # returns a matrix with space-time averages
+  dfsub_spti <- sapply(dfsub_sp,
+                       function(x) sapply(split(x[, targetCol], x$time_int),
+                                          mean, na.rm = TRUE))
+
+  # returns a matrix with number of records per bin
+  dfsub_nRec <- sapply(dfsub_sp,
+                       function(x) sapply(split(x[, targetCol], x$time_int),
+                                          length))
+  min_rec <- min(dfsub_nRec)
+  message("year ", year,
+          " - minimum number of records across spatio-temporal bins: ",
+          min_rec)
+
+  # resample according to samples
+  dfsub_l <- vector("list", samples)
+  for (i in seq_len(samples)) {
+    dfsub_l[[i]] <- sapply(dfsub_sp,
+                           function(x) sapply(split(x[, targetCol], x$time_int),
+                                              boot, min_rec = min_rec))
+  }
+
+  #average by time first (row average) and then by space (column average)
+  # time_means <- colMeans(dfsub_spti, na.rm=TRUE)
+  if (length(levels(df$eight_sec)) == 1) {
+    spti_mean <- dfsub_spti
+
+    # performed per each list element
+    spti_means_l <- dfsub_l
+    spti_quant <- quantile(unlist(spti_means_l), probs = c(0.05, 0.5, 0.95))
+  } else {
+    space_means <- rowMeans(dfsub_spti, na.rm=TRUE)
+    spti_mean <- mean(space_means, na.rm=TRUE)
+
+    # performed per each list element
+    space_means_l <- lapply(dfsub_l, rowMeans, na.rm=TRUE)
+    spti_means_l <- lapply(space_means_l, mean, na.rm=TRUE)
+    spti_quant <- quantile(unlist(spti_means_l), probs = c(0.05, 0.5, 0.95))
+  }
+
+  obs_day <- 86400 / interval # seconds in day / interval
+  obs_year <- obs_day * 365
+  conv <- conv_fac * interval
+
+  spti_budgets_year <- c(spti_mean, spti_quant) * conv * obs_year
+
+  #check if normalization to number of observations is true
+  if (normalize==TRUE){
+    spti_budgets_year <- spti_budgets_year/obs_year*nrow(subsetted)
+  }
+  return(spti_budgets_year)
 }
 
 #' Compute Griebel et al. (2020) budgets
@@ -841,7 +918,7 @@ Griebel20_budgets <- function (df,
   #identify unique years
   years <- if (is.null(year)) unique(df$Year) else year
 
-  # create empty DataFrame to store results and specify dst_path
+  # create empty DataFrame to store results
   results <- data.frame(matrix(ncol = 6, nrow = length(years)))
   names(results) <- c('year', 'traditional_budget', 'standardized_budget',
                       'space_equitable_budget', 'space_time_equitable_budget',
@@ -868,6 +945,148 @@ Griebel20_budgets <- function (df,
 
     # generate rows for site and year y
     annual_result <- c(y, uncorr, corr, space_equit, spti_equit, n_obs)
+    results[i, ] <- annual_result
+
+    # increase row number by 1
+    i <- i + 1
+  }
+  return(results)
+}
+
+#' Space-time-equitable budgets with bootstrapping
+#'
+#' Yearly space-time-equitable budgets with uncertainty estimation.
+#'
+#' Data from individual years are separated to \code{nInt} number of bins (e.g.
+#' for \code{nInt = 8} that is \code{8x8 = 64} bins) as in the original Griebel
+#' et al. (2020) method. Each bin is then resampled \code{samples} amount of
+#' times with \code{\link{sample}} \code{size} according to the smallest amount
+#' of records across all bins. In addition to space-time-equitable budget of
+#' original dataset (space_time_eq_orig), 5\%, 50\% and 95\% quantiles of
+#' resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
+#' are provided for uncertainty assessment.
+#'
+#' Space-time-equitable budgeting assures that each sector contributes equally
+#' to budget and sector contributions are made time-uniform. Computation is
+#' generalized for any number of \code{nInt} and any extent of \code{interval}.
+#' Please notice that the reliability of the results depends on the data
+#' availability within each year. For details see \code{References}.
+#'
+#' Arguments specifying \code{df} column names represent FLUXNET standard. To
+#' process \code{REddyProc} outputs, timestamp must be corrected to represent
+#' middle of averaging period and appropriate columns selected (see
+#' \code{Examples}).
+#'
+#' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
+#'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
+#'   tower observations. Geophysical Research Letters, 47, e2019GL085942.
+#'   https://doi.org/10.1029/2019GL085942
+#'
+#' @param df A data frame.
+#' @param TimestampCol A character string. Specifies a column name in \code{df}
+#'   that carries date-time information either in \code{POSIXt} or text strings
+#'   of format \code{"\%Y\%m\%d\%H\%M"}. Date-time information is expected to
+#'   represent either start or middle of the averaging period.
+#' @param wdCol A character string. Specifies a column name in \code{df} that
+#'   carries the wind direction in degrees.
+#' @param targetCol A character string. Specifies a column name in \code{df}
+#'   that carries the flux values for budget computations.
+#' @param QcCol A character string or \code{NULL}. Specifies a column name in
+#'   \code{df} that carries gap-filling quality flags of \code{targetCol}
+#'   variable. It is assumed that \code{df[, QcCol] == 0} identifies the
+#'   measured (not gap-filled) records of \code{targetCol} variable. If
+#'   \code{NULL}, all non-missing values of \code{targetCol} are used for
+#'   budgeting.
+#' @param interval An integer value. Represents an extent of eddy covariance
+#'   averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).
+#' @param conv_fac A numeric value. Unit conversion factor for \code{targetCol}
+#'   variable that allows to produce budgets with meaningful units after
+#'   summation. Temporal aspect of conversion is handled internally based on
+#'   \code{interval} extent. E.g. for carbon fluxes (umol(CO2) m-2 s-1 -> gC m-2
+#'   s-1) \code{conv_fac = 12.0107e-6}, for energy fluxes (W m-2 -> MJ m-2 s-1)
+#'   \code{conv_fac = 1e-6}.
+#' @param nInt An integer value. A number of wind sectors and time intervals for
+#'   binning.
+#' @param year An integer vector. If \code{NULL}, budgets are produced for all
+#'   years available in \code{df}. Otherwise only specified years are processed.
+#' @param samples An integer value. Amount of bootstraps to produce.
+#' @param normalize A logical value. If \code{TRUE} (default), space and
+#'   space-time equitable budgets are corrected for the missing number of
+#'   records in a year.
+#'
+#' @return A data frame with columns corresponding to year, space-time-equitable
+#'   budget of original dataset (space_time_eq_orig), 5\%, 50\% and 95\%
+#'   quantiles of resampled datasets (space_time_eq_q05, space_time_eq_q50,
+#'   space_time_eq_q95) and number of observations used for budget computation
+#'   each year.
+#'
+#' @examples
+#' \dontrun{
+#' library(REddyProc)
+#'
+#' # convert timestamp
+#' DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+#' Day = 'DoY', Hour = 'Hour')[-(2:4)]
+#'
+#' # generate randomly wind directions for demonstration purposes (not included)
+#' DETha98$WD <- sample(0:359, nrow(DETha98), replace = TRUE)
+#'
+#' # if QcCol = NULL, all non-missing values of targetCol are used for budgeting
+#' not_filled <- DETha98
+#' not_filled$DateTime <- not_filled$DateTime - 900
+#' spti_boot(not_filled, "DateTime", "WD", "LE", NULL, conv_fac = 1e-6)
+#'
+#' # gap-filling is not needed but illustrates processing of FLUXNET data
+#' # notice that ustar filtering of NEE should be applied before budgeting
+#' DETha98 <- filterLongRuns(DETha98, "NEE")
+#' EProc <- sEddyProc$new('DE-Tha', DETha98,
+#' c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
+#' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
+#' filled <- cbind(DETha98, EProc$sExportResults())
+#'
+#' # correct timestamp to represent middle of averaging period
+#' filled$DateTime <- filled$DateTime - 900
+#' spti_boot(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
+#' }
+#' @export
+spti_boot <- function (df,
+                       TimestampCol = "TIMESTAMP_START",
+                       wdCol = 'WD',
+                       targetCol = "NEE_VUT_REF",
+                       QcCol = "NEE_VUT_REF_QC",
+                       interval = 1800L,
+                       conv_fac = 12.0107e-6,
+                       nInt = 8L,
+                       year = NULL,
+                       samples = 100L,
+                       normalize = TRUE) {
+  #clean data frame, assign timestamp, establish columnames for flux,
+  # wind direction and year, remove missing values
+  df <- clean_df(df, TimestampCol = TimestampCol, targetCol = targetCol,
+                 QcCol = QcCol, wdCol= wdCol, nInt = nInt)
+  #identify unique years
+  years <- if (is.null(year)) unique(df$Year) else year
+
+  # create empty DataFrame to store results
+  results <- data.frame(matrix(ncol = 6, nrow = length(years)))
+  names(results) <- c('year', 'space_time_eq_orig', 'space_time_eq_q05',
+                      'space_time_eq_q50', 'space_time_eq_q95',
+                      'n_obs')
+
+  # set initial row number
+  i <- 1
+
+  # loop through each year
+  for (y in years){
+    # calculate bootstrap results for space-time equitable budgets
+    spti_equit <- calc_spti_boot(df, year = y, targetCol = targetCol,
+                                 interval = interval, conv_fac = conv_fac,
+                                 samples = samples, normalize = normalize)
+    # calculate number of observations results are based on
+    n_obs <- nrow(df[df$Year == y, ])
+
+    # generate rows for site and year y
+    annual_result <- c(y, spti_equit, n_obs)
     results[i, ] <- annual_result
 
     # increase row number by 1
