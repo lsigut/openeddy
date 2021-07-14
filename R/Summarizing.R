@@ -872,6 +872,8 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #' @return A data frame with columns corresponding to year, different types of
 #'   budgets and number of observations used for budget computation each year.
 #'
+#' @seealso \code{\link{spti_boot}} and \code{\link{spti_coverage}}.
+#'
 #' @examples
 #' \dontrun{
 #' library(REddyProc)
@@ -1020,6 +1022,8 @@ Griebel20_budgets <- function (df,
 #'   space_time_eq_q95) and number of observations used for budget computation
 #'   each year.
 #'
+#' @seealso \code{\link{Griebel20_budgets}} and \code{\link{spti_coverage}}.
+#'
 #' @examples
 #' \dontrun{
 #' library(REddyProc)
@@ -1094,3 +1098,210 @@ spti_boot <- function (df,
   }
   return(results)
 }
+
+# function to calculate spatio-temporal sampling coverage
+# must be applied to cleaned data frame
+# year argument accepts value "all" (applied across all years)
+#' @keywords internal
+calc_spti_cov <- function (df, targetCol, year, nInt, plot) {
+  if (nInt < 2) stop("spatio-temporal coverage relevant only for nInt > 1")
+  #subset data frame by year
+  if (year == "all") df$Year <- "all"
+  subsetted <- df[df$Year==year, ]
+  # subset by sectors
+  dfsub_sp <- split(subsetted, subsetted$eight_sec)
+  dfsub_len <- sapply(dfsub_sp,
+                      function(x) sapply(split(x[, targetCol], x$time_int),
+                                         length))
+  dfsub_perc <- dfsub_len / nrow(subsetted)
+  space_sums <- colSums(dfsub_perc, na.rm=TRUE)
+  time_sums <- rowSums(dfsub_perc, na.rm=TRUE)
+  space_cumul <- cumsum(c(0, sort(space_sums)))
+  time_cumul <- cumsum(c(0, sort(time_sums)))
+
+  uniform_cumul <- (0:nInt)/nInt
+  SSC <- round(sum(space_cumul) / sum(uniform_cumul), 3)
+  TSC <- round(sum(time_cumul) / sum(uniform_cumul), 3)
+  STSC <- round(mean(c(SSC, TSC)), 3)
+
+  if (plot == FALSE) {
+    return(c(SSC = SSC, TSC = TSC, STSC = STSC))
+  }
+
+  x <- data.frame(uniform = uniform_cumul, SSC = space_cumul, TSC = time_cumul)
+  sp <- ggplot2::ggplot(x, ggplot2::aes(x = uniform)) +
+    ggplot2::geom_area(ggplot2::aes(y = uniform, fill = "grey60")) +
+    ggplot2::geom_area(ggplot2::aes(y = SSC, fill = "grey90")) +
+    ggplot2::geom_line(ggplot2::aes(y = SSC, color = "b")) +
+    ggplot2::geom_point(ggplot2::aes(y = SSC, color = "b")) +
+    ggplot2::scale_fill_identity(name = NULL,
+                                 guide = 'legend',
+                                 labels = c('uniform spatial coverage = 1',
+                                            paste('spatial sampling coverage =',
+                                                  SSC))) +
+    ggplot2::scale_colour_manual(name = NULL, values =c('b'='black'),
+                                 labels = c('observations')) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(legend.position = c(0.1, 0.8),
+                   legend.justification = "left",
+                   legend.margin = ggplot2::margin(0, 0, 0, 0, "pt"),
+                   plot.title = ggplot2::element_text(hjust = 0.5)) +
+    ggplot2::labs(title = 'Spatial sampling coverage') +
+    ggplot2::xlab('Expected cumulative contribution') +
+    ggplot2::ylab('Observed cumulative contribution') +
+    ggplot2::guides(fill = ggplot2::guide_legend(order = 1),
+                    col = ggplot2::guide_legend(order = 2))
+
+  tp <- ggplot2::ggplot(x, ggplot2::aes(x = uniform)) +
+    ggplot2::geom_area(ggplot2::aes(y = uniform, fill = "grey60")) +
+    ggplot2::geom_area(ggplot2::aes(y = TSC, fill = "grey90")) +
+    ggplot2::geom_line(ggplot2::aes(y = TSC, color = "b")) +
+    ggplot2::geom_point(ggplot2::aes(y = TSC, color = "b")) +
+    ggplot2::scale_fill_identity(name = NULL,
+                                 guide = 'legend',
+                                 labels = c('uniform temporal coverage = 1',
+                                            paste('temporal sampling coverage =',
+                                                  TSC))) +
+    ggplot2::scale_colour_manual(name = NULL, values =c('b'='black'),
+                                 labels = c('observations')) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(legend.position = c(0.1, 0.8),
+                   legend.justification = "left",
+                   legend.margin = ggplot2::margin(0, 0, 0, 0, "pt"),
+                   plot.title = ggplot2::element_text(hjust = 0.5)) +
+    ggplot2::labs(title = 'Temporal sampling coverage') +
+    ggplot2::xlab('Expected cumulative contribution') +
+    ggplot2::ylab('Observed cumulative contribution') +
+    ggplot2::guides(fill = ggplot2::guide_legend(order = 1),
+                    col = ggplot2::guide_legend(order = 2))
+
+  list(spatial_sampling_coverage = sp, temporal_sampling_coverage = tp)
+}
+
+#' Calculate spatio-temporal sampling coverage
+#'
+#' Yearly estimates of spatial, temporal and spatio-temporal sampling coverage
+#' based on comparison of ideal vs observed number of samples in spatial and/or
+#' temporal bins.
+#'
+#' Arguments specifying \code{df} column names represent FLUXNET standard. To
+#' process \code{REddyProc} outputs, timestamp must be corrected to represent
+#' middle of averaging period and appropriate columns selected (see
+#' \code{Examples}).
+#'
+#' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
+#'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
+#'   tower observations. Geophysical Research Letters, 47, e2019GL085942.
+#'   https://doi.org/10.1029/2019GL085942
+#'
+#' @param df A data frame.
+#' @param TimestampCol A character string. Specifies a column name in \code{df}
+#'   that carries date-time information either in \code{POSIXt} or text strings
+#'   of format \code{"\%Y\%m\%d\%H\%M"}. Date-time information is expected to
+#'   represent either start or middle of the averaging period.
+#' @param wdCol A character string. Specifies a column name in \code{df} that
+#'   carries the wind direction in degrees.
+#' @param targetCol A character string. Specifies a column name in \code{df}
+#'   that carries the flux values for sampling coverage assessment.
+#' @param QcCol A character string or \code{NULL}. Specifies a column name in
+#'   \code{df} that carries gap-filling quality flags of \code{targetCol}
+#'   variable. It is assumed that \code{df[, QcCol] == 0} identifies the
+#'   measured (not gap-filled) records of \code{targetCol} variable. If
+#'   \code{NULL}, all non-missing values of \code{targetCol} are used for
+#'   budgeting.
+#' @param plot A logical value. If \code{FALSE} (default), a data frame with
+#'   sampling coverage values for each year is returned. Otherwise a list of
+#'   \code{ggplot}s showing spatial and temporal sampling coverage for each year
+#'   is returned.
+#' @param nInt An integer value. A number of wind sectors and time intervals for
+#'   binning.
+#' @param year Either integer vector, character string \code{"all"} or
+#'   \code{NULL}. If \code{NULL} (default), estimates are produced for each year
+#'   available in \code{df}. If \code{"all"}, estimates are produced across all
+#'   years. Otherwise only specified years are processed.
+#'
+#' @return If \code{plot = FALSE}, a data frame. If \code{plot = TRUE}, a named
+#'   list of \code{ggplot} objects.
+#'
+#' @seealso \code{\link{Griebel20_budgets}} and \code{\link{spti_boot}}.
+#'
+#' @examples
+#' \dontrun{
+#' library(REddyProc)
+#'
+#' # convert timestamp
+#' DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+#' Day = 'DoY', Hour = 'Hour')[-(2:4)]
+#'
+#' # generate randomly wind directions for demonstration purposes (not included)
+#' DETha98$WD <- sample(0:359, nrow(DETha98), replace = TRUE)
+#'
+#' # if QcCol = NULL, all non-missing values of targetCol are used for budgeting
+#' not_filled <- DETha98
+#' not_filled$DateTime <- not_filled$DateTime - 900
+#'
+#' spti_coverage(not_filled, "DateTime", "WD", "LE", NULL)
+#' spti_coverage(not_filled, "DateTime", "WD", "LE", NULL, plot = TRUE)
+#'
+#' # gap-filling is not needed but illustrates processing of FLUXNET data
+#' # notice that ustar filtering of NEE should be applied before budgeting
+#' DETha98 <- filterLongRuns(DETha98, "NEE")
+#' EProc <- sEddyProc$new('DE-Tha', DETha98,
+#' c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
+#' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
+#' filled <- cbind(DETha98, EProc$sExportResults())
+#'
+#' # correct timestamp to represent middle of averaging period
+#' filled$DateTime <- filled$DateTime - 900
+#' spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
+#' spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc", plot = TRUE)
+#' }
+#' @export
+spti_coverage <- function (df,
+                           TimestampCol = "TIMESTAMP_START",
+                           wdCol = 'WD',
+                           targetCol = "NEE_VUT_REF",
+                           QcCol = "NEE_VUT_REF_QC",
+                           plot = FALSE,
+                           nInt = 8L,
+                           year = NULL) {
+  #clean data frame, assign timestamp, establish columnames for flux,
+  # wind direction and year, remove missing values
+  df <- clean_df(df, TimestampCol = TimestampCol, targetCol = targetCol,
+                 QcCol = QcCol, wdCol= wdCol, nInt = nInt)
+  #identify unique years
+  years <- if (is.null(year)) unique(df$Year) else year
+
+  # create empty DataFrame to store results
+  if (plot == FALSE) {
+    results <- data.frame(matrix(ncol = 4, nrow = length(years)))
+    names(results) <- c('year', 'spatial_SC', 'temporal_SC',
+                        'spatio_temporal_SC')
+  } else {
+    results <- vector('list', length = length(years))
+    names(results) <- paste0('year_', years)
+  }
+
+  # set initial row number
+  i <- 1
+
+  # loop through each year
+  for (y in years){
+    # calculate sampling coverage
+    spti_sc <- calc_spti_cov(df, targetCol = targetCol, year = y, nInt = nInt,
+                             plot = plot)
+
+    if (plot == FALSE) {
+      # generate rows for site and year y
+      annual_result <- c(y, spti_sc)
+      results[i, ] <- annual_result
+    } else {
+      results[[i]] <- spti_sc
+    }
+
+    # increase row number by 1
+    i <- i + 1
+  }
+  return(results)
+}
+
