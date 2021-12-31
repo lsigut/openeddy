@@ -578,3 +578,103 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     par(def_par)
   }
 }
+
+#' Plots for Cursory Time Series Data Overview
+#'
+#' Plot half-hourly time series data of selected variable as a scatter plot with
+#' additional settings. Plots are optimized for quick rendering when saved as
+#' PDF files.
+#'
+#' \code{plot_precheck} allows to glimpse through the preliminary data with
+#' outlying data removed by defined \code{qrange}. If you do not want to limit
+#' y-axis, set \code{qrange = NULL} or \code{qrange = c(0, 1)} or use
+#' \code{plot_hh}.
+#'
+#' \code{plot_hh} provides a glimpse at all available time series data for given
+#' variable.
+#'
+#' @param x A data frame with column names and \code{"timestamp"} column in
+#'   POSIXt format.
+#' @param var A character string. An \code{x} column name of the variable to
+#'   plot on y-axis.
+#' @param qrange A numeric vector of length 2, giving the quantile range of
+#'   y-axis.
+#' @param pch Either an integer specifying a symbol or a single character to be
+#'   used as the default in plotting points. See \code{\link{par}} for details.
+#' @param cex A numerical value giving the amount by which plotting text and
+#'   symbols should be magnified relative to the default. See \code{\link{par}}
+#'   for details.
+#' @param alpha.f A numeric value. Factor modifying the color opacity alpha for
+#'   plotted points; typically in \code{[0,1]}.
+#' @param units A character string. One of the units listed: \code{c("secs",
+#'   "mins", "hours", "days", "months", "years")}. Can be abbreviated. Specifies
+#'   the rounding applied to first and last record in \code{"timestamp"} column
+#'   of \code{x} to produce sensible x-axis ticks and labels.
+#' @param interval An interval of the x-axis ticks. See \code{by} argument of
+#'   \code{\link{seq.POSIXt}} for details. Intervals are counted from the first
+#'   record in \code{"timestamp"} column of \code{x}.
+#' @param format A character string defining the date-time information format at
+#'   x-axis.see \code{\link{strptime}}.
+#'
+#' @examples
+#' set.seed(123)
+#' n <- 17520 # number of half-hourly records in one non-leap year
+#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
+#' x <- data.frame(timestamp = tstamp, H = rf(n, 1, 2, 1))
+#' openeddy::units(x) <- c("", "W m-2")
+#' plot(H ~ timestamp, x)
+#' plot_hh(x, "H")
+#' plot_precheck(x, "H")
+#' plot_precheck(x, "H", units = "days", interval = "2 months", format = "%d-%b")
+#'
+#' @export
+plot_precheck <- function(x,
+                          var,
+                          qrange = c(0.005, 0.995),
+                          pch = ".",
+                          cex = 0.5,
+                          alpha.f = 0.5,
+                          units = "months",
+                          interval = "month",
+                          format = "%b-%y") {
+  if (is.null(x$timestamp)) stop("missing 'x$timestamp'")
+  if (!inherits(x$timestamp, "POSIXt")) {
+    stop("'x$timestamp' must be of class 'POSIXt'")
+  }
+  ylim <- x[, var]
+  if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
+  ylim <- openeddy:::setRange(ylim)
+  plot(x$timestamp, x[, var], ylim = ylim,
+       pch = pch, cex = cex, col = adjustcolor('black', alpha.f),
+       xaxt = "n", xlab = "timestamp",
+       ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
+       main = paste0(var,
+                     "; quantile range = ",
+                     ifelse(is.null(qrange),
+                            "NULL",
+                            paste0("c(",
+                                   paste(qrange, collapse = ", "),
+                                   ")")
+                     )
+       )
+  )
+  r <- as.POSIXct(round(range(x$timestamp), units))
+  axis.POSIXct(1, at = seq(r[1], r[2], by = interval), format = format)
+}
+
+#' @rdname plot_precheck
+#' @export
+plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
+                    interval = "month", format = "%b-%y") {
+  if (is.null(x$timestamp)) stop("missing 'x$timestamp'")
+  if (!inherits(x$timestamp, "POSIXt")) {
+    stop("'x$timestamp' must be of class 'POSIXt'")
+  }
+  plot(x$timestamp, x[, var], pch = pch, cex = cex, xaxt = "n",
+       col = adjustcolor('black', alpha.f),
+       xlab = "timestamp",
+       ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
+       main = var)
+  r <- as.POSIXct(round(range(x$timestamp), units))
+  axis.POSIXct(1, at = seq(r[1], r[2], by = interval), format = format)
+}
