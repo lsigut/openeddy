@@ -1796,3 +1796,87 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
   }
   return(res)
 }
+
+#' Read EddyPro Files with Units
+#'
+#' Read single or multiple CSV EddyPro full output files at given path and merge
+#' them together.
+#'
+#' This utility function is adapted to EddyPro full output file structure but
+#' allows to change selected useful arguments that have preset default values.
+#' Column "timestamp" with date-time information is constructed based on "date"
+#' and "time" columns and converted into class \code{POSIXct}. It also assures
+#' that date-time sequence is regular and equidistant.
+#'
+#' In case that multiple files are present in the \code{path}, function merges
+#' them vertically (along generated complete timestamp) and discards rows with
+#' duplicated date-time values. All original columns across all files are kept.
+#' The order of variables keeps that of the first file loaded (note that file
+#' ordering in \code{path} is alphabetical not chronological) and additional
+#' variables are appended if present in the following files. To assure
+#' compatibility with older EddyPro versions, old column name "max_speed" is
+#' renamed to "max_wind_speed" if present.
+#'
+#' If you want to specify \code{start} and \code{end} arguments as strings and
+#' you change also default \code{shift.by} value, \code{start} and \code{end}
+#' arguments need to be adopted accordingly to account for that change. E.g. if
+#' \code{shift.by = -900}, then \code{start = "2019-12-31 21:15:00", end =
+#' "2019-12-31 23:15:00"} instead of \code{start = "2019-12-31 21:30:00", end =
+#' "2019-12-31 23:30:00"}.
+#'
+#' Note that \code{skip} and \code{fileEncoding} arguments must be valid across
+#' all files, otherwise the function will not execute correctly.
+#'
+#' @return A data frame is produced with additional attributes \code{varnames}
+#'   and \code{units} assigned to each respective column.
+#'
+#' @param path A string. The path to directory with EddyPro full output. Other
+#'   than CSV files are ignored.
+#' @param start,end A value specifying the first (last) value of the column
+#'   "timestamp" in outputted data frame. If \code{NULL}, \code{\link{min}}
+#'   (\code{\link{max}}) of date-time values from "timestamp" column across all
+#'   input files is used. If numeric, the value specifies the year for which the
+#'   first (last) date-time value will be generated, considering given time
+#'   interval (automatically detected from "timestamp" column) and convention of
+#'   assigning of measured records to the end of the time interval. Otherwise,
+#'   character representation of specific date-time value is expected in given
+#'   \code{format} and timezone "GMT".
+#' @param skip An integer. The number of lines to skip in the input file before
+#'   reading data.
+#' @param fileEncoding A character string. If non-empty, declares the encoding used
+#'   on a file (not a connection) so the character data can be re-encoded. See
+#'   \code{\link{read_table}} for further details.
+#' @param format A character string. Format of \code{start} (\code{end}) if
+#'   provided as a character string.
+#' @param shift.by A numeric value specifying the time shift (in seconds) to be
+#'   applied to the date-time information.
+#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
+#'   not have to be regular but time differences must be multiples of
+#'   automatically detected time interval.
+#' @export
+read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
+                         fileEncoding = "UTF-8", format = "%Y-%m-%d %H:%M",
+                         shift.by = NULL, allow_gaps = TRUE) {
+  lf <- list.files(path, full.names = TRUE)
+  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
+  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  l <- vector("list", length(lf))
+  names(l) <- lf
+  for (i in seq_along(lf)) {
+    l[[i]] <- openeddy::read_eddy(lf[i], check.names = FALSE, skip = skip,
+                                  fileEncoding = fileEncoding)
+    timestamp <- openeddy::strptime_eddy(paste(l[[i]]$date, l[[i]]$time),
+                                         format = format, shift.by = shift.by,
+                                         allow_gaps = allow_gaps)
+    l[[i]] <- cbind(timestamp, l[[i]])
+    # exception1: rename old column name "max_speed" to new "max_wind_speed"
+    exception1 <- grepl("max_speed", names(l[[i]]))
+    if (sum(exception1)) {
+      names(l[[i]])[exception1] <- "max_wind_speed"
+      message("column name 'max_speed' renamed to 'max_wind_speed' in ", lf[i])
+    }
+  }
+  EP <- openeddy::merge_eddy(l, start, end)
+  message("if present, all gaps in timestamp were filled")
+  return(EP)
+}
