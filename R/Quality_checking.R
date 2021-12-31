@@ -1016,7 +1016,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
   return(out)
 }
 
-#' Exclude values
+#' Exclude Values
 #'
 #' Interactive plots are used for identification and flagging of data for
 #' exclusion based on the visual inspection.
@@ -1131,4 +1131,242 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   }
   attributes(out) <- list(varnames = name_out, units = "-")
   return(out)
+}
+
+#' Manual Data Flagging
+#'
+#' A wrapper for \code{\link{exclude}} that allows visual inspection of selected
+#' variables in a data frame and manual flagging of values to be discarded.
+#' Saving and reloading of results is supported.
+#'
+#' Automatic reload of previously saved results in \code{path} with filename
+#' including pattern \code{"manual_QC"} is attempted. If found, timestamp is
+#' aligned with date-time information in \code{x} if not identical and quality
+#' control is combined with the new flags marked by user (flag 2 marks data
+#' exclusion). \code{path} is also used for saving file (\code{"manual_QC"}
+#' pattern) with results. Actual flagging allows to run \code{\link{exclude}}
+#' over all \code{vars}. Each variable is required to have associated quality
+#' control column in format \code{qc_prefix+vars+qc_suffix}.
+#'
+#' Function can be run in two modes. If \code{interactive = TRUE}, attempt to
+#' load previously saved manual QC will be performed, user will be allowed to
+#' flag data manually in interactive session and save (merged) results. If you
+#' just want to reload previously saved results, use \code{interactive = FALSE}.
+#'
+#' @param x A data frame.
+#' @param path A string. Specifies a path to directory where results should be
+#'   saved.
+#' @param vars A character vector providing names of variables in \code{x} that
+#'   will be inspected.
+#' @param qc_prefix,qc_suffix A string. Quality control columns corresponding to
+#'   \code{vars} names are required in \code{x} in format
+#'   \code{qc_prefix+vars+qc_suffix}.
+#' @param interactive A logical value. If \code{TRUE}, manual checking will be
+#'   provided in an interactive session. If \code{FALSE}, previously created
+#'   file with manual flags will be reloaded or \code{NULL} will be returned.
+#' @param siteyear A string. Unique label of inspected data set.
+#' @param tname A string. Name of variable in \code{x} with date-time
+#'   information.
+#' @param with_units A logical value indicating whether read (or written) data
+#'   frame with manual flags includes (should include) also units.
+#' @param win_size An integer. Number of values displayed per plot.
+#' @param format A string. Format of \code{tname} date-time information.
+#'
+#' @return A data frame with flags 0 (marking accepted points) and flags 2
+#'   (marking excluded points). Results can be written to \code{path}.
+#'
+#'   If \code{interactive = FALSE}, and no file in \code{path} with pattern
+#'   \code{"manual_QC"}, \code{NULL} is returned.
+#'
+#' @seealso \code{\link{exclude}}, \code{\link{locator}},
+#'   \code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
+#'
+#' @examples
+#' \dontrun{
+#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = 10)
+#' x <- data.frame(timestamp = tstamp, qc_H = rep(0, 10), H = rnorm(10))
+#' man <- check_manually(x, "./", vars = "H", qc_prefix = "qc_", qc_suffix = "",
+#' interactive = TRUE, siteyear = "MySite", win_size = 10)
+#' summary_QC(man, names(man)[-1])}
+#' @export
+check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
+                           siteyear, tname = "timestamp", with_units = FALSE,
+                           win_size = 672, format = "%Y-%m-%d %H:%M") {
+  # Design of the function
+  # - initialize manual_QC data frame with all respective TAU, H, LE, FC flux
+  #   QC flags (all flags = 0)
+  # - attempt to open file with "manual_QC" pattern in output folder
+  # - not more than 1 QC file allowed (error issued)
+  # - if file found, make sure that style with/without units was used accordingly
+  # - if file found, validate timestamp with merge_eddy() and align with "site"
+  #   - in case file timestamp is longer than that of site warn user that content
+  #     will be lost and allow aborting function execution
+  # - if file found, all previous QC columns will be included in new QC
+  #   - some of those old QC flags might be unmodified by check_manually() if not
+  #     among "vars"
+  # - if file found, overwrite respective columns in manual_QC data frame and for
+  #   each TAU, H, LE, FC column remove respective fluxes with flag 2
+  #   (distinguish H_V_R suffixes)
+  # - message: which columns will be available for QC (vars recognized)
+  # - if NOT interactive: break function (no writing to manual_QC.csv)
+  # - if NOT interactive & no old QC: make sure the following computations proceed
+  #   - do not save flag 0 columns to CSV but keep them in "man" object
+  # - if interactive: for each TAU, H, LE, FC column ask if user wants to flag
+  #   additional data and save flags to file after each column is finalized
+  #   - if yes: if "manual_QC" was found, new and old QC flags should be merged
+  #   - if no: if "manual_QC" was found keep respective flags
+  # - remove QC columns with all zero flags and write the file to output folder
+  # - if not interactive and no manual QC found: return NULL
+
+  # vars <- c("Tau", "H", "LE", "FC") # Tau flux not filtered
+  # out_path <- "./output/" # make sure all folders exist (skeleton?) + save template
+  # paste0("qc_", flux_names, "_man")
+
+  # qc_prefix: "qc_" for Czechglobe data, "" for FLUXNET
+  # qc_suffix: "_prelim3" for Czechglobe data, "_SSITC_TEST" for FLUXNET
+  # - flux QC variable is required, i.e. exclude(qc_x = NULL, ...) not allowed
+
+  # Check all fluxes specified by 'vars' already screened by QC scheme above
+  # - intermediate progress can be saved to a file after flagging of each flux
+  # - progress after the flagging of last flux must be saved in order to fully
+  #   reproduce the manual flags when rerunning the code next time
+  # - if saving to a file is omitted, results are still saved to 'man' object
+  #   and later also to data frame 'data' but it does not allow easy rerunning
+  # - returned timestamp is removed in 'man' but kept in saved CSV file
+  # - if not interactive and no manual QC found: NULL returned
+
+  tname <- as.character(tname)[1]
+  if (!tname %in% names(x))
+    stop("timestamp column specified by 'tname' not found in 'x'")
+  lf <- list.files(path, full.names = TRUE)
+  # pattern ".*" means zero or more characters, "\\." is literal dot
+  lf <- grep("manual_QC.*\\.[Cc][Ss][Vv]$", lf, value = TRUE)
+  if (length(lf) == 0) {
+    if (interactive) {
+      message("no CSV file with pattern 'manual_QC' in 'path' - initializing new")
+    } else return(NULL)
+  }
+  if (length(lf) > 1)
+    stop("multiple CSV files with pattern 'manual_QC' in 'path'")
+  vnames <- names(x)[match(vars, strip_suffix(names(x)))]
+  na_names <- is.na(vnames)
+  if (all(na_names))
+    stop("pattern of 'vars' does not match any column name in 'x'")
+  if (any(na_names)) {
+    message("following 'vars' are missing in 'x', thus skipped: ",
+            paste0(vars[na_names], collapse = ", "))
+  }
+  vnames <- vnames[!na_names]
+  qc <- as.data.frame(matrix(0, ncol = length(vnames), nrow = nrow(x)))
+  names(qc) <- mnames <- paste0("qc_", vnames, "_man")
+  qc <- cbind(x[tname], qc)
+
+  if (length(lf) == 1) {
+    # Attempt opening file and load old QC
+    message("loading manual_QC file found at: ", lf)
+    old_qc <- if (with_units) openeddy::read_eddy(lf) else read.csv(lf)
+    if (!tname %in% names(old_qc))
+      stop("timestamp column specified by 'tname' not found in file")
+    old_qc[, tname] <-
+      openeddy::strptime_eddy(old_qc[, tname], format = format)
+    trange_old <- range(old_qc[, tname])
+    trange_new <- range(x[, tname])
+    if (trange_old[1] < trange_new[1] | trange_old[2] > trange_new[2]) {
+      warning("range of timestamp in file extends out of that of 'x'",
+              call. = FALSE, immediate. = TRUE)
+      if (interactive) {
+        repeat {
+          ans <- readline(
+            prompt = "part of data in file can be lost, proceed anyway? (y/n): ")
+          if (grepl("^y$|^n$", ans)) break
+        }
+        if (ans == "n") stop("function aborted by user")
+      }
+    }
+    old_qc <- merge(x[tname], old_qc, by = tname, all.x = TRUE)
+    old_qc[is.na(old_qc)] <- 0 # should NAs be kept if present?
+    names_oqc <- names(old_qc)[names(old_qc) != tname]
+    message("manual QC flags in file present for columns: ",
+            paste0(names_oqc, collapse = ", "))
+    # Include old QC in new QC and overwrite columns with identical names
+    qc[names_oqc] <- old_qc[names_oqc]
+  }
+  if (interactive) {
+    if (length(lf) == 1)
+      message("please make sure that manual_QC file is closed")
+    qnames <- vnames
+    # overwriting with gsub() due to handling of FLUXNET H_V_R suffix
+    for (i in vars) qnames <- gsub(i, paste0(qc_prefix, i, qc_suffix), qnames)
+    # qnames need to align with vnames and mnames (same length):
+    # names <- data.frame(vnames = vnames, qnames = qnames, mnames = mnames)
+    qmiss <- !(qnames %in% names(x))
+    if (any(qmiss)) stop("Following names of QC flags are not available in 'x':\n",
+                         paste(qnames[qmiss], collapse = ", "))
+    all_qc <- cbind(qc, x[qnames]) # needed for combn_QC() in a loop
+
+    # var names: vnames - found in 'x'
+    # man flags: mnames - made of vnames
+    # SSITC flags: qnames - force to align with vnames and keep NAs if missing
+
+    # Do in a loop for each var_H_V_R combination:
+    # - combine SSITC_TEST (if present) with respective manual QC (always at least
+    #   a single column with zeros) using combn_QC() - needed for exclude()
+    # - run exclude() with "qc_x" = combined SSITC and manual QC
+    # - combine old manual QC and exclude() output (no SSITC)
+    for (i in seq_along(vnames)) {
+      # tests are ordered accordingly so they match, also with vnames
+      # qnames is used only if column name exists in 'x'
+      cbn <- openeddy::combn_QC(all_qc, c(mnames[i], qnames[i]),
+                                no_messages = TRUE) # supress messages?
+      message("Manual quality control of variable ", vnames[i], ":")
+      # no need to shift timestamp for current version of exclude()
+      qc[, mnames[i]] <- openeddy::exclude(x[, vnames[i]], cbn,
+                                           win_size = win_size)
+      qc[, mnames[i]] <- openeddy::combn_QC(
+        data.frame(old = all_qc[, mnames[i]], new = qc[, mnames[i]]),
+        c("old", "new"), no_messages = TRUE)
+      repeat {
+        opt <- readline(prompt = "save current progress to file at 'path'? (y/n): ")
+        if (grepl("^y$|^n$", opt)) break
+      }
+      if (opt == "y") {
+        if (length(lf) == 0) {
+          # including date might be problematic (old file would need to be deleted)
+          lf <- paste0(path, siteyear, "_manual_QC.csv")
+        }
+        if (with_units) openeddy::write_eddy(qc, lf) else
+          write.csv(qc, lf, row.names = FALSE)
+      }
+    }
+    repeat {
+      opt2 <- readline(
+        prompt = "remove manual QC columns where intervention was not needed? (y/n): ")
+      if (grepl("^y$|^n$", opt)) break
+    }
+    if (opt2 == "y") {
+      # find columns with only zeros, remove, save
+      all_0 <- apply(qc, 2, function(c) all(c %in% 0L))
+      qc <- qc[!all_0]
+      # remove manual QC file if only timestamp present (no manual QC)
+      # and return NULL
+      if (ncol(qc) == 1 && names(qc) == "timestamp") {
+        message("No manual QC detected: removing '", lf, "'")
+        unlink(lf)
+        return(NULL)
+      }
+    }
+    repeat {
+      opt <- readline(prompt = "save results to file at 'path'? (y/n): ")
+      if (grepl("^y$|^n$", opt)) break
+    }
+    if (opt == "y") {
+      if (length(lf) == 0) {
+        # including date might be problematic (old file would need to be deleted)
+        lf <- paste0(path, siteyear, "_manual_QC.csv")
+      }
+      if (with_units) openeddy::write_eddy(qc, lf) else
+        write.csv(qc, lf, row.names = FALSE)
+    }
+  }
+  return(qc)
 }

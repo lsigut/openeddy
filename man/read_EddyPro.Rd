@@ -32,9 +32,9 @@ character representation of specific date-time value is expected in given
 \item{skip}{An integer. The number of lines to skip in the input file before
 reading data.}
 
-\item{fileEncoding}{A character string. If non-empty, declares the encoding used
-on a file (not a connection) so the character data can be re-encoded. See
-\code{\link{read_table}} for further details.}
+\item{fileEncoding}{A character string. If non-empty, declares the encoding
+used on a file (not a connection) so the character data can be re-encoded.
+See \code{\link{read_table}} for further details.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
 provided as a character string.}

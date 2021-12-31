@@ -2,7 +2,7 @@
 % Please edit documentation in R/Quality_checking.R
 \name{exclude}
 \alias{exclude}
-\title{Exclude values}
+\title{Exclude Values}
 \usage{
 exclude(x, qc_x = NULL, name_out = "-", win_size = 672)
 }

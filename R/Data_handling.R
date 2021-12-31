@@ -1843,9 +1843,9 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #'   \code{format} and timezone "GMT".
 #' @param skip An integer. The number of lines to skip in the input file before
 #'   reading data.
-#' @param fileEncoding A character string. If non-empty, declares the encoding used
-#'   on a file (not a connection) so the character data can be re-encoded. See
-#'   \code{\link{read_table}} for further details.
+#' @param fileEncoding A character string. If non-empty, declares the encoding
+#'   used on a file (not a connection) so the character data can be re-encoded.
+#'   See \code{\link{read_table}} for further details.
 #' @param format A character string. Format of \code{start} (\code{end}) if
 #'   provided as a character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
@@ -1959,3 +1959,4 @@ choose_avail <- function(names, all_names) {
             paste(ignored, collapse = ", "))
   return(chosen)
 }
+
