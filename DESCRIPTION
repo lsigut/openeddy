@@ -31,7 +31,7 @@ BugReports: https://github.com/lsigut/openeddy/issues
 Date: 2021-08-04
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports:
     ggplot2 (>= 3.0.0),
     lognorm (>= 0.1.5),

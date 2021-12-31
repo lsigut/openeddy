@@ -1626,3 +1626,173 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
 
   return(out)
 }
+
+#' Read Meteorological Data with Units
+#'
+#' Read single or multiple CSV meteorological data files at Czechglobe MeteoDBS
+#' format at given path and merge them together.
+#'
+#' This utility function is adapted to Czechglobe MeteoDBS file structure but
+#' allows to change selected useful arguments that have preset default values.
+#' It also assures that date-time sequence is regular and equidistant.
+#'
+#' In case that multiple files are present in the \code{path}, the expectation
+#' is that files represent meteorological variables for given site and different
+#' periods. Function merges them vertically (along generated complete
+#' timestamp). All original columns across all files excluding the last empty
+#' one are kept. The order of variables keeps that of the first file loaded
+#' (note that file ordering in \code{path} is alphabetical not chronological)
+#' and additional variables are appended if present in the following files. The
+#' output "date/time" column is converted into class \code{POSIXct}.
+#'
+#' If you want to specify \code{start} and \code{end} arguments as strings and
+#' you change also default \code{shift.by} value, \code{start} and \code{end}
+#' arguments need to be adopted accordingly to account for that change. E.g. if
+#' \code{shift.by = -900}, then \code{start = "2019-12-31 21:15:00", end =
+#' "2019-12-31 23:15:00"} instead of \code{start = "2019-12-31 21:30:00", end =
+#' "2019-12-31 23:30:00"}.
+#'
+#' Function introduces additional column "timestamp" for purposes of merging
+#' with \code{merge_eddy()}. This column is then removed as it is not included
+#' in the original data.
+#'
+#' @return A data frame is produced with additional attributes \code{varnames}
+#'   and \code{units} assigned to each respective column.
+#'
+#' @param path A string. The path to directory with CSV file(s) in Czechglobe
+#'   MeteoDBS format. Other than CSV files are ignored.
+#' @param start,end A value specifying the first (last) value of the generated
+#'   date-time sequence in temporary column "timestamp". If \code{NULL},
+#'   \code{\link{min}} (\code{\link{max}}) of date-time values from "date/time"
+#'   column across all files is used. If numeric, the value specifies the year
+#'   for which the first (last) date-time value will be generated, considering
+#'   given time interval (automatically detected from "date/time" column) and
+#'   convention of assigning of measured records to the end of the time
+#'   interval. Otherwise, character representation of specific date-time value
+#'   is expected in given \code{format} and timezone "GMT".
+#' @param format A character string. Format of \code{start} (\code{end}) if
+#'   provided as a character string.
+#' @param shift.by A numeric value specifying the time shift (in seconds) to be
+#'   applied to the date-time information.
+#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
+#'   not have to be regular but time differences must be multiples of
+#'   automatically detected time interval.
+#' @param verbose A logical value. Should additional statistics about presence
+#'   of \code{NA} values in resulting data frame be printed to console?
+#' @export
+read_MeteoDBS <- function(path, start = NULL, end = NULL,
+                          format = "%d.%m.%Y %H:%M", shift.by = NULL,
+                          allow_gaps = TRUE, verbose = TRUE) {
+  lf <- list.files(path, full.names = TRUE)
+  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
+  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  l <- vector("list", length(lf))
+  names(l) <- lf
+  for (i in seq_along(lf)) {
+    # Meteo data have header on line 10 and units on line 12 (remove line 11)
+    l[[i]] <- readLines(lf[i])[-11]
+    # Write modified Meteo data to temporary file
+    file <- tempfile()
+    writeLines(l[[i]], file)
+    # Load Meteo data with units and remove the temporary file
+    l[[i]] <-
+      openeddy::read_eddy(file, skip = 9, sep = ";", check.names = FALSE)
+    unlink(file)
+    # All files downloaded from MeteoDBS include empty last column without name
+    # This complicates merging and should be removed
+    last_col <- ncol(l[[i]])
+    if (names(l[[i]])[last_col] == "" && all(is.na(l[[i]][, last_col])))
+      l[[i]][last_col] <- NULL
+    # Create "timestamp" of class "POSIXct" required by merge_eddy()
+    l[[i]]$timestamp <-
+      openeddy::strptime_eddy(l[[i]]$`date/time`, format, shift.by = shift.by,
+                              allow_gaps = allow_gaps)
+  }
+  # Merge all chunks together
+  res <- openeddy::merge_eddy(l, start, end)
+  message("if present, all gaps in timestamp were filled")
+  # Overwrite original "date/time" by corrected (validated) "timestamp"
+  res$`date/time` <- res$timestamp
+  # Remove "timestamp" column that was not included in original data
+  res$timestamp <- NULL
+  # strptime_eddy() automatically sets "date/time" varname to "timestamp"
+  openeddy::varnames(res)[names(res) == "date/time"] <- "date/time"
+  # Report stats about NA values in resulting data frame
+  if (verbose) {
+    # computations on data frames are highly inefficient - convert to matrix
+    mres <- data.matrix(res) # Converts also characters
+    NA_tot <- sum(is.na(mres))
+    # Continue evaluation only if any value missing
+    # - computation can take few secs so moved above any printed text
+    if (NA_tot) {
+      # Find row indices without any meteorological data
+      i_NA_rows <- openeddy:::allNA(
+        mres[, !(colnames(mres) %in% "date/time"), drop = FALSE], 1)
+      # Find columns without any meteorological data
+      NA_cols <- openeddy:::allNA(mres, 2) # ("date/time" checked too)
+      # Find columns with gaps in meteorological data
+      gaps <- apply(mres, 2, anyNA)
+    }
+    cat("Total number of missing values: ", NA_tot, "\n", sep = "")
+    # Continue evaluation only if any value missing
+    if (NA_tot) {
+      sum_NA_rows <- sum(i_NA_rows)
+      cat("Rows without any meteorological data: ")
+      if (!sum_NA_rows) {
+        cat("none\n")
+      } else {
+        cat(sum_NA_rows, " \n")
+        # Make differences across logical vector indicating if all values are NA
+        # To check also first and last row 0 value is added at the beginning and end
+        allNA_diff <- c(diff(c(0, i_NA_rows, 0)))
+        # allNA_diff == 1 gives indices where gaps start (including those indices)
+        s <- which(allNA_diff == 1)
+        # allNA_diff == -1 gives indices where gaps end (excluding those indices)
+        e <- which(allNA_diff == -1) # value -1 gives index+1 after which gap ends
+        # Timestamps represent the end of measurement interval, therefore it should
+        # be shifted (timestamp preceding the first record is included)
+        interval <- median(diff(res$`date/time`))
+        ts <- c(res$`date/time`[1] - interval, res$`date/time`)
+        info_rows <- data.frame(paste0("(", ts[s], ","),
+                                paste0(ts[e], "]"))
+        info_rows <- as.matrix(format(info_rows))
+        dimnames(info_rows) <- list(rep("", nrow(info_rows)),
+                                    c("gap start ", "gap end "))
+        print(info_rows, quote=FALSE, right=TRUE)
+        cat("- missing rows account for",
+            sum_NA_rows * (ncol(res) - 1), # number of cols excluding timestamp
+            "missing values\n")
+      }
+      cat("Columns without any meteorological data: ")
+      sum_NA_cols <- sum(NA_cols)
+      if (!sum_NA_cols) {
+        cat("none\n")
+      } else {
+        cat(sum_NA_cols, " \n- missing column names:\n")
+        # Quoted names are useful because they can be used for extraction
+        op <- options("useFancyQuotes")
+        options(useFancyQuotes = FALSE)
+        cat(sQuote(names(NA_cols[NA_cols == TRUE])), sep = ", ", fill = TRUE)
+        options(op)
+        cat("- missing columns account for", sum_NA_cols * nrow(res),
+            "missing values\n")
+      }
+      # If at least one row is missing checking for gaps across cols is not useful
+      if (!sum_NA_rows) {
+        sum_gaps <- sum(gaps)
+        cat("Columns with gaps: ")
+        if (!sum_gaps) {
+          cat("none\n")
+        } else {
+          cat(sum_gaps, " \n- names of columns with gaps:\n")
+          # Quoted names are useful because they can be used for extraction
+          op <- options("useFancyQuotes")
+          options(useFancyQuotes = FALSE)
+          cat(sQuote(names(gaps[gaps == TRUE])), sep = ", ", fill = TRUE)
+          options(op)
+        }
+      }
+    }
+  }
+  return(res)
+}
