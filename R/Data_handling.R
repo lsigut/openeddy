@@ -1893,3 +1893,40 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
 combine_docu <- function(path) {
   unlist(lapply(path, function(x) c(readLines(x, warn = FALSE), "")))
 }
+
+#' Strip Positional Qualifier Suffix
+#'
+#' Function removes from variable name the suffix with three indices
+#' representing horizontal and vertical placement and number of replicates
+#' (_H_V_R suffix used in tower network naming strategy).
+#'
+#' If \code{warn = TRUE}, it is checked if multiple _H_V_R suffixes were
+#' detected. This might be undesired based on the application.
+#'
+#' @param x A string vector.
+#' @param warn A logical value
+#'
+#' @return A string vector with extracted variable codes.
+#'
+#' @examples
+#' x <- c("TA_1_1_1", "TS_1_1_1", "VPD")
+#' strip_suffix(x)
+#' @export
+strip_suffix <- function(x, warn = FALSE) {
+  x <- as.character(x)
+  # FLUXNET (and ICOS) naming strategy VAR_H_V_R
+  # VAR = is the official variable code , only alphabetic characters and
+  #       underscores, all capital
+  # H = horizontal position index, integer number
+  # V = vertical position index, integer number
+  # R = replicate index, integer number
+
+  # here "_H_V_R" suffix is removed
+  vars <- gsub("_[[:digit:]]+_[[:digit:]]+_[[:digit:]]+$", "", x)
+  pattern <- paste(vars, collapse = "|")
+  suff <- unique(gsub(pattern, "", x))
+  suff <- suff[!suff == ""]
+  if (warn & length(suff) > 1)
+    warning("multiple _H_V_R suffixes detected: ", paste(suff, collapse = ", "))
+  return(vars)
+}
