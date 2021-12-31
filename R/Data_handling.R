@@ -1930,3 +1930,32 @@ strip_suffix <- function(x, warn = FALSE) {
     warning("multiple _H_V_R suffixes detected: ", paste(suff, collapse = ", "))
   return(vars)
 }
+
+#' Choose Available Names from Set
+#'
+#' Available variable names are checked against the full set of expected
+#' variables and missing cases are reported.
+#'
+#' @param names A character vector with available names.
+#' @param all_names A character vector with all expected variable names.
+#'
+#' @return A character vector with subset of expected variable names.
+#'
+#' @examples
+#' all_names <- c("TA", "TS", "VPD", "LE", "H", "NEE")
+#' names <- c("H", "LE", "PM10")
+#' choose_avail(names, all_names)
+#' @export
+choose_avail <- function(names, all_names) {
+  names <- na.omit(names)
+  chosen <- names[names %in% all_names]
+  not_avail <- setdiff(all_names, chosen)
+  ignored <- setdiff(names, chosen)
+  if (length(not_avail))
+    message("Following names are not available:\n",
+            paste(not_avail, collapse = ", "))
+  if (length(ignored))
+    message("Following names were ignored:\n",
+            paste(ignored, collapse = ", "))
+  return(chosen)
+}
