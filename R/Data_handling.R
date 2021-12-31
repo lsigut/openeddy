@@ -1880,3 +1880,16 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
   message("if present, all gaps in timestamp were filled")
   return(EP)
 }
+
+#' Combine Documentation
+#'
+#' Read documentation from single or multiple TXT files. In case of multiple
+#' files, combine them together with one additional line separating them.
+#'
+#' @param path A character vector. The full paths to TXT files.
+#'
+#' @seealso \code{\link{readLines}}.
+#' @export
+combine_docu <- function(path) {
+  unlist(lapply(path, function(x) c(readLines(x, warn = FALSE), "")))
+}
