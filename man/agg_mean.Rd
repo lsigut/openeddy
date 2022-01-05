@@ -7,13 +7,14 @@
 \alias{agg_DT_SD}
 \title{Time series summarization}
 \usage{
-agg_mean(x, format, breaks = NULL, tz = "GMT", ...)
+agg_mean(x, format, breaks = NULL, interval = NULL, tz = "GMT", ...)
 
 agg_sum(
   x,
   format,
   agg_per = NULL,
   breaks = NULL,
+  interval = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
@@ -26,6 +27,7 @@ agg_fsd(
   format,
   agg_per = NULL,
   breaks = NULL,
+  interval = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE", names(x), value = TRUE),
@@ -37,6 +39,7 @@ agg_DT_SD(
   format,
   agg_per = NULL,
   breaks = NULL,
+  interval = NULL,
   carbon = grep("^Reco|^GPP", names(x), value = TRUE),
   tz = "GMT"
 )
@@ -54,6 +57,10 @@ one of \code{"sec"}, \code{"min"}, \code{"hour"}, \code{"day"},
 \code{"DSTday"}, \code{"week"}, \code{"month"}, \code{"quarter"} or
 \code{"year"}, optionally preceded by an integer and a space, or followed
 by \code{"s"}.}
+
+\item{interval}{A numeric value specifying the time interval (in seconds) of
+the generated date-time sequence. If \code{NULL}, \code{interval}
+autodetection is attempted.}
 
 \item{tz}{A character string specifying the time zone to be used for the
 conversion. System-specific (see \code{\link{as.POSIXlt}} or
@@ -85,6 +92,11 @@ conversion from CO2 concentration to C mass flux units before aggregation.}
   \code{mean} and \code{sum} with attributes varnames and units assigned to
   each respective column or \code{NULL} value if required columns are not
   recognized.
+
+  Each produced data frame has first column called "Intervals" with vector of
+  labels describing aggregation period provided as factor, and second column
+  "days" providing fraction (or multiple) of days aggregated within each
+  period.
 }
 \description{
 Utilities that simplify aggregation of data and their uncertainties over
@@ -188,19 +200,19 @@ EProc <- sEddyProc$new('DE-Tha', DETha98,
 c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
 names(DETha98)[1] <- "timestamp"
 DETha98$timestamp <- DETha98$timestamp - 60*15
-agg_mean(DETha98, "\%m-\%y")
-agg_mean(DETha98, "\%m-\%y", na.rm = TRUE)
-(zz <- agg_sum(DETha98, "\%m-\%y", agg_per = "month-1"))
-units(zz, names = TRUE)
+agg_mean(DETha98, "\%b-\%y")
+agg_mean(DETha98, "\%b-\%y", na.rm = TRUE)
+(zz <- agg_sum(DETha98, "\%b-\%y", agg_per = "month-1"))
+openeddy::units(zz, names = TRUE)
 
 EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
 for (i in c('Tair', 'Rg', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
 results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-agg_fsd(results, "\%m-\%y", agg_per = "month-1")
+agg_fsd(results, "\%b-\%y", agg_per = "month-1")
 EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
 EProc$sGLFluxPartition(suffix = "uStar")
 results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-agg_DT_SD(results, "\%m-\%y", agg_per = "month-1")}
+agg_DT_SD(results, "\%b-\%y", agg_per = "month-1")}
 }
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},

@@ -104,6 +104,9 @@
 #'   conversion from power to energy units before aggregation.
 #' @param carbon A character vector listing variable names that require
 #'   conversion from CO2 concentration to C mass flux units before aggregation.
+#' @param interval A numeric value specifying the time interval (in seconds) of
+#'   the generated date-time sequence. If \code{NULL}, \code{interval}
+#'   autodetection is attempted.
 #' @param tz A character string specifying the time zone to be used for the
 #'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
 #'   \code{\link{timezones}}), but \code{""} is the current time zone, and
@@ -120,6 +123,11 @@
 #'   each respective column or \code{NULL} value if required columns are not
 #'   recognized.
 #'
+#'   Each produced data frame has first column called "Intervals" with vector of
+#'   labels describing aggregation period provided as factor, and second column
+#'   "days" providing fraction (or multiple) of days aggregated within each
+#'   period.
+#'
 #' @seealso \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
 #'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
 #'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
@@ -134,21 +142,22 @@
 #' c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
 #' names(DETha98)[1] <- "timestamp"
 #' DETha98$timestamp <- DETha98$timestamp - 60*15
-#' agg_mean(DETha98, "%m-%y")
-#' agg_mean(DETha98, "%m-%y", na.rm = TRUE)
-#' (zz <- agg_sum(DETha98, "%m-%y", agg_per = "month-1"))
-#' units(zz, names = TRUE)
+#' agg_mean(DETha98, "%b-%y")
+#' agg_mean(DETha98, "%b-%y", na.rm = TRUE)
+#' (zz <- agg_sum(DETha98, "%b-%y", agg_per = "month-1"))
+#' openeddy::units(zz, names = TRUE)
 #'
 #' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
 #' for (i in c('Tair', 'Rg', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-#' agg_fsd(results, "%m-%y", agg_per = "month-1")
+#' agg_fsd(results, "%b-%y", agg_per = "month-1")
 #' EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
 #' EProc$sGLFluxPartition(suffix = "uStar")
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-#' agg_DT_SD(results, "%m-%y", agg_per = "month-1")}
+#' agg_DT_SD(results, "%b-%y", agg_per = "month-1")}
 #' @export
-agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
+agg_mean <- function(x, format, breaks = NULL, interval = NULL,
+                     tz = "GMT", ...) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
@@ -157,24 +166,59 @@ agg_mean <- function(x, format, breaks = NULL, tz = "GMT", ...) {
   if (!inherits(x$timestamp, "POSIXt")) {
     stop("'x$timestamp' must be of class 'POSIXt'")
   }
+  if (any(is.na(x$timestamp))) stop("NAs in 'x$timestamp' not allowed")
+  if (any(diff(as.numeric(x$timestamp)) !=
+          mean(diff(as.numeric(x$timestamp))))) {
+    stop("x$timestamp does not form regular sequence")
+  }
+
+  # automatic recognition of interval (allow manual setting?)
+  # - must be on original timestamp
+  range <- range(x$timestamp)
+  if (is.null(interval)) {
+    # automated estimation of interval
+    interval <- median(diff(x$timestamp))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
+    } else {
+      message("'interval' set to '", format(interval),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+  }
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
+  # interval in fraction or multiple of 1 day
+  d <- as.numeric(interval, units = "days")
+
   if (!is.null(breaks)) {
     x$timestamp <- as.POSIXct(cut(x$timestamp, breaks = breaks), tz = tz)
   }
   x$timestamp <- strftime(x$timestamp, format = format, tz = tz)
   x$timestamp <- factor(x$timestamp, levels = unique(x$timestamp))
 
+  # How many records with given interval per day?
+  # - must be computed on the grouped timestamp
+  zz <- aggregate(x[, "timestamp"], list(Intervals = x$timestamp), length)
+  zz$days <- zz$x*d # conversion to number of days per period (also fractional)
+  zz$x <- NULL
+
   out <- aggregate(x[names(x) != "timestamp"],
                    list(Intervals = x$timestamp), mean, ...)
-  openeddy::varnames(out) <- c("Intervals",
+  out <- merge(zz, out, sort = FALSE)
+  openeddy::varnames(out) <- c("Intervals", "days",
                                openeddy::varnames(x[names(x) != "timestamp"]))
-  openeddy::units(out) <- c("-", openeddy::units(x[names(x) != "timestamp"]))
-  names(out) <- c("Intervals", paste0(names(out[-1]), "_mean"))
+  openeddy::units(out) <- c("-", "-",
+                            openeddy::units(x[names(x) != "timestamp"]))
+  names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_mean"))
   return(out)
 }
 
 #' @rdname agg_mean
 #' @export
-agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
+agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -193,12 +237,41 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
           mean(diff(as.numeric(x$timestamp))))) {
     stop("x$timestamp does not form regular sequence")
   }
-  tres <- max(diff(as.numeric(x$timestamp))) # Time resolution in secs
+
+  # automatic recognition of interval (allow manual setting?)
+  # - must be on original timestamp
+  range <- range(x$timestamp)
+  if (is.null(interval)) {
+    # automated estimation of interval
+    interval <- median(diff(x$timestamp))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
+    } else {
+      message("'interval' set to '", format(interval),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+  }
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
+  # interval in fraction or multiple of 1 day
+  d <- as.numeric(interval, units = "days")
+  # interval in seconds
+  interval <- as.numeric(interval, units = "secs")
+
   if (!is.null(breaks)) {
     x$timestamp <- as.POSIXct(cut(x$timestamp, breaks = breaks), tz = tz)
   }
   x$timestamp <- strftime(x$timestamp, format = format, tz = tz)
   x$timestamp <- factor(x$timestamp, levels = unique(x$timestamp))
+
+  # How many records with given interval per day?
+  # - must be computed on the grouped timestamp
+  zz <- aggregate(x[, "timestamp"], list(Intervals = x$timestamp), length)
+  zz$days <- zz$x*d # conversion to number of days per period (also fractional)
+  zz$x <- NULL
 
   # Change sign in all NEE variables
   NEE_cols <- names(x) %in% grep("NEE", names(x[carbon]), value = TRUE)
@@ -219,7 +292,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
   # conversion from quantum to radiometric units and to energy units
   # - from umol+1s-1m-2 to MJ+1hh-1m-2 (hh = half-hour)
   quant <- quant[quant %in% names(x)]
-  x[quant] <- x[quant] * tres * 1e-6 / 4.57 # 4.57 Thimijan and Heins (1983)
+  x[quant] <- x[quant] * interval * 1e-6 / 4.57 # 4.57 Thimijan and Heins (1983)
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
     cat("Quantum to energy (", openeddy::units(x[quant])[1],
@@ -232,7 +305,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
   # conversion from power to energy units
   # - from W m-2 to MJ+1hh-1m-2
   power <- power[power %in% names(x)]
-  x[power] <- x[power] * tres * 1e-6
+  x[power] <- x[power] * interval * 1e-6
   if (length(power) > 0) {
     cat("Power to energy (", openeddy::units(x[power])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
@@ -244,7 +317,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
   # conversion from mean CO2 concentration flux to integrated mass flux of C
   # - from umol+1s-1m-2 to g(C)+1hh-1m-2
   carbon <- carbon[carbon %in% names(x)]
-  x[carbon] <- x[carbon] * tres * 12e-6
+  x[carbon] <- x[carbon] * interval * 12e-6
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
@@ -262,18 +335,20 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL,
 
   out <- aggregate(x[names(x) != "timestamp"],
                    list(Intervals = x$timestamp), sum, ...)
-  openeddy::varnames(out) <- c("Intervals",
+  out <- merge(zz, out, sort = FALSE)
+  openeddy::varnames(out) <- c("Intervals", "days",
                                openeddy::varnames(x[names(x) != "timestamp"]))
-  openeddy::units(out) <- c("-", openeddy::units(x[names(x) != "timestamp"]))
-  if (!is.null(agg_per)) openeddy::units(out)[-1] <-
-    trimws(paste(openeddy::units(out)[-1], agg_per))
-  names(out) <- c("Intervals", paste0(names(out[-1]), "_sum"))
+  openeddy::units(out) <- c("-", "-",
+                            openeddy::units(x[names(x) != "timestamp"]))
+  if (!is.null(agg_per)) openeddy::units(out)[-(1:2)] <-
+    trimws(paste(openeddy::units(out)[-(1:2)], agg_per))
+  names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_sum"))
   return(out)
 }
 
 #' @rdname agg_mean
 #' @export
-agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
+agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -292,12 +367,42 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
           mean(diff(as.numeric(x$timestamp))))) {
     stop("x$timestamp does not form regular sequence")
   }
-  tres <- max(diff(as.numeric(x$timestamp))) # Time resolution in secs
+
+  # automatic recognition of interval (allow manual setting?)
+  # - must be on original timestamp
+  range <- range(x$timestamp)
+  if (is.null(interval)) {
+    # automated estimation of interval
+    interval <- median(diff(x$timestamp))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
+    } else {
+      message("'interval' set to '", format(interval),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+  }
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
+  # interval in fraction or multiple of 1 day
+  d <- as.numeric(interval, units = "days")
+  # interval in seconds
+  interval <- as.numeric(interval, units = "secs")
+
   if (!is.null(breaks)) {
     x$timestamp <- as.POSIXct(cut(x$timestamp, breaks = breaks), tz = tz)
   }
   x$timestamp <- strftime(x$timestamp, format = format, tz = tz)
   x$timestamp <- factor(x$timestamp, levels = unique(x$timestamp))
+
+  # How many records with given interval per day?
+  # - must be computed on the grouped timestamp
+  zz <- aggregate(x[, "timestamp"], list(Intervals = x$timestamp), length)
+  zz$days <- zz$x*d # conversion to number of days per period (also fractional)
+  nTot <- zz$x # required later for computation of sum from mean
+  zz$x <- NULL
 
   fall_names <- grep("_fall$", names(x), value = TRUE) # no fall for GPP & Reco
   fall <- x[fall_names]
@@ -346,28 +451,29 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
 
   agg_SD <- aggregate(fsd, by = list(Intervals = x$timestamp), function(x)
     if (all(is.na(x))) NA_real_ else mean(x^2, na.rm = TRUE), drop = FALSE)
-  openeddy::varnames(agg_SD["Intervals"]) <- "Intervals"
-  openeddy::units(agg_SD["Intervals"]) <- "-"
+  agg_SD <- merge(zz, agg_SD, sort = FALSE)
+  openeddy::varnames(agg_SD[c("Intervals", "days")]) <- c("Intervals", "days")
+  openeddy::units(agg_SD[c("Intervals", "days")]) <- c("-", "-")
 
   res_SD <- as.data.frame(mapply(function(SD, nEff)
     sqrt(SD / ifelse(nEff <= 1, NA_real_, nEff - 1)),
-    SD = agg_SD[-1], nEff = nEff, SIMPLIFY = FALSE))
+    SD = agg_SD[-(1:2)], nEff = nEff, SIMPLIFY = FALSE))
   names(res_SD) <- paste0(fsd_names, "_fsd")
   openeddy::varnames(res_SD) <- names(res_SD)
   openeddy::units(res_SD) <- openeddy::units(fsd)
 
-  res_mean <- res_sum <- cbind(agg_SD["Intervals"], res_SD)
+  res_mean <- res_sum <- cbind(agg_SD[c("Intervals", "days")], res_SD)
 
   # Compute sums as mean * nTot
-  nTot <- unname(sapply(resid_l, nrow))
-  res_sum[-1] <- as.data.frame(lapply(res_mean[-1], function(x) x * nTot))
+  res_sum[-(1:2)] <-
+    as.data.frame(lapply(res_mean[-(1:2)], function(x) x * nTot))
 
   cat("Unit conversion\n===============\n")
   # conversion from quantum to radiometric units and to energy units
   # - from umol+1s-1m-2 to MJ+1hh-1m-2 (hh = half-hour)
   quant <- quant[quant %in% names(res_sum)]
   res_sum[quant] <- as.data.frame(lapply(res_sum[quant], function(x)
-    x * tres * 1e-6 / 4.57)) # 4.57 Thimijan and Heins (1983)
+    x * interval * 1e-6 / 4.57)) # 4.57 Thimijan and Heins (1983)
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
     cat("Quantum to energy (", openeddy::units(res_sum[quant])[1],
@@ -381,7 +487,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
   # - from W m-2 to MJ+1hh-1m-2
   power <- power[power %in% names(res_sum)]
   res_sum[power] <- as.data.frame(lapply(res_sum[power], function(x)
-    x * tres * 1e-6))
+    x * interval * 1e-6))
   if (length(power) > 0) {
     cat("Power to energy (", openeddy::units(res_sum[power])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
@@ -394,7 +500,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
   # - from umol+1s-1m-2 to g(C)+1hh-1m-2
   carbon <- carbon[carbon %in% names(res_sum)]
   res_sum[carbon] <- as.data.frame(lapply(res_sum[carbon], function(x)
-    x * tres * 12e-6))
+    x * interval * 12e-6))
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
@@ -412,10 +518,10 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
     names(res_sum) %in% grep("NEE", names(res_sum[carbon]), value = TRUE)
   names(res_sum)[NEE_cols] <- gsub("NEE", "NEP", names(res_sum)[NEE_cols])
 
-  names(res_mean)[-1] <- paste0(names(res_mean[-1]), "_mean")
-  names(res_sum)[-1] <- paste0(names(res_sum[-1]), "_sum")
-  if (!is.null(agg_per)) openeddy::units(res_sum)[-1] <-
-    trimws(paste(openeddy::units(res_sum)[-1], agg_per))
+  names(res_mean)[-(1:2)] <- paste0(names(res_mean[-(1:2)]), "_mean")
+  names(res_sum)[-(1:2)] <- paste0(names(res_sum[-(1:2)]), "_sum")
+  if (!is.null(agg_per)) openeddy::units(res_sum)[-(1:2)] <-
+    trimws(paste(openeddy::units(res_sum)[-(1:2)], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)
@@ -423,7 +529,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL,
 
 #' @rdname agg_mean
 #' @export
-agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
+agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
                       tz = "GMT") {
   x_names <- names(x)
@@ -439,12 +545,42 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
           mean(diff(as.numeric(x$timestamp))))) {
     stop("x$timestamp does not form regular sequence")
   }
-  tres <- max(diff(as.numeric(x$timestamp))) # Time resolution in secs
+
+  # automatic recognition of interval (allow manual setting?)
+  # - must be on original timestamp
+  range <- range(x$timestamp)
+  if (is.null(interval)) {
+    # automated estimation of interval
+    interval <- median(diff(x$timestamp))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
+    } else {
+      message("'interval' set to '", format(interval),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+  }
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
+  # interval in fraction or multiple of 1 day
+  d <- as.numeric(interval, units = "days")
+  # interval in seconds
+  interval <- as.numeric(interval, units = "secs")
+
   if (!is.null(breaks)) {
     x$timestamp <- as.POSIXct(cut(x$timestamp, breaks = breaks), tz = tz)
   }
   x$timestamp <- strftime(x$timestamp, format = format, tz = tz)
   x$timestamp <- factor(x$timestamp, levels = unique(x$timestamp))
+
+  # How many records with given interval per day?
+  # - must be computed on the grouped timestamp
+  zz <- aggregate(x[, "timestamp"], list(Intervals = x$timestamp), length)
+  zz$days <- zz$x*d # conversion to number of days per period (also fractional)
+  nTot <- zz$x # required later for computation of sum from mean
+  zz$x <- NULL
 
   orig_names <- grep("^NEE_.*_orig$", names(x), value = TRUE)
   orig <- x[orig_names]
@@ -485,7 +621,7 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
   autoCorr <- lapply(resid_DT, lognorm::computeEffectiveAutoCorr)
 
   resid_l <- split(resid_DT, x$timestamp)
-  l <- list()
+  l <- vector("list", length(resid_l))
   for (i in seq_along(resid_l)) l[[i]] <-
     mapply(lognorm::computeEffectiveNumObs, res = resid_l[[i]],
            effAcf = autoCorr, MoreArgs = list(na.rm = TRUE))
@@ -506,12 +642,14 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
   agg_Reco_SD <-
     aggregate(Reco_SD, by = list(Intervals = x$timestamp), function(x)
       if (all(is.na(x))) NA_real_ else mean(x^2, na.rm = TRUE), drop = FALSE)
-  openeddy::varnames(agg_Reco_SD["Intervals"]) <- "Intervals"
-  openeddy::units(agg_Reco_SD["Intervals"]) <- "-"
+  agg_Reco_SD <- merge(zz, agg_Reco_SD, sort = FALSE)
+  openeddy::varnames(agg_Reco_SD[c("Intervals", "days")]) <-
+    c("Intervals", "days")
+  openeddy::units(agg_Reco_SD[c("Intervals", "days")]) <- c("-", "-")
 
   res_Reco_SD <- as.data.frame(mapply(function(SD, nEff)
     sqrt(SD / ifelse(nEff <= 1, NA_real_, nEff - 1)),
-    SD = agg_Reco_SD[-1], nEff = nEff_DT, SIMPLIFY = FALSE))
+    SD = agg_Reco_SD[-(1:2)], nEff = nEff_DT, SIMPLIFY = FALSE))
   names(res_Reco_SD) <- paste0("Reco_DT_", names(Reco_SD), "_SD")
   openeddy::varnames(res_Reco_SD) <- names(res_Reco_SD)
   openeddy::units(res_Reco_SD) <- openeddy::units(Reco_SD)
@@ -527,18 +665,19 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
   openeddy::varnames(res_GPP_SD) <- names(res_GPP_SD)
   openeddy::units(res_GPP_SD) <- openeddy::units(GPP_SD)
 
-  res_mean <- res_sum <- cbind(agg_GPP_SD["Intervals"], res_Reco_SD, res_GPP_SD)
+  res_mean <- res_sum <- cbind(agg_Reco_SD[c("Intervals", "days")],
+                               res_Reco_SD, res_GPP_SD)
 
   # Compute sums as mean * nTot
-  nTot <- unname(sapply(resid_l, nrow))
-  res_sum[-1] <- as.data.frame(lapply(res_mean[-1], function(x) x * nTot))
+  res_sum[-(1:2)] <- as.data.frame(lapply(res_mean[-(1:2)],
+                                          function(x) x * nTot))
 
   cat("Unit conversion\n===============\n")
   # conversion from mean CO2 concentration flux to integrated mass flux of C
   # - from umol+1s-1m-2 to g(C)+1hh-1m-2
   carbon <- carbon[carbon %in% names(res_sum)]
   res_sum[carbon] <- as.data.frame(lapply(res_sum[carbon], function(x)
-    x * tres * 12e-6))
+    x * interval * 12e-6))
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
@@ -551,10 +690,10 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL,
   if (length(carbon) == 0)
     cat("No variables available for conversion\n")
 
-  names(res_mean)[-1] <- paste0(names(res_mean[-1]), "_mean")
-  names(res_sum)[-1] <- paste0(names(res_sum[-1]), "_sum")
-  if (!is.null(agg_per)) openeddy::units(res_sum)[-1] <-
-    trimws(paste(openeddy::units(res_sum)[-1], agg_per))
+  names(res_mean)[-(1:2)] <- paste0(names(res_mean[-(1:2)]), "_mean")
+  names(res_sum)[-(1:2)] <- paste0(names(res_sum[-(1:2)]), "_sum")
+  if (!is.null(agg_per)) openeddy::units(res_sum)[-(1:2)] <-
+    trimws(paste(openeddy::units(res_sum)[-(1:2)], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)
