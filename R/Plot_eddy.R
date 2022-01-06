@@ -678,3 +678,68 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
   r <- as.POSIXct(round(range(x$timestamp), units))
   axis.POSIXct(1, at = seq(r[1], r[2], by = interval), format = format)
 }
+
+#' Bar plots of aggregated variables
+#'
+#' Creates a bar plot with aggregated variable on y-axis and labels of
+#' aggregation periods on x-axis.
+#'
+#' @param x A data frame with column names.
+#' @param var A character string. An \code{x} column name of the variable to
+#'   plot on y-axis.
+#' @param interval A character string. Specifies \code{xlab} timescale and does
+#'   not affect computations (e.g. "daily", "3-daily", "weekly", "monthly",
+#'   etc.).
+#' @param nTicks An integer. Number of x-axis ticks to plot. If \code{NULL},
+#'   maximum 20 ticks with corresponding \code{names.arg} will be plotted,
+#'   otherwise \code{nTicks} defaults to \code{8}. Specifying \code{nTicks}
+#'   allows greater control over the x-axis ticks density.
+#' @param days A numeric vector. Number of days (or their fractions) aggregated
+#'   within each time interval described by \code{names.arg}. Used to specify
+#'   bar widths.
+#' @param names.arg A character vector. Names of each aggregation period
+#'   corresponding to \code{x$var} used as x-axis labels.
+#'
+#' @seealso \code{\link{barplot}}
+#'
+#' @examples
+#' set.seed(123)
+#' n <- 17520 # number of half-hourly records in one non-leap year
+#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
+#' x <- data.frame(timestamp = tstamp, H = rf(n, 1, 2, 1))
+#' aggm <- agg_sum(x, "%b-%Y")
+#' barplot_agg(aggm, var = "H_sum", "monthly")
+#' aggw <- agg_sum(x, "%W_%Y")
+#' barplot_agg(aggw, var = "H_sum", "weekly")
+#' aggd <- agg_sum(x, "%Y-%m-%d")
+#' barplot_agg(aggd, var = "H_sum", "daily")
+#'
+#' @export
+barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
+                        names.arg = x$Intervals) {
+  p <- barplot(as.numeric(x[, var]),
+               space = 0,
+               width = days,
+               col = "grey",
+               border = "grey35",
+               ylim = if (var %in% c("evaporative_fraction",
+                                     "closure_fraction"))
+                 c(0, 1) else NULL,
+               xlab = if (!is.null(interval)) paste(interval, "timescale"),
+               ylab = paste(var, " [", openeddy::units(x[var]), "]", sep = ""),
+               main = var,
+               xpd = FALSE)
+  if (is.null(nTicks)) {
+    if (length(p) <= 20) {
+      axis(1, at = p, labels = names.arg)
+    } else {
+      index <- as.integer(seq(1, length(p), length.out = 8))
+      axis(1, at = p[index], labels = names.arg[index])
+    }
+  } else {
+    if (nTicks > length(p)) stop("nTicks larger than length(names.arg)")
+    index <- as.integer(seq(1, length(p), length.out = nTicks))
+    axis(1, at = p[index], labels = names.arg[index])
+  }
+  box()
+}
