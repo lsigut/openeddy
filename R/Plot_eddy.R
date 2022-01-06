@@ -679,7 +679,7 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
   axis.POSIXct(1, at = seq(r[1], r[2], by = interval), format = format)
 }
 
-#' Bar plots of aggregated variables
+#' Bar Plots of Aggregated Variables
 #'
 #' Creates a bar plot with aggregated variable on y-axis and labels of
 #' aggregation periods on x-axis.
@@ -742,4 +742,137 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
     axis(1, at = p[index], labels = names.arg[index])
   }
   box()
+}
+
+#' Create a New ggplot with Statistics
+#'
+#' Create a ggplot object representing a scatter plot with statistics for given
+#' amount of intervals along x-axis. Each interval contains comparable amount of
+#' data points, thus can have unequal width.
+#'
+#' \code{circular = TRUE} effectively sets the last interval as neighboring to
+#' the first interval. This allows to interpolate the statistics also for the
+#' edge cases.
+#'
+#' \code{qrange} reduces y-axis limits to reduce the impact of outliers on plot
+#' readability. It does not affect computed statistics. If you do not want to
+#' limit y-axis, set \code{qrange = NULL} or \code{qrange = c(0, 1)}.
+#'
+#' @param data A data frame with required timestamp column
+#'   (\code{data$timestamp}) of class \code{"POSIXt"}.
+#' @param x,y A character string. A \code{data} column name of the variable to
+#'   plot on x-axis (y-axis).
+#' @param breaks An integer. Number of breakpoints separating variable \code{x}
+#'   to \code{breaks - 1} intervals.
+#' @param circular A logical value. Is \code{x} a circular variable?
+#' @param qrange A numeric vector of length 2, giving the quantile range of
+#'   y-axis.
+#' @param center,deviation A character string. Statistics applied to each x-axis
+#'   interval for computation of its center (deviation) along y-axis.
+#' @param header A logical value. Should automated plot title and subtitle be
+#'   included?
+#'
+#' @seealso \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
+#'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
+#'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
+#'   \code{\link{varnames}}
+#'
+#' @examples
+#' set.seed(123)
+#' n <- 17520 # number of half-hourly records in one non-leap year
+#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
+#' x <- data.frame(timestamp = tstamp,
+#'                 wd = seq(0,360, length.out = n),
+#'                 H = rf(n, 1, 2, 1))
+#' ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
+#' ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
+#' @export
+ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
+                         qrange = c(0.005, 0.995), center = c("median", "mean"),
+                         deviation = c("mad", "sd"), header = TRUE) {
+  if (is.null(data$timestamp)) stop("missing 'data$timestamp'")
+  if (!inherits(data$timestamp, "POSIXt")) {
+    stop("'data$timestamp' must be of class 'POSIXt'")
+  }
+  center_name <- match.arg(center)
+  center <- match.fun(center_name)
+  deviation_name <- match.arg(deviation)
+  deviation <- match.fun(deviation_name)
+  data <- na.omit(data[c("timestamp", x, y)])
+  # including also mid points in sequence
+  sq <- quantile(data[, x], seq(0, 1, len = breaks*2-1), na.rm = TRUE)
+  l <- split(data[, y], cut(data[, x], sq[c(TRUE, FALSE)]))
+  df <- data.frame(wind_dir = c(sq[1], sq[c(FALSE, TRUE)], sq[length(sq)]),
+                   cen = c(center(l[[1]], na.rm = TRUE),
+                           sapply(l, center, na.rm = TRUE),
+                           center(l[[length(l)]], na.rm = TRUE)),
+                   dev = c(deviation(l[[1]], na.rm = TRUE),
+                           sapply(l, deviation, na.rm = TRUE),
+                           deviation(l[[length(l)]], na.rm = TRUE)))
+  if (circular) {
+    df$cen[c(1, nrow(df))] <- mean(df$cen[c(1, nrow(df))], na.rm = TRUE)
+    df$dev[c(1, nrow(df))] <- mean(df$dev[c(1, nrow(df))], na.rm = TRUE)
+  }
+  edge <- data.frame(wind_dir = sq[c(TRUE, FALSE)],
+                     edg = approx(df$wind_dir, df$cen, sq[c(TRUE, FALSE)])$y,
+                     dev = approx(df$wind_dir, df$dev, sq[c(TRUE, FALSE)])$y)
+  edge <- na.omit(edge)
+  ylim <- data[, y]
+  if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
+  ylim <- openeddy:::setRange(ylim)
+  val <- center(data[, y], na.rm = TRUE)
+  cline <- data.frame(x_lim = df$wind_dir[c(1, nrow(df))], y = val)
+  data$DOY <- as.POSIXlt(data$timestamp)$yday + 1
+  ggplot2::ggplot(data, ggplot2::aes_string(x, y)) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = DOY),
+      size = 1,
+      na.rm = TRUE,
+      alpha = 0.5
+    ) +
+    ggplot2::scale_colour_gradientn(
+      colours = c(hcl.colors(10), rev(hcl.colors(10)))
+    ) +
+    ggplot2::geom_ribbon(
+      data = df, inherit.aes = FALSE,
+      ggplot2::aes(x = wind_dir, ymin = cen - dev, ymax = cen + dev,
+                   fill = !!deviation_name),
+      color = "grey30", alpha = 0.5, size = 0.8
+    ) +
+    ggplot2::geom_linerange(
+      data = edge, inherit.aes = FALSE,
+      ggplot2::aes(x = wind_dir, ymin = edg - dev, ymax = edg + dev),
+      color = "grey30", size = 0.6
+    ) +
+    ggplot2::geom_line(data = cline,
+                       ggplot2::aes(x = x_lim, y = y),
+                       color = "grey30", size = 0.8) +
+    ggplot2::geom_point(data = df[-c(1, nrow(df)),],
+                        ggplot2::aes(wind_dir, cen, alpha = !!center_name),
+                        color = "black", size = 2) +
+    ggplot2::geom_line(data = df,
+                       ggplot2::aes(wind_dir, cen),
+                       color = "black", size = 0.8) +
+    ggplot2::scale_fill_manual(name = NULL, values = "white") +
+    ggplot2::scale_alpha_manual(name = NULL, values = 1) +
+    ggplot2::guides(alpha = ggplot2::guide_legend(order = 1),
+                    fill = ggplot2::guide_legend(order = 2),
+                    colorbar = ggplot2::guide_legend(order = 3)) +
+    ggplot2::annotate("label", size = 6, x = Inf, y = Inf, hjust = 1, vjust = 1,
+                      label = paste(center_name, y, "=", round(val, 3)),
+                      fill = "white", alpha = 0.8, label.size = NA) +
+    ggplot2::coord_cartesian(ylim = ylim) +
+    if (header == TRUE) {
+      ggplot2::labs(
+        title = paste0("Dependence of ", y, " on ", x),
+        subtitle = paste0("quantile range = ",
+                          ifelse(is.null(qrange),
+                                 "NULL",
+                                 paste0("c(",
+                                        paste(qrange, collapse = ", "),
+                                        ")")
+                          )
+        )
+      )
+    } else NULL
 }

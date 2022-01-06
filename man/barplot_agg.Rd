@@ -2,7 +2,7 @@
 % Please edit documentation in R/Plot_eddy.R
 \name{barplot_agg}
 \alias{barplot_agg}
-\title{Bar plots of aggregated variables}
+\title{Bar Plots of Aggregated Variables}
 \usage{
 barplot_agg(
   x,
