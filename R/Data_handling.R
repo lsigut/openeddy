@@ -21,32 +21,68 @@
 #' @param root A character string defining the root of created folder structure.
 #' @param create_dirs A logical value. Indicates whether directories should be
 #'   created.
+#' @param fsep A character. The path separator to use (assumed to be ASCII).
 #' @param ... Further arguments to be passed to \code{dir.create} function.
 #'
 #' @return A named list with paths to folder structure directories.
 #'   Corresponding directories are created as a function side effect if
 #'   \code{create_dirs = TRUE}.
 #' @export
-structure_eddy <- function(root = ".", create_dirs = FALSE, ...) {
+structure_eddy <- function(root = ".", create_dirs = FALSE,
+                           fsep = .Platform$file.sep, ...) {
   # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
   # but needed in order to make the dir accessible with path in the list
-  l <- list(Processing_setup = "/Level 0/EddyPro setup/",
-            IRGA_setup = "/Level 0/IRGA setup/",
-            Raw_data = "/Level 0/Raw data/",
-            Logbook = "/Level 1/Logbook/",
-            Processing = "/Level 1/Post-processing/EddyProOutput",
-            Quality_checking = "/Level 2/Quality checking/",
-            Precheck = "/Level 2/Quality checking/Precheck/",
-            WD_dependency = "/Level 2/Quality checking/Precheck/WD_dependency/",
-            QC_summary = "/Level 2/Quality checking/QC_summary/",
-            Storage_flux = "/Level 2/Storage flux/",
-            Input_for_GF = "/Level 2/Input for gap-filling/",
-            Gap_filling = "/Level 3/Gap-filling/REddyProc/",
-            Plots = "/Level 3/Gap-filling/REddyProc/Plots/",
-            Ustar_filtering = "/Level 3/Gap-filling/REddyProc/Ustar filtering/",
-            Summary = "/Level 3/Summary/REddyProc/",
-            png = "/Level 3/Summary/REddyProc/png/")
-  l <- lapply(l, function(x) paste0(root, x))
+  l <- list(
+    Processing_setup = file.path(
+      root, "Level 0", "EddyPro setup", fsep = fsep
+    ),
+    IRGA_setup = file.path(
+      root, "Level 0", "IRGA setup", fsep = fsep
+    ),
+    Raw_data = file.path(
+      root, "Level 0", "Raw data", fsep = fsep
+    ),
+    Logbook = file.path(
+      root, "Level 1", "Logbook", fsep = fsep
+    ),
+    Processing = file.path(
+      root, "Level 1", "Post-processing", "EddyProOutput", fsep = fsep
+    ),
+    Quality_checking = file.path(
+      root, "Level 2", "Quality checking", fsep = fsep
+    ),
+    Precheck = file.path(
+      root, "Level 2", "Quality checking", "Precheck", fsep = fsep
+    ),
+    WD_dependency = file.path(
+      root, "Level 2", "Quality checking", "Precheck", "WD_dependency",
+      fsep = fsep
+    ),
+    QC_summary = file.path(
+      root, "Level 2", "Quality checking", "QC_summary", fsep = fsep
+    ),
+    Storage_flux = file.path(
+      root, "Level 2", "Storage flux", fsep = fsep
+    ),
+    Input_for_GF = file.path(
+      root, "Level 2", "Input for gap-filling", fsep = fsep
+    ),
+    Gap_filling = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", fsep = fsep
+    ),
+    Plots = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", "Plots", fsep = fsep
+    ),
+    Ustar_filtering = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", "Ustar filtering",
+      fsep = fsep
+    ),
+    Summary = file.path(
+      root, "Level 3", "Summary", "REddyProc", fsep = fsep
+    ),
+    png = file.path(
+      root, "Level 3", "Summary", "REddyProc", "png", fsep = fsep
+    ))
   if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
   return(l)
 }

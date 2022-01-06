@@ -4,13 +4,15 @@
 \alias{structure_eddy}
 \title{Folder Structure Setup}
 \usage{
-structure_eddy(root = ".", create_dirs = FALSE, ...)
+structure_eddy(root = ".", create_dirs = FALSE, fsep = .Platform$file.sep, ...)
 }
 \arguments{
 \item{root}{A character string defining the root of created folder structure.}
 
 \item{create_dirs}{A logical value. Indicates whether directories should be
 created.}
+
+\item{fsep}{A character. The path separator to use (assumed to be ASCII).}
 
 \item{...}{Further arguments to be passed to \code{dir.create} function.}
 }
