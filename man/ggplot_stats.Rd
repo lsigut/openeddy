@@ -58,6 +58,7 @@ tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
 x <- data.frame(timestamp = tstamp,
                 wd = seq(0,360, length.out = n),
                 H = rf(n, 1, 2, 1))
+openeddy::units(x) <- c("", "deg", "W m-2")
 ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
 }

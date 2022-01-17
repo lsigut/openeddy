@@ -40,8 +40,8 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
     stop("'filter' must be a logical vector")
   }
   if (length(x) %% length(filter) != 0) {
-    warning(paste("'x' length [", length(x), "] is not a multiple of 'filter'",
-                  " length [", length(filter), "]", sep = ""))
+    warning(paste0("'x' length [", length(x), "] is not a multiple of 'filter'",
+                  " length [", length(filter), "]"))
   }
   if (any(is.finite(x[filter]))) {
     return(range(x[filter], finite = TRUE))
@@ -261,9 +261,9 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     check2 <- function(x) {!is.numeric(x) && !is.logical(x)}
     res_c2 <- sapply(x[, c(qc_flag, test)[c(qc_flag, test) != "none"]], check2)
     if (any(res_c2)) {
-      stop(paste("columns [",
+      stop(paste0("columns [",
                  paste0(c(qc_flag, test)[res_c2], collapse = ", "),
-                 "] in 'x' must be of class numeric or logical", sep = ""))
+                 "] in 'x' must be of class numeric or logical"))
     }
   }
   time <- as.POSIXlt(x$timestamp)
@@ -272,7 +272,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     stop("timestamp does not form regular sequence")
   }
   units <- units(x, names = TRUE)
-  wrap <- function(x) paste("[", x, "]", sep = "")
+  wrap <- function(x) paste0("[", x, "]")
   date <- as.Date(x$timestamp)
   vals <- x[, flux]
   qc <- if (qc_flag == "none") 0L else x[, qc_flag] # qc_flag 0: show all data
@@ -726,7 +726,7 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
                                      "closure_fraction"))
                  c(0, 1) else NULL,
                xlab = if (!is.null(interval)) paste(interval, "timescale"),
-               ylab = paste(var, " [", openeddy::units(x[var]), "]", sep = ""),
+               ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
                main = var,
                xpd = FALSE)
   if (is.null(nTicks)) {
@@ -784,6 +784,7 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' x <- data.frame(timestamp = tstamp,
 #'                 wd = seq(0,360, length.out = n),
 #'                 H = rf(n, 1, 2, 1))
+#' openeddy::units(x) <- c("", "deg", "W m-2")
 #' ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 #' ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
 #' @export
@@ -798,6 +799,8 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
   center <- match.fun(center_name)
   deviation_name <- match.arg(deviation)
   deviation <- match.fun(deviation_name)
+  units_x <- openeddy::units(data[x])
+  units_y <- openeddy::units(data[y])
   data <- na.omit(data[c("timestamp", x, y)])
   # including also mid points in sequence
   sq <- quantile(data[, x], seq(0, 1, len = breaks*2-1), na.rm = TRUE)
@@ -862,6 +865,8 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
                       label = paste(center_name, y, "=", round(val, 3)),
                       fill = "white", alpha = 0.8, label.size = NA) +
     ggplot2::coord_cartesian(ylim = ylim) +
+    ggplot2::labs(x = paste0(x, " [", units_x, "]"),
+                  y = paste0(y, " [", units_y, "]")) +
     if (header == TRUE) {
       ggplot2::labs(
         title = paste0("Dependence of ", y, " on ", x),
