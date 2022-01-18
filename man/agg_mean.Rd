@@ -15,6 +15,8 @@ agg_sum(
   agg_per = NULL,
   breaks = NULL,
   interval = NULL,
+  NEE_scor = TRUE,
+  GPP_scor = TRUE,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
@@ -74,6 +76,9 @@ some platforms with a warning.}
 \item{agg_per}{A character string providing the time interval of aggregation
 that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
 \code{"month-1"}).}
+
+\item{NEE_scor, GPP_scor}{A logical value. Should sign correction of NEE (GPP)
+be performed? See Sign Correction in Details.}
 
 \item{quant}{A character vector listing variable names that require
 conversion from quantum to energy units before aggregation.}
@@ -163,20 +168,19 @@ patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
 
 \section{Sign Correction}{
  Although the sign convention used for measured NEE
-  (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
-  is typically reported with the opposite sign convention and is assumed to
-  converge to NEP (Net Ecosystem Production), especially over longer
-  aggregation intervals. Similarly, estimated negative GPP (Gross Primary
-  Production) typically denotes carbon sink but should be corrected to
-  positive values if summed over a time period.
+  (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+  summed NEE is typically reported with the opposite sign convention and is
+  assumed to converge to NEP (Net Ecosystem Production), especially over
+  longer aggregation intervals. Similarly, estimated negative GPP (Gross
+  Primary Production) typically denotes carbon sink but should be corrected
+  to positive values if summed over a time period.
 
-  \code{agg_sum} automatically detects all NEE and GPP columns in \code{x}
-  using regular expressions and changes their sign. For GPP columns, sign
-  change is performed only if mean GPP < 0 (sign convention autodetection).
-  Note that it assumes that average GPP signal denotes carbon sink and it
-  could fail if such sink is missing or negligible (e.g. urban measurements).
-  In cases when NEE or its uncertainty is summed (\code{agg_sum} or
-  \code{agg_fsd}), NEE is renamed to NEP.
+  There is no reliable way to guess the sign convention used in the data set.
+  Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
+  GPP (\code{GPP_scor}) sign correction is required (both default to
+  \code{TRUE}). \code{agg_sum} automatically detects all NEE and GPP columns
+  in \code{x} using regular expressions and applies the sign correction
+  settings.
 }
 
 \section{References}{
@@ -212,7 +216,8 @@ agg_fsd(results, "\%b-\%y", agg_per = "month-1")
 EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
 EProc$sGLFluxPartition(suffix = "uStar")
 results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-agg_DT_SD(results, "\%b-\%y", agg_per = "month-1")}
+agg_DT_SD(results, "\%b-\%y", agg_per = "month-1")
+}
 }
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},

@@ -11,10 +11,12 @@ spti_boot(
   targetCol = "NEE_VUT_REF",
   QcCol = "NEE_VUT_REF_QC",
   interval = 1800L,
-  conv_fac = 1.20107e-05,
+  flux = c("carbon", "energy"),
   nInt = 8L,
   year = NULL,
   samples = 100L,
+  NEE_scor = TRUE,
+  GPP_scor = TRUE,
   normalize = TRUE
 )
 }
@@ -42,12 +44,8 @@ budgeting.}
 \item{interval}{An integer value. Represents an extent of eddy covariance
 averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).}
 
-\item{conv_fac}{A numeric value. Unit conversion factor for \code{targetCol}
-variable that allows to produce budgets with meaningful units after
-summation. Temporal aspect of conversion is handled internally based on
-\code{interval} extent. E.g. for carbon fluxes (umol(CO2) m-2 s-1 -> gC m-2
-s-1) \code{conv_fac = 12.0107e-6}, for energy fluxes (W m-2 -> MJ m-2 s-1)
-\code{conv_fac = 1e-6}.}
+\item{flux}{A character string. What type of flux does \code{targetCol}
+represent? Can be abbreviated.}
 
 \item{nInt}{An integer value. A number of wind sectors and time intervals for
 binning.}
@@ -56,6 +54,9 @@ binning.}
 years available in \code{df}. Otherwise only specified years are processed.}
 
 \item{samples}{An integer value. Amount of bootstraps to produce.}
+
+\item{NEE_scor, GPP_scor}{A logical value. Should sign correction of NEE (GPP)
+be performed?}
 
 \item{normalize}{A logical value. If \code{TRUE} (default), space and
 space-time equitable budgets are corrected for the missing number of
@@ -81,6 +82,12 @@ original dataset (space_time_eq_orig), 5\%, 50\% and 95\% quantiles of
 resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
 are provided for uncertainty assessment.
 
+In order to obtain budgets in sensible units after summation, appropriate
+\code{flux} type must be specified. E.g. conversion factor for carbon fluxes
+(umol(CO2) m-2 s-1 -> g(C) m-2 s-1) is 12.0107e-6, conversion factor for
+energy fluxes (W m-2 -> MJ m-2 s-1) is 1e-6. Temporal aspect of the
+conversion is handled based on \code{interval} extent.
+
 Space-time-equitable budgeting assures that each sector contributes equally
 to budget and sector contributions are made time-uniform. Computation is
 generalized for any number of \code{nInt} and any extent of \code{interval}.
@@ -92,6 +99,21 @@ process \code{REddyProc} outputs, timestamp must be corrected to represent
 middle of averaging period and appropriate columns selected (see
 \code{Examples}).
 }
+\section{Sign Correction}{
+ Although the sign convention used for measured NEE
+  (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+  summed NEE is typically reported with the opposite sign convention and is
+  assumed to converge to NEP (Net Ecosystem Production), especially over
+  longer aggregation intervals. Similarly, estimated negative GPP (Gross
+  Primary Production) typically denotes carbon sink but should be corrected
+  to positive values if summed over a time period.
+
+  Since there is no reliable way to guess the sign convention used in the
+  data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
+  typical case when sign correction is required (\code{NEE_scor = TRUE};
+  \code{GPP_scor = TRUE}) is set as default.
+}
+
 \section{References}{
   Griebel, A., Metzen, D., Pendall, E., Burba, G., &
   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -113,7 +135,7 @@ DETha98$WD <- sample(0:359, nrow(DETha98), replace = TRUE)
 # if QcCol = NULL, all non-missing values of targetCol are used for budgeting
 not_filled <- DETha98
 not_filled$DateTime <- not_filled$DateTime - 900
-spti_boot(not_filled, "DateTime", "WD", "LE", NULL, conv_fac = 1e-6)
+spti_boot(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 
 # gap-filling is not needed but illustrates processing of FLUXNET data
 # notice that ustar filtering of NEE should be applied before budgeting

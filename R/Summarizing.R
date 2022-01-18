@@ -60,20 +60,19 @@
 #'   and \code{carbon} arguments.
 #'
 #' @section Sign Correction: Although the sign convention used for measured NEE
-#'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
-#'   is typically reported with the opposite sign convention and is assumed to
-#'   converge to NEP (Net Ecosystem Production), especially over longer
-#'   aggregation intervals. Similarly, estimated negative GPP (Gross Primary
-#'   Production) typically denotes carbon sink but should be corrected to
-#'   positive values if summed over a time period.
+#'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+#'   summed NEE is typically reported with the opposite sign convention and is
+#'   assumed to converge to NEP (Net Ecosystem Production), especially over
+#'   longer aggregation intervals. Similarly, estimated negative GPP (Gross
+#'   Primary Production) typically denotes carbon sink but should be corrected
+#'   to positive values if summed over a time period.
 #'
-#'   \code{agg_sum} automatically detects all NEE and GPP columns in \code{x}
-#'   using regular expressions and changes their sign. For GPP columns, sign
-#'   change is performed only if mean GPP < 0 (sign convention autodetection).
-#'   Note that it assumes that average GPP signal denotes carbon sink and it
-#'   could fail if such sink is missing or negligible (e.g. urban measurements).
-#'   In cases when NEE or its uncertainty is summed (\code{agg_sum} or
-#'   \code{agg_fsd}), NEE is renamed to NEP.
+#'   There is no reliable way to guess the sign convention used in the data set.
+#'   Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
+#'   GPP (\code{GPP_scor}) sign correction is required (both default to
+#'   \code{TRUE}). \code{agg_sum} automatically detects all NEE and GPP columns
+#'   in \code{x} using regular expressions and applies the sign correction
+#'   settings.
 #'
 #' @section References: Bayley, G. and Hammersley, J., 1946. The "Effective"
 #'   Number of Independent Observations in an Autocorrelated Time Series.
@@ -98,6 +97,8 @@
 #' @param agg_per A character string providing the time interval of aggregation
 #'   that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
 #'   \code{"month-1"}).
+#' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
+#'   be performed? See Sign Correction in Details.
 #' @param quant A character vector listing variable names that require
 #'   conversion from quantum to energy units before aggregation.
 #' @param power A character vector listing variable names that require
@@ -154,7 +155,8 @@
 #' EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
 #' EProc$sGLFluxPartition(suffix = "uStar")
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-#' agg_DT_SD(results, "%b-%y", agg_per = "month-1")}
+#' agg_DT_SD(results, "%b-%y", agg_per = "month-1")
+#' }
 #' @export
 agg_mean <- function(x, format, breaks = NULL, interval = NULL,
                      tz = "GMT", ...) {
@@ -219,6 +221,7 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
 #' @rdname agg_mean
 #' @export
 agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
+                    NEE_scor = TRUE, GPP_scor = TRUE,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -276,17 +279,16 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   # Change sign in all NEE variables
   NEE_cols <- names(x) %in% grep("NEE", names(x[carbon]), value = TRUE)
   NEE <- names(x)[NEE_cols]
-  x[NEE_cols] <- -x[NEE_cols]
+  if (NEE_scor) x[NEE_cols] <- -x[NEE_cols]
 
-  # Perform sign correction in case the mean GPP is negative
+  # Perform GPP sign correction
   GPP <- grep("GPP", x_names, value = TRUE)
-  sign_cor <- if (length(GPP)) {
-    sapply(x[GPP], function(x) mean(x, na.rm = TRUE) < 0)
-  } else FALSE
-  x[GPP][sign_cor] <- -x[GPP][sign_cor]
-  cat("Sign correction (x -> -x):\n")
-  cat(if (length(c(NEE, GPP[sign_cor])) > 0) paste(
-    NEE, GPP[sign_cor], collapse = ", ") else "None", "\n\n")
+  if (GPP_scor) x[GPP] <- -x[GPP]
+  if (NEE_scor | GPP_scor) {
+    cat("Sign correction (x -> -x):\n")
+    cat(if (length(c(NEE, GPP)) > 0) paste(
+      NEE, GPP, collapse = ", ") else "None", "\n\n")
+  }
 
   cat("Unit conversion\n===============\n")
   # conversion from quantum to radiometric units and to energy units
@@ -704,7 +706,7 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 # clean data frame, assign timestamp, establish columnames for flux,
 # wind direction and year, remove missing values
 #' @keywords internal
-clean_df <- function (df, TimestampCol, targetCol, QcCol, wdCol, nInt) {
+clean_df <- function(df, TimestampCol, targetCol, QcCol, wdCol, nInt) {
   #align column names and declare year
   vars <- c(TimestampCol, targetCol, QcCol, wdCol)
   if (!all(vars %in% names(df)))
@@ -756,7 +758,7 @@ clean_df <- function (df, TimestampCol, targetCol, QcCol, wdCol, nInt) {
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 # interval in seconds
 #' @keywords internal
-calc_uncorrected <- function (df, year, targetCol, interval, conv_fac) {
+calc_uncorrected <- function(df, year, targetCol, interval, conv_fac) {
   #subset data frame by year
   subsetted <- df[df$Year == year, ]
   #calculate traditional budget based on simple sum of all observations and convert units
@@ -772,7 +774,7 @@ calc_uncorrected <- function (df, year, targetCol, interval, conv_fac) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
-calc_standardized <- function (df, year, targetCol, interval, conv_fac) {
+calc_standardized <- function(df, year, targetCol, interval, conv_fac) {
   no_years <- length(unique(df$Year))
   df_l <- split(df, df$eight_sec)
 
@@ -805,8 +807,8 @@ calc_standardized <- function (df, year, targetCol, interval, conv_fac) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
-calc_space_eq <- function (df, year, targetCol, interval, conv_fac, normalize,
-                           nInt) {
+calc_space_eq <- function(df, year, targetCol, interval, conv_fac, normalize,
+                          nInt) {
   #subset dataframe by year [i]
   subsetted <- df[df$Year==year, ]
 
@@ -839,7 +841,7 @@ calc_space_eq <- function (df, year, targetCol, interval, conv_fac, normalize,
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
-calc_spti_eq <- function (df, year, targetCol, interval, conv_fac, normalize) {
+calc_spti_eq <- function(df, year, targetCol, interval, conv_fac, normalize) {
   #subset data frame by year
   subsetted <- df[df$Year==year, ]
   # subset by sectors
@@ -889,8 +891,8 @@ boot <- function(x, min_rec) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
-calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
-                            samples, normalize) {
+calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
+                           samples, normalize) {
   #subset data frame by year
   subsetted <- df[df$Year==year, ]
   # subset by sectors
@@ -956,7 +958,10 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #' The function produces several variants of budgets that represent annual sums
 #' of measured and quality checked flux with different consideration of
 #' space-time equity. In order to obtain budgets in sensible units after
-#' summation, appropriate \code{conv_fac} must be specified.
+#' summation, appropriate \code{flux} type must be specified. E.g. conversion
+#' factor for carbon fluxes (umol(CO2) m-2 s-1 -> g(C) m-2 s-1) is 12.0107e-6,
+#' conversion factor for energy fluxes (W m-2 -> MJ m-2 s-1) is 1e-6. Temporal
+#' aspect of the conversion is handled based on \code{interval} extent.
 #'
 #' Available variants of budgets include Traditional budget (uncorrected sum of
 #' measured fluxes), Standardized budget (corrected according to wind sector
@@ -964,13 +969,28 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #' sector contributes the exact same amount to budget) and Space-time-equitable
 #' budget (each sector contributes equally to budget and sector contributions
 #' are made time-uniform). Computation is generalized for any number of
-#' \code{nInt} and any extent of \code{interval}. Please notice that the
-#' reliability of the results depends on the data availability within each year.
-#' For details see \code{References}.
+#' \code{nInt} and any extent of \code{interval}. Please notice that Traditional
+#' budget and Standardized budget differ only if multiple years are used for
+#' computation. The reliability of the results depends on the data availability
+#' within each year. For details see \code{References}.
 #'
 #' Arguments specifying \code{df} column names represent FLUXNET standard. To
 #' process \code{REddyProc} outputs, timestamp must be corrected to represent
-#' middle of averaging period and appropriate columns selected (see \code{Examples}).
+#' middle of averaging period and appropriate columns selected (see
+#' \code{Examples}).
+#'
+#' @section Sign Correction: Although the sign convention used for measured NEE
+#'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+#'   summed NEE is typically reported with the opposite sign convention and is
+#'   assumed to converge to NEP (Net Ecosystem Production), especially over
+#'   longer aggregation intervals. Similarly, estimated negative GPP (Gross
+#'   Primary Production) typically denotes carbon sink but should be corrected
+#'   to positive values if summed over a time period.
+#'
+#'   Since there is no reliable way to guess the sign convention used in the
+#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
+#'   typical case when sign correction is required (\code{NEE_scor = TRUE};
+#'   \code{GPP_scor = TRUE}) is set as default.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -994,22 +1014,21 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #'   budgeting.
 #' @param interval An integer value. Represents an extent of eddy covariance
 #'   averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).
-#' @param conv_fac A numeric value. Unit conversion factor for \code{targetCol}
-#'   variable that allows to produce budgets with meaningful units after
-#'   summation. Temporal aspect of conversion is handled internally based on
-#'   \code{interval} extent. E.g. for carbon fluxes (umol(CO2) m-2 s-1 -> gC m-2
-#'   s-1) \code{conv_fac = 12.0107e-6}, for energy fluxes (W m-2 -> MJ m-2 s-1)
-#'   \code{conv_fac = 1e-6}.
+#' @param flux A character string. What type of flux does \code{targetCol}
+#'   represent? Can be abbreviated.
 #' @param nInt An integer value. A number of wind sectors and time intervals for
 #'   binning.
 #' @param year An integer vector. If \code{NULL}, budgets are produced for all
 #'   years available in \code{df}. Otherwise only specified years are processed.
+#' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
+#'   be performed?
 #' @param normalize A logical value. If \code{TRUE} (default), space and
 #'   space-time equitable budgets are corrected for the missing number of
 #'   records in a year.
 #'
 #' @return A data frame with columns corresponding to year, different types of
 #'   budgets and number of observations used for budget computation each year.
+#'   Each column has assigned attributes varnames and units.
 #'
 #' @seealso \code{\link{spti_boot}} and \code{\link{spti_coverage}}.
 #'
@@ -1027,7 +1046,7 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #' # if QcCol = NULL, all non-missing values of targetCol are used for budgeting
 #' not_filled <- DETha98
 #' not_filled$DateTime <- not_filled$DateTime - 900
-#' Griebel20_budgets(not_filled, "DateTime", "WD", "LE", NULL, conv_fac = 1e-6)
+#' Griebel20_budgets(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 #'
 #' # gap-filling is not needed but illustrates processing of FLUXNET data
 #' # notice that ustar filtering of NEE should be applied before budgeting
@@ -1042,28 +1061,65 @@ calc_spti_boot <- function (df, year, targetCol, interval, conv_fac,
 #' Griebel20_budgets(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 #' }
 #' @export
-Griebel20_budgets <- function (df,
-                               TimestampCol = "TIMESTAMP_START",
-                               wdCol = 'WD',
-                               targetCol = "NEE_VUT_REF",
-                               QcCol = "NEE_VUT_REF_QC",
-                               interval = 1800L,
-                               conv_fac = 12.0107e-6,
-                               nInt = 8L,
-                               year = NULL,
-                               normalize = TRUE) {
+Griebel20_budgets <- function(df,
+                              TimestampCol = "TIMESTAMP_START",
+                              wdCol = 'WD',
+                              targetCol = "NEE_VUT_REF",
+                              QcCol = "NEE_VUT_REF_QC",
+                              interval = 1800L,
+                              flux = c("carbon", "energy"),
+                              nInt = 8L,
+                              year = NULL,
+                              NEE_scor = TRUE,
+                              GPP_scor = TRUE,
+                              normalize = TRUE) {
   #clean data frame, assign timestamp, establish columnames for flux,
   # wind direction and year, remove missing values
   df <- clean_df(df, TimestampCol = TimestampCol, targetCol = targetCol,
                  QcCol = QcCol, wdCol= wdCol, nInt = nInt)
+  flux <- match.arg(flux)
+  if (flux == "carbon") {
+    conv_fac <- 12.0107e-6
+    units <- "g(C) m-2 year-1"
+  } else {
+    conv_fac <- 1e-6
+    units <- "MJ m-2 year-1"
+  }
+
+  isNEE <- grepl("NEE", targetCol)
+  if (isNEE) {
+    # Rename NEE to NEP if present
+    targetCol <- names(df)[names(df) == targetCol] <- gsub(
+      "NEE", "NEP", targetCol)
+    # Change sign in NEE variable
+    if (NEE_scor) {
+      df[targetCol] <- -df[targetCol]
+      cat('Sign correction: df$', targetCol, ' -> -df$', targetCol, '\n',
+          sep = '')
+    }
+  }
+
+  isGPP <- grepl("GPP", targetCol)
+  if (isGPP) {
+    # Change sign in GPP variable
+    if (GPP_scor) {
+      df[targetCol] <- -df[targetCol]
+      cat('Sign correction: df$', targetCol, ' -> -df$', targetCol, '\n',
+          sep = '')
+    }
+  }
+
   #identify unique years
   years <- if (is.null(year)) unique(df$Year) else year
 
   # create empty DataFrame to store results
   results <- data.frame(matrix(ncol = 6, nrow = length(years)))
-  names(results) <- c('year', 'traditional_budget', 'standardized_budget',
-                      'space_equitable_budget', 'space_time_equitable_budget',
-                      'n_obs')
+  names(results) <- c(
+    'year',
+    paste(targetCol,
+          c('traditional_budget', 'standardized_budget',
+            'space_equitable_budget', 'space_time_equitable_budget',
+            'n_obs'), sep = "_"))
 
   # set initial row number
   i <- 1
@@ -1091,6 +1147,9 @@ Griebel20_budgets <- function (df,
     # increase row number by 1
     i <- i + 1
   }
+  openeddy::varnames(results) <- names(results)
+  openeddy::units(results) <- c("-", rep(units, 4), "#")
+
   return(results)
 }
 
@@ -1107,6 +1166,12 @@ Griebel20_budgets <- function (df,
 #' resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
 #' are provided for uncertainty assessment.
 #'
+#' In order to obtain budgets in sensible units after summation, appropriate
+#' \code{flux} type must be specified. E.g. conversion factor for carbon fluxes
+#' (umol(CO2) m-2 s-1 -> g(C) m-2 s-1) is 12.0107e-6, conversion factor for
+#' energy fluxes (W m-2 -> MJ m-2 s-1) is 1e-6. Temporal aspect of the
+#' conversion is handled based on \code{interval} extent.
+#'
 #' Space-time-equitable budgeting assures that each sector contributes equally
 #' to budget and sector contributions are made time-uniform. Computation is
 #' generalized for any number of \code{nInt} and any extent of \code{interval}.
@@ -1117,6 +1182,19 @@ Griebel20_budgets <- function (df,
 #' process \code{REddyProc} outputs, timestamp must be corrected to represent
 #' middle of averaging period and appropriate columns selected (see
 #' \code{Examples}).
+#'
+#' @section Sign Correction: Although the sign convention used for measured NEE
+#'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+#'   summed NEE is typically reported with the opposite sign convention and is
+#'   assumed to converge to NEP (Net Ecosystem Production), especially over
+#'   longer aggregation intervals. Similarly, estimated negative GPP (Gross
+#'   Primary Production) typically denotes carbon sink but should be corrected
+#'   to positive values if summed over a time period.
+#'
+#'   Since there is no reliable way to guess the sign convention used in the
+#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
+#'   typical case when sign correction is required (\code{NEE_scor = TRUE};
+#'   \code{GPP_scor = TRUE}) is set as default.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -1140,17 +1218,15 @@ Griebel20_budgets <- function (df,
 #'   budgeting.
 #' @param interval An integer value. Represents an extent of eddy covariance
 #'   averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).
-#' @param conv_fac A numeric value. Unit conversion factor for \code{targetCol}
-#'   variable that allows to produce budgets with meaningful units after
-#'   summation. Temporal aspect of conversion is handled internally based on
-#'   \code{interval} extent. E.g. for carbon fluxes (umol(CO2) m-2 s-1 -> gC m-2
-#'   s-1) \code{conv_fac = 12.0107e-6}, for energy fluxes (W m-2 -> MJ m-2 s-1)
-#'   \code{conv_fac = 1e-6}.
+#' @param flux A character string. What type of flux does \code{targetCol}
+#'   represent? Can be abbreviated.
 #' @param nInt An integer value. A number of wind sectors and time intervals for
 #'   binning.
 #' @param year An integer vector. If \code{NULL}, budgets are produced for all
 #'   years available in \code{df}. Otherwise only specified years are processed.
 #' @param samples An integer value. Amount of bootstraps to produce.
+#' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
+#'   be performed?
 #' @param normalize A logical value. If \code{TRUE} (default), space and
 #'   space-time equitable budgets are corrected for the missing number of
 #'   records in a year.
@@ -1177,7 +1253,7 @@ Griebel20_budgets <- function (df,
 #' # if QcCol = NULL, all non-missing values of targetCol are used for budgeting
 #' not_filled <- DETha98
 #' not_filled$DateTime <- not_filled$DateTime - 900
-#' spti_boot(not_filled, "DateTime", "WD", "LE", NULL, conv_fac = 1e-6)
+#' spti_boot(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 #'
 #' # gap-filling is not needed but illustrates processing of FLUXNET data
 #' # notice that ustar filtering of NEE should be applied before budgeting
@@ -1192,29 +1268,67 @@ Griebel20_budgets <- function (df,
 #' spti_boot(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 #' }
 #' @export
-spti_boot <- function (df,
-                       TimestampCol = "TIMESTAMP_START",
-                       wdCol = 'WD',
-                       targetCol = "NEE_VUT_REF",
-                       QcCol = "NEE_VUT_REF_QC",
-                       interval = 1800L,
-                       conv_fac = 12.0107e-6,
-                       nInt = 8L,
-                       year = NULL,
-                       samples = 100L,
-                       normalize = TRUE) {
+spti_boot <- function(df,
+                      TimestampCol = "TIMESTAMP_START",
+                      wdCol = 'WD',
+                      targetCol = "NEE_VUT_REF",
+                      QcCol = "NEE_VUT_REF_QC",
+                      interval = 1800L,
+                      flux = c("carbon", "energy"),
+                      nInt = 8L,
+                      year = NULL,
+                      samples = 100L,
+                      NEE_scor = TRUE,
+                      GPP_scor = TRUE,
+                      normalize = TRUE) {
   #clean data frame, assign timestamp, establish columnames for flux,
   # wind direction and year, remove missing values
   df <- clean_df(df, TimestampCol = TimestampCol, targetCol = targetCol,
                  QcCol = QcCol, wdCol= wdCol, nInt = nInt)
+
+  flux <- match.arg(flux)
+  if (flux == "carbon") {
+    conv_fac <- 12.0107e-6
+    units <- "g(C) m-2 year-1"
+  } else {
+    conv_fac <- 1e-6
+    units <- "MJ m-2 year-1"
+  }
+
+  isNEE <- grepl("NEE", targetCol)
+  if (isNEE) {
+    # Rename NEE to NEP if present
+    targetCol <- names(df)[names(df) == targetCol] <- gsub(
+      "NEE", "NEP", targetCol)
+    # Change sign in NEE variable
+    if (NEE_scor) {
+      df[targetCol] <- -df[targetCol]
+      cat('Sign correction: df$', targetCol, ' -> -df$', targetCol, '\n',
+          sep = '')
+    }
+  }
+
+  isGPP <- grepl("GPP", targetCol)
+  if (isGPP) {
+    # Change sign in GPP variable
+    if (GPP_scor) {
+      df[targetCol] <- -df[targetCol]
+      cat('Sign correction: df$', targetCol, ' -> -df$', targetCol, '\n',
+          sep = '')
+    }
+  }
+
   #identify unique years
   years <- if (is.null(year)) unique(df$Year) else year
 
   # create empty DataFrame to store results
   results <- data.frame(matrix(ncol = 6, nrow = length(years)))
-  names(results) <- c('year', 'space_time_eq_orig', 'space_time_eq_q05',
-                      'space_time_eq_q50', 'space_time_eq_q95',
-                      'n_obs')
+  names(results) <- c(
+    'year',
+    paste(targetCol,
+          c('space_time_eq_orig', 'space_time_eq_q05',
+            'space_time_eq_q50', 'space_time_eq_q95',
+            'n_obs'), sep = "_"))
 
   # set initial row number
   i <- 1
@@ -1235,6 +1349,9 @@ spti_boot <- function (df,
     # increase row number by 1
     i <- i + 1
   }
+  openeddy::varnames(results) <- names(results)
+  openeddy::units(results) <- c("-", rep(units, 4), "#")
+
   return(results)
 }
 
@@ -1242,7 +1359,7 @@ spti_boot <- function (df,
 # must be applied to cleaned data frame
 # year argument accepts value "all" (applied across all years)
 #' @keywords internal
-calc_spti_cov <- function (df, targetCol, year, nInt, plot) {
+calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   if (nInt < 2) stop("spatio-temporal coverage relevant only for nInt > 1")
   #subset data frame by year
   if (year == "all") df$Year <- "all"
@@ -1396,14 +1513,14 @@ calc_spti_cov <- function (df, targetCol, year, nInt, plot) {
 #' spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc", plot = TRUE)
 #' }
 #' @export
-spti_coverage <- function (df,
-                           TimestampCol = "TIMESTAMP_START",
-                           wdCol = 'WD',
-                           targetCol = "NEE_VUT_REF",
-                           QcCol = "NEE_VUT_REF_QC",
-                           plot = FALSE,
-                           nInt = 8L,
-                           year = NULL) {
+spti_coverage <- function(df,
+                          TimestampCol = "TIMESTAMP_START",
+                          wdCol = 'WD',
+                          targetCol = "NEE_VUT_REF",
+                          QcCol = "NEE_VUT_REF_QC",
+                          plot = FALSE,
+                          nInt = 8L,
+                          year = NULL) {
   #clean data frame, assign timestamp, establish columnames for flux,
   # wind direction and year, remove missing values
   df <- clean_df(df, TimestampCol = TimestampCol, targetCol = targetCol,
