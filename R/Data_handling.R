@@ -527,7 +527,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' strings \code{"timestamp"} and \code{"-"}, respectively.
 #'
 #' Eddy covariance related measurements are usually stored with a timestamp
-#' representing the end of the averaging period (typicaly 1800 s) in standard
+#' representing the end of the averaging period (typically 1800 s) in standard
 #' time. This can however cause difficulties during data aggregation or
 #' plotting. Therefore it is recommended to shift the date-time information
 #' using \code{shift.by} to represent the center of averaging period prior to
@@ -535,15 +535,22 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' to its original state before saving to a file (see Examples section).
 #'
 #' Any unsuccessful attempt to convert date-time information is considered to be
-#' unexpected behaviour and returns an error message instead of \code{NA} value.
+#' unexpected behavior and returns an error message instead of \code{NA} value.
 #' In case that multiple formats are present in the timestamp, it has to be
 #' corrected prior using \code{strptime_eddy}. It is expected that time series
-#' are continuous although no valid measurements are available for given time
+#' are continuous even if no valid measurements are available for given time
 #' interval. Therefore \code{interval} value is checked against the lagged
 #' differences (\code{\link{diff}}) applied to the converted date-time vector
 #' and returns an error message if mismatch is found. If \code{allow_gaps =
 #' TRUE}, date-time information does not have to be regular but time differences
 #' must be multiples of \code{interval}.
+#'
+#' The storage mode of returned POSIXct vector is forced to be integer instead
+#' of double. This simplifies application of \code{\link{round_df}} but could
+#' lead to unexpected behavior if the date-time information is expected to
+#' resolve fractional seconds. Similarly \code{as.integer} is applied to
+#' \code{shift.by} before it is added to the POSIXct vector to assure integer
+#' storage mode of returned vector.
 #'
 #' @param x A character vector containing date-time information to be converted
 #'   to class \code{"POSIXct"}.
@@ -551,7 +558,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #'   \code{"\%Y-\%m-\%d \%H:\%M"}
 #' @param interval A numeric value specifying the time interval (in seconds) of
 #'   the input date-time vector.
-#' @param shift.by A numeric value specifying the time shift (in seconds) to be
+#' @param shift.by An integer value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
 #' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
 #'   not have to be regular but time differences must be multiples of
@@ -573,38 +580,43 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' varnames(xx) <- "timestamp"
 #' units(xx) <- "-"
 #' str(xx)
-#' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", shift.by = -900))
+#' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", shift.by = -900L))
+#' attributes(yy)
+#' typeof(yy)
+#'
 #' ## Convert to original format
 #' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
-#' attributes(yy)
 #' zz <- xx[-3]
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M", allow_gaps = TRUE)
+#'
 #' \dontrun{
 #' ## This is not a regular date-time sequence
-#' strptime_eddy(zz, "%d.%m.%Y %H:%M")
+#' strptime_eddy(zz, "%d.%m.%Y %H:%M") # error returned
 #' ## interval argument provided incorrectly
-#' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)}
+#' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)
+#' }
 #' @export
-strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800,
+strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
                           ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
+  storage.mode(out) <- "integer"
   if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
-  if (!allow_gaps && any(diff(as.numeric(out)) != interval)) {
+  tdiff <- diff(as.integer(out))
+  if (!allow_gaps && any(tdiff != interval)) {
     stop("timestamp does not form regular sequence with specified 'interval'")
   } else {
-    tdiff <- diff(as.numeric(out))
     # timestamp without gaps should have only one unique tdiff value
-    if (length(unique(diff(as.numeric(out)))) > 1) {
+    if (length(unique(tdiff)) > 1) {
       message("timestamp in 'x' contains gaps")
       # gaps should be allowed only if they are multiples of interval
-      if (any(diff(as.numeric(out)) %% interval != 0)) {
+      if (any(tdiff %% interval != 0)) {
         stop("timestamp does not form regular sequence with 'interval' multiples")
       }
     }
   }
-  if (!is.null(shift.by)) out <- out + shift.by
+  if (!is.null(shift.by)) out <- out + as.integer(shift.by)
   varnames(out) <- "timestamp"
   units(out) <- "-"
   return(out)

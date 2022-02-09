@@ -7,7 +7,7 @@
 strptime_eddy(
   x,
   format = "\%Y-\%m-\%d \%H:\%M",
-  interval = 1800,
+  interval = 1800L,
   shift.by = NULL,
   allow_gaps = FALSE,
   tz = "GMT",
@@ -24,7 +24,7 @@ to class \code{"POSIXct"}.}
 \item{interval}{A numeric value specifying the time interval (in seconds) of
 the input date-time vector.}
 
-\item{shift.by}{A numeric value specifying the time shift (in seconds) to be
+\item{shift.by}{An integer value specifying the time shift (in seconds) to be
 applied to the date-time information.}
 
 \item{allow_gaps}{A logical value. If \code{TRUE}, date-time information does
@@ -45,7 +45,7 @@ strings \code{"timestamp"} and \code{"-"}, respectively.
 }
 \details{
 Eddy covariance related measurements are usually stored with a timestamp
-representing the end of the averaging period (typicaly 1800 s) in standard
+representing the end of the averaging period (typically 1800 s) in standard
 time. This can however cause difficulties during data aggregation or
 plotting. Therefore it is recommended to shift the date-time information
 using \code{shift.by} to represent the center of averaging period prior to
@@ -53,15 +53,22 @@ any computations. It is also recommended to change the date-time information
 to its original state before saving to a file (see Examples section).
 
 Any unsuccessful attempt to convert date-time information is considered to be
-unexpected behaviour and returns an error message instead of \code{NA} value.
+unexpected behavior and returns an error message instead of \code{NA} value.
 In case that multiple formats are present in the timestamp, it has to be
 corrected prior using \code{strptime_eddy}. It is expected that time series
-are continuous although no valid measurements are available for given time
+are continuous even if no valid measurements are available for given time
 interval. Therefore \code{interval} value is checked against the lagged
 differences (\code{\link{diff}}) applied to the converted date-time vector
 and returns an error message if mismatch is found. If \code{allow_gaps =
 TRUE}, date-time information does not have to be regular but time differences
 must be multiples of \code{interval}.
+
+The storage mode of returned POSIXct vector is forced to be integer instead
+of double. This simplifies application of \code{\link{round_df}} but could
+lead to unexpected behavior if the date-time information is expected to
+resolve fractional seconds. Similarly \code{as.integer} is applied to
+\code{shift.by} before it is added to the POSIXct vector to assure integer
+storage mode of returned vector.
 }
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
@@ -69,17 +76,21 @@ xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 varnames(xx) <- "timestamp"
 units(xx) <- "-"
 str(xx)
-(yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", shift.by = -900))
+(yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", shift.by = -900L))
+attributes(yy)
+typeof(yy)
+
 ## Convert to original format
 format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
-attributes(yy)
 zz <- xx[-3]
 strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M", allow_gaps = TRUE)
+
 \dontrun{
 ## This is not a regular date-time sequence
-strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M")
+strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M") # error returned
 ## interval argument provided incorrectly
-strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600)}
+strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)
+}
 }
 \seealso{
 \code{\link{strptime}} provides the details about conversions
