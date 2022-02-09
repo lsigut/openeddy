@@ -62,7 +62,10 @@ values across \code{x} elements overlap, detected duplicated rows are removed
 (the order in which duplicates are evaluated depends on the order of \code{x}
 elements). A special case when \code{x} has only one element allows to fill
 missing date-time values in \code{"timestamp"} column of given data frame.
-
+Storage mode of \code{"timestamp"} column is set to be integer instead
+of double. This simplifies application of \code{\link{round_df}} but could
+lead to unexpected behavior if the date-time information is expected to
+resolve fractional seconds.
 
 The list of data frames, each with column \code{"timestamp"}, is sequentially
 \code{\link{merge}}d using \code{\link{Reduce}}. A \emph{(full) outer join},
@@ -79,6 +82,32 @@ Combination of vertical and horizontal merging should be avoided as it
 depends on the order of \code{x} elements and can lead to row duplication.
 Instead, data chunks from different data sources should be first separately
 vertically merged and then merged horizontally in a following step.
+}
+\examples{
+set.seed(123)
+n <- 20 # number of half-hourly records in one non-leap year
+tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
+x <- data.frame(
+timestamp = tstamp,
+H = rf(n, 1, 2, 1),
+LE = rf(n, 1, 2, 1),
+qc_flag = sample(c(0:2, NA), n, replace = TRUE)
+)
+openeddy::varnames(x) <- c("timestamp", "sensible heat", "latent heat",
+                           "quality flag")
+openeddy::units(x) <- c("-", "W m-2", "W m-2", "-")
+str(x)
+y1 <- ex(x, 1:10)
+y2 <- ex(x, 11:20)
+y <- merge_eddy(list(y1, y2))
+str(y)
+attributes(y$timestamp)
+typeof(y$timestamp)
+
+# Duplicated rows and different number of columns
+z1 <- ex(x, 8:20, 1:3)
+z <- merge_eddy(list(y1, z1))
+
 }
 \seealso{
 \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
