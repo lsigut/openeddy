@@ -136,6 +136,26 @@ flag_runs <- function(x, name_out = "-", length = 2) {
   return(out)
 }
 
+#' Helper function utilized in extract_coded() for abslim and spikesHF
+#' - controls column splitting
+#' @keywords internal
+separate <- function(x, ...) {
+  strsplit(as.character(gsub(...,"", x)), NULL)
+}
+
+#' Helper function utilized in extract_coded() for abslim and spikesHF
+#' - controls NAs in splitted columns
+#' - 9 is EddyPro code for NA
+#' - in case of missing half hour inserts NAs according to number of variables
+#'   in 'units'
+#' @keywords internal
+handleNA <- function(x, variables) {
+  out <- as.numeric(unlist(x))
+  out[out == 9]  <- NA
+  length(out) <- length(variables)
+  return(out)
+}
+
 #' Extract Quality Control Information from Coded Values
 #'
 #' This function is called by \code{\link{extract_QC}} and is not inteded to be
@@ -202,26 +222,17 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
     stop(paste("coded variables in units of coded vector are missing:",
                paste0(req_vars[!(req_vars %in% vars)], collapse = ", ")))
   }
-  # Helper function for abslim and spikesHF (controls column splitting)
-  separate <- function(x, ...) {
-    strsplit(as.character(gsub(...,"", x)), NULL)
-  }
   l <- lapply(x, separate, prefix)
-  # Helper function for abslim and spikesHF (controls NAs in splitted columns)
-  # 9 is internal code for NA. In case of missing halfhour inserts NAs
-  # according to number of variables in 'units'.
-  handleNA <- function(x, variables) {
-    out <- as.numeric(unlist(x))
-    out[out == 9]  <- NA
-    length(out) <- length(variables)
-    return(out)
-  }
   df <- as.data.frame(t(sapply(l, handleNA, vars)))
   names(df) <- vars
-  out <- data.frame(SA = apply(df[c("u", "v", "w", "ts")], 1, max))
-  out$SAGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")], 1, max)
+  out <- data.frame(SA = apply(df[c("u", "v", "w", "ts")],
+                               1,
+                               function(x) max(as.integer(x))))
+  out$SAGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")],
+                    1,
+                    function(x) max(as.integer(x)))
   # values above 0 are interpreted as flag 2 for given variable
-  out$SA[out$SA == 1]           <- 2L
+  out$SA[out$SA == 1]     <- 2L
   out$SAGA[out$SAGA == 1] <- 2L
   for (i in seq_len(ncol(out))) {
     varnames(out[, i]) <- c("SA", "SAGA")[i]
