@@ -87,6 +87,61 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
   return(l)
 }
 
+#' Round Numeric Columns in Data Frame
+#'
+#' Round the columns of numeric mode type double to specified (default = 6)
+#' significant digits.
+#'
+#' Actual \code{\link{signif}} function is used for rounding. Note that other
+#' classes might be internally stored as numeric types. Particularly
+#' \code{\link{POSIXct}} class is by default stored as integer (rounding does
+#' not apply) but in case of adding (subtracting) double or if displaying
+#' fractional seconds, such date-time information will be internally converted
+#' to the type double (rounding applies). See examples.
+#'
+#' @param x A data frame.
+#' @param digits An integer. See \code{\link{signif}} for details.
+#'
+#' @return A data frame with \code{varnames} and \code{units} attributes.
+#'
+#' @examples
+#' set.seed(123)
+#' n <- 17520 # number of half-hourly records in one non-leap year
+#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
+#' x <- data.frame(
+#' timestamp = tstamp,
+#' H = rf(n, 1, 2, 1),
+#' LE = rf(n, 1, 2, 1),
+#' qc_flag = sample(c(0:2, NA), n, replace = TRUE)
+#' )
+#' openeddy::varnames(x) <- c("timestamp", "sensible heat", "latent heat",
+#'                            "quality flag")
+#' openeddy::units(x) <- c("-", "W m-2", "W m-2", "-")
+#' str(x)
+#' r <- round_df(x)
+#' head(r)
+#' str(r) # varnames and units are preserved
+#'
+#' # Prevent adding double type to POSIXct as it would lead to rounding:
+#' y <- x
+#' y$timestamp <- y$timestamp - 900 # use 900L instead
+#' head(y)
+#' class(y$timestamp)
+#' is.double(y$timestamp)
+#' head(round_df(y))
+#'
+#' @export
+round_df <- function(x, digits = 6) {
+  v <- openeddy::varnames(x)
+  u <- openeddy::units(x)
+  col_double <- unlist(lapply(x, is.double))
+  rounded <- apply(data.matrix(x[col_double]), 2, signif, digits = digits)
+  x[col_double] <- as.data.frame(rounded)
+  openeddy::varnames(x) <- v
+  openeddy::units(x) <- u
+  return(x)
+}
+
 #' Find Rows or Columns with Only NAs Over Array Margins
 #'
 #' \code{allNA} returns a logical vector or array or list indicating whether
