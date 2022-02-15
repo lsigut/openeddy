@@ -135,7 +135,8 @@ round_df <- function(x, digits = 6) {
   v <- openeddy::varnames(x)
   u <- openeddy::units(x)
   col_double <- unlist(lapply(x, is.double))
-  rounded <- apply(data.matrix(x[col_double]), 2, signif, digits = digits)
+  rounded <- apply(data.matrix(x[col_double]), 2, signif, digits = digits,
+                   simplify = FALSE) # this assures 1 row df is handled well
   x[col_double] <- as.data.frame(rounded)
   openeddy::varnames(x) <- v
   openeddy::units(x) <- u
