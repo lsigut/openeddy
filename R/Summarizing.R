@@ -1376,9 +1376,9 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   time_cumul <- cumsum(c(0, sort(time_sums)))
 
   uniform_cumul <- (0:nInt)/nInt
-  SSC <- round(sum(space_cumul) / sum(uniform_cumul), 3)
-  TSC <- round(sum(time_cumul) / sum(uniform_cumul), 3)
-  STSC <- round(mean(c(SSC, TSC)), 3)
+  SSC <- signif(sum(space_cumul) / sum(uniform_cumul))
+  TSC <- signif(sum(time_cumul) / sum(uniform_cumul))
+  STSC <- signif(mean(c(SSC, TSC)))
 
   if (plot == FALSE) {
     return(c(SSC = SSC, TSC = TSC, STSC = STSC))
