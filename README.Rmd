@@ -16,10 +16,16 @@ knitr::opts_chunk$set(
 
 # openeddy
 
-This package provides utilities for eddy covariance data handling, 
-quality checking (similar to Mauder et al., 2013), processing, summarising 
-and plotting. It aims to standardise the automated quality checking and make 
-data processing reproducible.
+## Overview
+
+The `openeddy` package is a software infrastructure for eddy covariance data 
+post-processing. It provides tools for handling data with attached metadata,
+setting up quality control scheme and summarizing and plotting the results.
+It is aligned with [REddyProc](https://github.com/bgctw/REddyProc) package 
+that provides methods for uStar-filtering, gap-filling, and flux-partitioning. 
+Thus the combined use of `openeddy` and `REddyProc` allows to run the whole eddy 
+covariance post-processing chain. Learn more at 
+<https://github.com/lsigut/EC_workflow>.
 
 ## Installation
 
@@ -34,8 +40,8 @@ devtools::install_github("lsigut/openeddy")
 
 ## Extended Example
 
-An extended example describing the intended eddy covariance data processing
-workflow is available at:
+An extended example of applied `openeddy` software infrustructure is available 
+at:
 
 https://github.com/lsigut/EC_workflow
 
@@ -154,7 +160,7 @@ despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 
 ## References
 
-Publication describing openeddy is not yet available. When describing 
+Publication describing `openeddy` is not yet available. When describing 
 the proposed quality control scheme, please refer to it as similar to:
 
 Mauder, M., Cuntz, M., Drüe, C., Graf, A., Rebmann, C., Schmid, H.P., 
