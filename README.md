@@ -104,51 +104,57 @@ Application of three general filters is presented.
 ``` r
 DETha98$qc_NEE_lowcov <- 
   apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
-table(DETha98$qc_NEE_lowcov)
-#> 
-#>     0     2 
-#> 11251    12
+summary_QC(DETha98, "qc_NEE_lowcov")
+#> no columns with 'na.as = 0' detected
+#>                QC_flag
+#> QC_filter       flag_0 flag_2 flag_NA
+#>   qc_NEE_lowcov   64.2    0.1    35.7
 DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
-table(DETha98$qc_NEE_runs)
-#> 
-#>     0     2 
-#> 11064   199
+summary_QC(DETha98, "qc_NEE_runs")
+#> no columns with 'na.as = 0' detected
+#>              QC_flag
+#> QC_filter     flag_0 flag_2 flag_NA
+#>   qc_NEE_runs   63.2    1.1    35.7
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
-           "qc_NEE_prelim", additive = FALSE, na.as = NA)
-DETha98$qc_NEE_despikeLF <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+           "qc_NEE_prelim")
+#> no columns with additive effect detected
+#> no columns with 'na.as = 0' detected
+DETha98$qc_NEE_spikesLF <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
 #> iter 1: 25
 #> iter 2: 1
 #> iter 3: 0
 #> Further iterations omitted
-table(DETha98$qc_NEE_despikeLF)
-#> 
-#>     0     2 
-#> 11024    26
+summary_QC(DETha98, "qc_NEE_spikesLF")
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
+#>                  QC_flag
+#> QC_filter         flag_0 flag_2
+#>   qc_NEE_spikesLF   99.9    0.1
 ```
 
 The QC results can be summarized in tabular or graphical form using
 `summary_QC`. It is possible to summarize each filter independently or
-summarize the cummulative effect of applied filters. Note that the
+summarize the cumulative effect of applied filters. Note that the
 fraction of flagged records in this example is negligible as DETha98
-dataset was already quality checked.
+data set was already quality checked.
 
 ``` r
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0))
-#>                   QC_flag
-#> QC_filter          flag_0 flag_2 flag_NA
-#>   qc_NEE             64.3    0.0    35.7
-#>   qc_NEE_lowcov      64.2    0.1    35.7
-#>   qc_NEE_runs        63.2    1.1    35.7
-#>   qc_NEE_despikeLF   99.9    0.1     0.0
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"))
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
+#>                  QC_flag
+#> QC_filter         flag_0 flag_2 flag_NA
+#>   qc_NEE            64.3    0.0    35.7
+#>   qc_NEE_lowcov     64.2    0.1    35.7
+#>   qc_NEE_runs       63.2    1.1    35.7
+#>   qc_NEE_spikesLF   99.9    0.1     0.0
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
+           cumul = TRUE, plot = TRUE, flux = "NEE")
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
 #> no columns with additive effect detected
 ```
 
@@ -162,8 +168,10 @@ processing and analysis.
 ``` r
 DETha98$qc_NEE_composite <- 
   combn_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
-           "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"), 
+           "qc_NEE_composite")
+#> no columns with additive effect detected
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
 ```
 
 Function `plot_eddy` is useful for visualization of the whole dataset
@@ -178,7 +186,7 @@ DETha98[, c("P", "PAR", "Rn")] <- NA
 #>  [5] "NEE"              "LE"               "H"                "Rg"              
 #>  [9] "Tair"             "Tsoil"            "rH"               "VPD"             
 #> [13] "Ustar"            "-"                "qc_NEE_lowcov"    "qc_NEE_runs"     
-#> [17] "qc_NEE_prelim"    "qc_NEE_despikeLF" "qc_NEE_composite" "-"               
+#> [17] "qc_NEE_prelim"    "qc_NEE_spikesLF"  "qc_NEE_composite" "-"               
 #> [21] "-"                "-"
 (units <- openeddy::units(DETha98))
 #>  [1] "POSIXDate Time" "-"              "-"              "-"             
@@ -203,7 +211,7 @@ in order to inspect selected 13 days blocks. See section Plotting in
 
 ``` r
 despikeLF_plots <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL, plot = TRUE)$plots
 #> iter 1: 25
 #> iter 2: 1

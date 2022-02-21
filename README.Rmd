@@ -34,6 +34,7 @@ covariance post-processing chain. Learn more at
     ```r
     install.packages("devtools")
     ```
+    
 1. Install openeddy
 
     ```r
@@ -94,32 +95,31 @@ and used in `despikeLF`.
 ```{r}
 DETha98$qc_NEE_lowcov <- 
   apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
-table(DETha98$qc_NEE_lowcov)
+summary_QC(DETha98, "qc_NEE_lowcov")
 DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
-table(DETha98$qc_NEE_runs)
+summary_QC(DETha98, "qc_NEE_runs")
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
-           "qc_NEE_prelim", additive = FALSE, na.as = NA)
-DETha98$qc_NEE_despikeLF <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+           "qc_NEE_prelim")
+DETha98$qc_NEE_spikesLF <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
-table(DETha98$qc_NEE_despikeLF)
+summary_QC(DETha98, "qc_NEE_spikesLF")
 ```
 
 The QC results can be summarized in tabular or graphical form using 
 `summary_QC`. It is possible to summarize each filter independently or 
-summarize the cummulative effect of applied filters. Note that the fraction of
-flagged records in this example is negligible as DETha98 dataset was already
+summarize the cumulative effect of applied filters. Note that the fraction of
+flagged records in this example is negligible as DETha98 data set was already
 quality checked.
 
 ```{r}
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"))
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
+           cumul = TRUE, plot = TRUE, flux = "NEE")
 ```
 
 Although individual QC columns should be stored as they are useful to 
@@ -130,8 +130,8 @@ analysis.
 ```{r}
 DETha98$qc_NEE_composite <- 
   combn_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
-           "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"), 
+           "qc_NEE_composite")
 ```
 
 Function `plot_eddy` is useful for visualization of the whole dataset including
@@ -157,7 +157,7 @@ further description.
 
 ```{r}
 despikeLF_plots <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL, plot = TRUE)$plots
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
