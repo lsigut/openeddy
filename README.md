@@ -18,19 +18,19 @@ eddy covariance post-processing chain. Learn more at
 
 1.  Install devtools package if not available yet.
 
-``` r
-install.packages("devtools")
-```
+    ``` r
+    install.packages("devtools")
+    ```
 
-1.  Install openeddy
+2.  Install openeddy
 
-``` r
-devtools::install_github("lsigut/openeddy")
-```
+    ``` r
+    devtools::install_github("lsigut/openeddy")
+    ```
 
 ## Extended Example
 
-An extended example of applied `openeddy` software infrustructure is
+An extended example of applied `openeddy` software infrastructure is
 available at:
 
 <https://github.com/lsigut/EC_workflow>

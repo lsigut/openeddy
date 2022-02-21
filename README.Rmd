@@ -30,17 +30,19 @@ covariance post-processing chain. Learn more at
 ## Installation
 
 1. Install devtools package if not available yet.
-```r
-install.packages("devtools")
-```
+
+    ```r
+    install.packages("devtools")
+    ```
 1. Install openeddy
-```r
-devtools::install_github("lsigut/openeddy")
-```
+
+    ```r
+    devtools::install_github("lsigut/openeddy")
+    ```
 
 ## Extended Example
 
-An extended example of applied `openeddy` software infrustructure is available 
+An extended example of applied `openeddy` software infrastructure is available 
 at:
 
 https://github.com/lsigut/EC_workflow
@@ -65,8 +67,10 @@ DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH',
                                Year = 'Year', Day = 'DoY', Hour = 'Hour')
 ```
 
-Certain variable names are expected by `openeddy`, thus DETha98 variable names need to be renamed. Net ecosystem exchange (NEE) is already filtered based on
-QC information (qc_NEE) that is not included. Though flag 2 values can be recreated, respective NEE values are missing and flag 1 cannot be resolved.
+Certain variable names are expected by `openeddy`, thus DETha98 variable names 
+need to be renamed. Net ecosystem exchange (NEE) is already filtered based on
+QC information (qc_NEE) that is not included. Though flag 2 values can be 
+recreated, respective NEE values are missing and flag 1 cannot be resolved.
 
 ```{r}
 rename <- names(DETha98) %in% c("DateTime", "Rg")
@@ -76,12 +80,12 @@ DETha98$qc_NEE <- ifelse(is.na(DETha98$NEE), NA, 0)
 
 Application of three general filters is presented. 
 
-1) Low covariance between vertical wind component and CO~2~ concentration 
+1. Low covariance between vertical wind component and CO~2~ concentration 
 ((CO~2~)) can be caused by frozen ultrasonic anemometer or problems with (CO~2~) 
 measurements. Such cases are flagged and saved to qc_NEE_lowcov. 
-1) Runs with repeating values are a sign of malfunctioning equipment 
+1. Runs with repeating values are a sign of malfunctioning equipment 
 (qc_NEE_runs).
-1) Spikes in low frequency data cause problems during gap-filling and should be
+1. Spikes in low frequency data cause problems during gap-filling and should be
 excluded. Since DETha98 was already quality checked, the amount of detected
 spikes is limited. In order to correctly evaluate spikes, preliminary QC 
 (qc_NEE_prelim) that combines available QC tests or filters should be produced
