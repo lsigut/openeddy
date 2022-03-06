@@ -56,8 +56,10 @@
 #'
 #' @section Unit Conversion: In case of aggregation using \code{sum}, i.e.
 #'   \code{agg_sum}, \code{agg_fsd} and \code{agg_DT_SD}, appropriate unit
-#'   conversion can be applied to columns defined by \code{quant}, \code{power}
-#'   and \code{carbon} arguments.
+#'   conversion can be applied to columns defined by \code{quant}, \code{power},
+#'   \code{carbon} and \code{ET} arguments. The conversion factor used for
+#'   approximate PAR conversion from umol m-2 s-1 to W m-2 is 4.57 as proposed
+#'   by Thimijan and Heins (1983; Tab. 3, Lightsource - Sun and sky, daylight).
 #'
 #' @section Sign Correction: Although the sign convention used for measured NEE
 #'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
@@ -79,6 +81,10 @@
 #'   Supplement to the Journal of the Royal Statistical Society, 8(2), 184-197.
 #'   doi: \url{https://doi.org/10.2307/2983560}
 #'
+#'   Thimijan, R.W. and Heins R.D., 1983. Photometric, Radiometric, and Quantum
+#'   Light Units of Measure: A Review of Procedures for Interconversion.
+#'   Horticultural Science, Vol. 18(6), 818-822.
+#'
 #'   Zieba, A. and Ramza, P., 2011. Standard Deviation of the Mean of
 #'   Autocorrelated Observations Estimated with the Use of the Autocorrelation
 #'   Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
@@ -94,6 +100,16 @@
 #'   \code{"DSTday"}, \code{"week"}, \code{"month"}, \code{"quarter"} or
 #'   \code{"year"}, optionally preceded by an integer and a space, or followed
 #'   by \code{"s"}.
+#' @param interval A numeric value specifying the time interval (in seconds) of
+#'   the generated date-time sequence. If \code{NULL}, \code{interval}
+#'   autodetection is attempted.
+#' @param tz A character string specifying the time zone to be used for the
+#'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
+#'   \code{\link{timezones}}), but \code{""} is the current time zone, and
+#'   \code{"GMT"} is UTC. Invalid values are most commonly treated as UTC, on
+#'   some platforms with a warning.
+#' @param ... Further arguments to be passed to the internal
+#'   \code{\link{aggregate}} function.
 #' @param agg_per A character string providing the time interval of aggregation
 #'   that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
 #'   \code{"month-1"}).
@@ -105,16 +121,10 @@
 #'   conversion from power to energy units before aggregation.
 #' @param carbon A character vector listing variable names that require
 #'   conversion from CO2 concentration to C mass flux units before aggregation.
-#' @param interval A numeric value specifying the time interval (in seconds) of
-#'   the generated date-time sequence. If \code{NULL}, \code{interval}
-#'   autodetection is attempted.
-#' @param tz A character string specifying the time zone to be used for the
-#'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
-#'   \code{\link{timezones}}), but \code{""} is the current time zone, and
-#'   \code{"GMT"} is UTC. Invalid values are most commonly treated as UTC, on
-#'   some platforms with a warning.
-#' @param ... Further arguments to be passed to the internal
-#'   \code{\link{aggregate}} function.
+#' @param ET A character vector listing variable names that require conversion
+#'   from hourly interval to actual measurement interval before aggregation.
+#'   Designed for evapotranspiration (ET) typically reported in mm hour-1 for
+#'   half-hourly measurements.
 #'
 #' @return \code{agg_mean} and \code{agg_sum} produce a data frame with
 #'   attributes varnames and units assigned to each respective column.
@@ -136,26 +146,68 @@
 #'
 #' @examples
 #' \dontrun{
+#'
 #' library(REddyProc)
+#' library(bigleaf)
+#'
+#' # Load example dataset from REddyProc package and use selected variables
 #' DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
 #' Day = 'DoY', Hour = 'Hour')[-(2:4)]
 #' EProc <- sEddyProc$new('DE-Tha', DETha98,
-#' c('NEE', 'Rg', 'Tair', 'VPD', 'Ustar'))
+#' c('NEE', 'LE', 'Rg', 'Tair', 'VPD', 'Ustar'))
 #' names(DETha98)[1] <- "timestamp"
+#'
+#' # Center timestamp to represent the middle of the averaging period
+#' # - necessary for reliable data aggregation
 #' DETha98$timestamp <- DETha98$timestamp - 60*15
+#'
+#' # Aggregate by averaging
+#' # - by default any NA value in an aggregation period produces NA
 #' agg_mean(DETha98, "%b-%y")
 #' agg_mean(DETha98, "%b-%y", na.rm = TRUE)
+#'
+#' # Aggregate by summation
+#' # - sign and unit conversions are demonstrated
 #' (zz <- agg_sum(DETha98, "%b-%y", agg_per = "month-1"))
 #' openeddy::units(zz, names = TRUE)
 #'
+#' # Gap-fill NEE using approximate fixed uStar threshold
 #' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
-#' for (i in c('Tair', 'Rg', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
+#'
+#' # Gap-fill all other selected variables
+#' for (i in c('LE', 'Rg', 'Tair', 'VPD')) EProc$sMDSGapFill(i, FillAll = TRUE)
+#'
+#' # Export results and convert latent heat (LE) to evapotranspiration (ET)
+#' # - typical ET units are mm hour-1 independent of actual measurement interval
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-#' agg_fsd(results, "%b-%y", agg_per = "month-1")
+#' LE_vars <- c("LE_orig", "LE_f", "LE_fqc", "LE_fall", "LE_fsd")
+#' ET_vars <- gsub("LE", "ET", LE_vars)
+#' results[, ET_vars] <-
+#'   lapply(LE_vars,
+#'          function(x) LE.to.ET(results[, x], results$Tair_f) * 3600)
+#' openeddy::units(results[ET_vars]) <- rep("mm hour-1", length(ET_vars))
+#'
+#' # Overwrite ET_fqc with proper values
+#' results$ET_fqc <- results$LE_fqc
+#' openeddy::units(results$ET_fqc) <- "-"
+#'
+#' # Aggregate uncertainty derived from look-up table standard deviation (SD)
+#' # - sign and unit conversions are demonstrated
+#' (unc <- agg_fsd(results, "%b-%y", agg_per = "month-1"))
+#' lapply(unc, openeddy::units, names = TRUE)
+#'
+#' # Perform Lasslop et al. (2010) flux partitioning based on DayTime (DT) data
+#' # - Reco and GPP uncertainty evaluation is available only for this method
+#' # - Reichstein et al. (2005) Reco model uncertainty is not exported and
+#' #   GPP is computed as residual (not modelled)
 #' EProc$sSetLocationInfo(LatDeg = 51.0, LongDeg = 13.6, TimeZoneHour = 1)
 #' EProc$sGLFluxPartition(suffix = "uStar")
+#'
+#' # Aggregate uncertainty derived from SD of Reco and GPP models
+#' # - unit conversions are demonstrated
 #' results <- cbind(DETha98["timestamp"], EProc$sExportResults())
-#' agg_DT_SD(results, "%b-%y", agg_per = "month-1")
+#' (unc_DT <- agg_DT_SD(results, "%b-%y", agg_per = "month-1"))
+#' lapply(unc_DT, openeddy::units, names = TRUE)
 #' }
 #' @export
 agg_mean <- function(x, format, breaks = NULL, interval = NULL,
@@ -226,6 +278,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
                     carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
+                    ET = grep("^ET", names(x), value = TRUE),
                     tz = "GMT", ...) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -329,7 +382,21 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
         "\n-------------------------------------------------------\n", sep = "")
   }
   openeddy::units(x[carbon]) <- rep(carbon_units, ncol(x[carbon]))
-  if (sum(length(c(quant, power, carbon))) == 0)
+
+  # conversion for evapotranspiration
+  # - from mm hour-1 to mm interval-1
+  ET <- ET[ET %in% names(x)]
+  x[ET] <- x[ET] / 3600 * interval
+  ET_units <- "mm"
+  if (length(ET) > 0) {
+    cat("Evapotranspiration (", openeddy::units(x[ET])[1],
+        " -> ", trimws(paste(ET_units, agg_per)), "):\n\n",
+        paste(ET, collapse = ", "),
+        "\n-------------------------------------------------------\n", sep = "")
+  }
+  openeddy::units(x[ET]) <- rep(ET_units, ncol(x[ET]))
+
+  if (sum(length(c(quant, power, carbon, ET))) == 0)
     cat("No variables available for conversion\n")
 
   # Rename relevant NEE variables to NEP
@@ -355,6 +422,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
                     carbon = grep("^NEE", names(x), value = TRUE),
+                    ET = grep("^ET", names(x), value = TRUE),
                     tz = "GMT") {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -512,7 +580,22 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
         "\n-------------------------------------------------------\n", sep = "")
   }
   openeddy::units(res_sum[carbon]) <- rep(carbon_units, ncol(res_sum[carbon]))
-  if (sum(length(c(quant, power, carbon))) == 0)
+
+  # conversion for evapotranspiration
+  # - from mm hour-1 to mm interval-1
+  ET <- ET[ET %in% names(res_sum)]
+  res_sum[ET] <- as.data.frame(lapply(res_sum[ET], function(x)
+    x / 3600 * interval))
+  ET_units <- "mm"
+  if (length(ET) > 0) {
+    cat("Evapotranspiration (", openeddy::units(res_sum[ET])[1],
+        " -> ", trimws(paste(ET_units, agg_per)), "):\n\n",
+        paste(ET, collapse = ", "),
+        "\n-------------------------------------------------------\n", sep = "")
+  }
+  openeddy::units(res_sum[ET]) <- rep(ET_units, ncol(res_sum[ET]))
+
+  if (sum(length(c(quant, power, carbon, ET))) == 0)
     cat("No variables available for conversion\n")
 
   # Rename relevant NEE variables to NEP

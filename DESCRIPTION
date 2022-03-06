@@ -39,4 +39,5 @@ Imports:
 Suggests:
     gridExtra (>= 2.3),
     REddyProc (>= 1.2.2),
+    bigleaf (>= 0.7.1),
     testthat (>= 2.0.0)
