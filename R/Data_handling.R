@@ -2074,6 +2074,7 @@ strip_suffix <- function(x, warn = FALSE) {
 #'
 #' @param names A character vector with available names.
 #' @param all_names A character vector with all expected variable names.
+#' @param show_ignored A logical value. Should ignored names be shown?
 #'
 #' @return A character vector with subset of expected variable names.
 #'
@@ -2082,7 +2083,7 @@ strip_suffix <- function(x, warn = FALSE) {
 #' names <- c("H", "LE", "PM10")
 #' choose_avail(names, all_names)
 #' @export
-choose_avail <- function(names, all_names) {
+choose_avail <- function(names, all_names, show_ignored = FALSE) {
   names <- na.omit(names)
   chosen <- names[names %in% all_names]
   not_avail <- setdiff(all_names, chosen)
@@ -2090,7 +2091,7 @@ choose_avail <- function(names, all_names) {
   if (length(not_avail))
     message("Following names are not available:\n",
             paste(not_avail, collapse = ", "))
-  if (length(ignored))
+  if (show_ignored && length(ignored))
     message("Following names were ignored:\n",
             paste(ignored, collapse = ", "))
   return(chosen)

@@ -4,12 +4,14 @@
 \alias{choose_avail}
 \title{Choose Available Names from Set}
 \usage{
-choose_avail(names, all_names)
+choose_avail(names, all_names, show_ignored = FALSE)
 }
 \arguments{
 \item{names}{A character vector with available names.}
 
 \item{all_names}{A character vector with all expected variable names.}
+
+\item{show_ignored}{A logical value. Should ignored names be shown?}
 }
 \value{
 A character vector with subset of expected variable names.
