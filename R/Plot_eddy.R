@@ -134,13 +134,10 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @section Gap-filling and NEE separation: Gap-filled flux values can be
 #'   displayed using \code{flux_gf} as a line overlaying the \code{flux} values.
 #'   If \code{NEE_sep = TRUE}, columns \code{"Reco"} and \code{"GPP"} are
-#'   expected in \code{x}. \code{GPP_check} is evaluated only if \code{NEE_sep =
-#'   TRUE}. If \code{GPP_check = TRUE}, mean GPP is checked to be negative so it
-#'   compares well with NEE and corrected accordingly if needed. Thus negative
-#'   values denote carbon sink. Such test can fail for measurements above
-#'   surfaces without vegetation or ecosystems with insignificant sink. In that
-#'   case set \code{GPP_check = FALSE} and check and correct GPP sign convention
-#'   manually.
+#'   expected in \code{x}. \code{GPP_scor} allows to change the sign convention
+#'   of GPP to minimize lines overlay during plotting. CO2 uptake in
+#'   \code{REddyProc} package is represented by positive GPP, thus, to optimize
+#'   plotting, \code{GPP_scor = TRUE} is taken as default.
 #'
 #' @section Abbreviations: \itemize{ \item H: Sensible heat flux [W m-2] \item
 #'   NEE: Net Ecosystem Exchange [umol m-2 s-1] \item GPP: Gross Primary
@@ -187,9 +184,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param light A character string. Required only for the \code{"T_light"}
 #'   module. Selects preferred variable for incoming light intensity.
 #'   \code{"PAR"} or \code{"GR"} is allowed. Can be abbreviated.
-#' @param GPP_check A logical value. If \code{TRUE}, column \code{"GPP"} is
-#'   checked to be of the same sign convention as \code{"NEE"} column and
-#'   corrected in the case it is not. Required only if \code{NEE_sep = TRUE}.
+#' @param GPP_scor A logical value. Should sign correction of GPP be performed?
+#'   See Gap-filling and NEE separation section in Details. Ignored if
+#'   \code{NEE_sep = FALSE}.
 #' @param document A logical value. If \code{TRUE}, values of \code{qc_flag} and
 #'   \code{test} arguments are documented in both monthly and weekly plots.
 #'
@@ -204,7 +201,8 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       panel_bottom = c("VPD_Rn", "T_light", "H_err_var",
                                        "blue_red", "violet_orange"),
                       panel_bottom_vars = NULL,
-                      light = c("PAR", "GR"), GPP_check = TRUE,
+                      light = c("PAR", "GR"),
+                      GPP_scor = TRUE,
                       document = TRUE) {
   x_names <- names(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -283,7 +281,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
   if (NEE_sep) {
     Reco <- x[, "Reco"]
     GPP <- x[, "GPP"]
-    if (GPP_check) if (mean(GPP, na.rm = TRUE) > 0) GPP <- -GPP
+    if (GPP_scor) GPP <- -GPP # correct sign if needed
   }
   use <- qc < 2 & !is.na(vals)
   if (!any(use)) {

@@ -71,10 +71,11 @@
 #'
 #'   There is no reliable way to guess the sign convention used in the data set.
 #'   Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
-#'   GPP (\code{GPP_scor}) sign correction is required (both default to
-#'   \code{TRUE}). \code{agg_sum} automatically detects all NEE and GPP columns
-#'   in \code{x} using regular expressions and applies the sign correction
-#'   settings.
+#'   GPP (\code{GPP_scor}) sign correction is required. By default
+#'   \code{NEE_scor = TRUE} and \code{GPP_scor = FALSE} considering sign
+#'   conventions used in \code{REddyProc} package. \code{agg_sum} automatically
+#'   detects all NEE and GPP columns in \code{x} using regular expressions and
+#'   applies the sign correction settings.
 #'
 #' @section References: Bayley, G. and Hammersley, J., 1946. The "Effective"
 #'   Number of Independent Observations in an Autocorrelated Time Series.
@@ -273,7 +274,7 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
 #' @rdname agg_mean
 #' @export
 agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
-                    NEE_scor = TRUE, GPP_scor = TRUE,
+                    NEE_scor = TRUE, GPP_scor = FALSE,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
                     power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE",
                                  names(x), value = TRUE),
@@ -1062,18 +1063,18 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' middle of averaging period and appropriate columns selected (see
 #' \code{Examples}).
 #'
-#' @section Sign Correction: Although the sign convention used for measured NEE
-#'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
-#'   summed NEE is typically reported with the opposite sign convention and is
-#'   assumed to converge to NEP (Net Ecosystem Production), especially over
-#'   longer aggregation intervals. Similarly, estimated negative GPP (Gross
-#'   Primary Production) typically denotes carbon sink but should be corrected
-#'   to positive values if summed over a time period.
+#' @section Sign Correction: Although common sign convention for measured NEE
+#'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
+#'   is typically reported with the opposite sign convention and is assumed to
+#'   converge to NEP (Net Ecosystem Production), especially over longer
+#'   aggregation intervals. In case of GPP (Gross Primary Production),
+#'   \code{REddyProc} package applies sign convention denoting positive fluxes
+#'   as carbon sink, thus sign correction before summing is not needed.
 #'
 #'   Since there is no reliable way to guess the sign convention used in the
-#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
-#'   typical case when sign correction is required (\code{NEE_scor = TRUE};
-#'   \code{GPP_scor = TRUE}) is set as default.
+#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
+#'   default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
+#'   adapted to sign convention applied in \code{REddyProc} package.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -1154,7 +1155,7 @@ Griebel20_budgets <- function(df,
                               nInt = 8L,
                               year = NULL,
                               NEE_scor = TRUE,
-                              GPP_scor = TRUE,
+                              GPP_scor = FALSE,
                               normalize = TRUE) {
   #clean data frame, assign timestamp, establish columnames for flux,
   # wind direction and year, remove missing values
@@ -1266,18 +1267,18 @@ Griebel20_budgets <- function(df,
 #' middle of averaging period and appropriate columns selected (see
 #' \code{Examples}).
 #'
-#' @section Sign Correction: Although the sign convention used for measured NEE
-#'   (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
-#'   summed NEE is typically reported with the opposite sign convention and is
-#'   assumed to converge to NEP (Net Ecosystem Production), especially over
-#'   longer aggregation intervals. Similarly, estimated negative GPP (Gross
-#'   Primary Production) typically denotes carbon sink but should be corrected
-#'   to positive values if summed over a time period.
+#' @section Sign Correction: Although common sign convention for measured NEE
+#'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
+#'   is typically reported with the opposite sign convention and is assumed to
+#'   converge to NEP (Net Ecosystem Production), especially over longer
+#'   aggregation intervals. In case of GPP (Gross Primary Production),
+#'   \code{REddyProc} package applies sign convention denoting positive fluxes
+#'   as carbon sink, thus sign correction before summing is not needed.
 #'
 #'   Since there is no reliable way to guess the sign convention used in the
-#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
-#'   typical case when sign correction is required (\code{NEE_scor = TRUE};
-#'   \code{GPP_scor = TRUE}) is set as default.
+#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
+#'   default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
+#'   adapted to sign convention applied in \code{REddyProc} package.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -1362,7 +1363,7 @@ spti_boot <- function(df,
                       year = NULL,
                       samples = 100L,
                       NEE_scor = TRUE,
-                      GPP_scor = TRUE,
+                      GPP_scor = FALSE,
                       normalize = TRUE) {
   #clean data frame, assign timestamp, establish columnames for flux,
   # wind direction and year, remove missing values

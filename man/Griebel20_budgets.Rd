@@ -15,7 +15,7 @@ Griebel20_budgets(
   nInt = 8L,
   year = NULL,
   NEE_scor = TRUE,
-  GPP_scor = TRUE,
+  GPP_scor = FALSE,
   normalize = TRUE
 )
 }
@@ -93,18 +93,18 @@ middle of averaging period and appropriate columns selected (see
 \code{Examples}).
 }
 \section{Sign Correction}{
- Although the sign convention used for measured NEE
-  (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
-  summed NEE is typically reported with the opposite sign convention and is
-  assumed to converge to NEP (Net Ecosystem Production), especially over
-  longer aggregation intervals. Similarly, estimated negative GPP (Gross
-  Primary Production) typically denotes carbon sink but should be corrected
-  to positive values if summed over a time period.
+ Although common sign convention for measured NEE
+  (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
+  is typically reported with the opposite sign convention and is assumed to
+  converge to NEP (Net Ecosystem Production), especially over longer
+  aggregation intervals. In case of GPP (Gross Primary Production),
+  \code{REddyProc} package applies sign convention denoting positive fluxes
+  as carbon sink, thus sign correction before summing is not needed.
 
   Since there is no reliable way to guess the sign convention used in the
-  data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The most
-  typical case when sign correction is required (\code{NEE_scor = TRUE};
-  \code{GPP_scor = TRUE}) is set as default.
+  data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
+  default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
+  adapted to sign convention applied in \code{REddyProc} package.
 }
 
 \section{References}{

@@ -16,7 +16,7 @@ agg_sum(
   breaks = NULL,
   interval = NULL,
   NEE_scor = TRUE,
-  GPP_scor = TRUE,
+  GPP_scor = FALSE,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
   power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
@@ -186,10 +186,11 @@ patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
 
   There is no reliable way to guess the sign convention used in the data set.
   Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
-  GPP (\code{GPP_scor}) sign correction is required (both default to
-  \code{TRUE}). \code{agg_sum} automatically detects all NEE and GPP columns
-  in \code{x} using regular expressions and applies the sign correction
-  settings.
+  GPP (\code{GPP_scor}) sign correction is required. By default
+  \code{NEE_scor = TRUE} and \code{GPP_scor = FALSE} considering sign
+  conventions used in \code{REddyProc} package. \code{agg_sum} automatically
+  detects all NEE and GPP columns in \code{x} using regular expressions and
+  applies the sign correction settings.
 }
 
 \section{References}{

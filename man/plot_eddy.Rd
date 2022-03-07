@@ -17,7 +17,7 @@ plot_eddy(
   panel_bottom = c("VPD_Rn", "T_light", "H_err_var", "blue_red", "violet_orange"),
   panel_bottom_vars = NULL,
   light = c("PAR", "GR"),
-  GPP_check = TRUE,
+  GPP_scor = TRUE,
   document = TRUE
 )
 }
@@ -68,9 +68,9 @@ Specifies two variables expected in \code{x} if \code{panel_bottom =
 module. Selects preferred variable for incoming light intensity.
 \code{"PAR"} or \code{"GR"} is allowed. Can be abbreviated.}
 
-\item{GPP_check}{A logical value. If \code{TRUE}, column \code{"GPP"} is
-checked to be of the same sign convention as \code{"NEE"} column and
-corrected in the case it is not. Required only if \code{NEE_sep = TRUE}.}
+\item{GPP_scor}{A logical value. Should sign correction of GPP be performed?
+See Gap-filling and NEE separation section in Details. Ignored if
+\code{NEE_sep = FALSE}.}
 
 \item{document}{A logical value. If \code{TRUE}, values of \code{qc_flag} and
 \code{test} arguments are documented in both monthly and weekly plots.}
@@ -162,13 +162,10 @@ Weekly plotting regions are described in 'Modules' section (see below).
  Gap-filled flux values can be
   displayed using \code{flux_gf} as a line overlaying the \code{flux} values.
   If \code{NEE_sep = TRUE}, columns \code{"Reco"} and \code{"GPP"} are
-  expected in \code{x}. \code{GPP_check} is evaluated only if \code{NEE_sep =
-  TRUE}. If \code{GPP_check = TRUE}, mean GPP is checked to be negative so it
-  compares well with NEE and corrected accordingly if needed. Thus negative
-  values denote carbon sink. Such test can fail for measurements above
-  surfaces without vegetation or ecosystems with insignificant sink. In that
-  case set \code{GPP_check = FALSE} and check and correct GPP sign convention
-  manually.
+  expected in \code{x}. \code{GPP_scor} allows to change the sign convention
+  of GPP to minimize lines overlay during plotting. CO2 uptake in
+  \code{REddyProc} package is represented by positive GPP, thus, to optimize
+  plotting, \code{GPP_scor = TRUE} is taken as default.
 }
 
 \section{Abbreviations}{
