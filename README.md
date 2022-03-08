@@ -1,11 +1,20 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-openeddy
-========
 
-This package provides utilities for eddy covariance data handling, quality checking (similar to Mauder et al., 2013), processing, summarising and plotting. It aims to standardise the automated quality checking and make data processing reproducible.
+# openeddy
 
-Installation
-------------
+## Overview
+
+The `openeddy` package is a software infrastructure for eddy covariance
+data post-processing. It provides tools for handling data with attached
+metadata, setting up quality control scheme and summarizing and plotting
+the results. It is aligned with
+[REddyProc](https://github.com/bgctw/REddyProc) package that provides
+methods for uStar-filtering, gap-filling, and flux-partitioning. Thus
+the combined use of `openeddy` and `REddyProc` allows to run the whole
+eddy covariance post-processing chain. Learn more at
+<https://github.com/lsigut/EC_workflow>.
+
+## Installation
 
 1.  Install devtools package if not available yet.
 
@@ -19,15 +28,14 @@ Installation
     devtools::install_github("lsigut/openeddy")
     ```
 
-Extended Example
-----------------
+## Extended Example
 
-An extended example describing the intended eddy covariance data processing workflow is available at:
+An extended example of applied `openeddy` software infrastructure is
+available at:
 
 <https://github.com/lsigut/EC_workflow>
 
-Short Example
--------------
+## Short Example
 
 Demonstration of selected generally applicable `openeddy` functions.
 
@@ -42,7 +50,9 @@ library(REddyProc)
 library(ggplot2)
 ```
 
-Example data from `REddyProc` package do not include statistics extracted from raw data or quality control (QC) flags. Notice that units are included.
+Example data from `REddyProc` package do not include statistics
+extracted from raw data or quality control (QC) flags. Notice that units
+are included.
 
 ``` r
 data(Example_DETha98)
@@ -65,7 +75,11 @@ DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH',
 #> Converted time format 'YDH' to POSIX with column name 'DateTime'.
 ```
 
-Certain variable names are expected by `openeddy`, thus DETha98 variable names need to be renamed. Net ecosystem exchange (NEE) is already filtered based on QC information (qc\_NEE) that is not included. Though flag 2 values can be recreated, respective NEE values are missing and flag 1 cannot be resolved.
+Certain variable names are expected by `openeddy`, thus DETha98 variable
+names need to be renamed. Net ecosystem exchange (NEE) is already
+filtered based on QC information (qc_NEE) that is not included. Though
+flag 2 values can be recreated, respective NEE values are missing and
+flag 1 cannot be resolved.
 
 ``` r
 rename <- names(DETha98) %in% c("DateTime", "Rg")
@@ -75,80 +89,105 @@ DETha98$qc_NEE <- ifelse(is.na(DETha98$NEE), NA, 0)
 
 Application of three general filters is presented.
 
-1.  Low covariance between vertical wind component and CO<sub>2</sub> concentration ((CO<sub>2</sub>)) can be caused by frozen ultrasonic anemometer or problems with (CO<sub>2</sub>) measurements. Such cases are flagged and saved to qc\_NEE\_lowcov.
-2.  Runs with repeating values are a sign of malfunctioning equipment (qc\_NEE\_runs).
-3.  Spikes in low frequency data cause problems during gap-filling and should be excluded. Since DETha98 was already quality checked, the amount of detected spikes is limited. In order to correctly evaluate spikes, preliminary QC (qc\_NEE\_prelim) that combines available QC tests or filters should be produced and used in `despikeLF`.
+1.  Low covariance between vertical wind component and CO<sub>2</sub>
+    concentration ((CO<sub>2</sub>)) can be caused by frozen ultrasonic
+    anemometer or problems with (CO<sub>2</sub>) measurements. Such
+    cases are flagged and saved to qc_NEE_lowcov.
+2.  Runs with repeating values are a sign of malfunctioning equipment
+    (qc_NEE_runs).
+3.  Spikes in low frequency data cause problems during gap-filling and
+    should be excluded. Since DETha98 was already quality checked, the
+    amount of detected spikes is limited. In order to correctly evaluate
+    spikes, preliminary QC (qc_NEE_prelim) that combines available QC
+    tests or filters should be produced and used in `despikeLF`.
 
 ``` r
 DETha98$qc_NEE_lowcov <- 
   apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
-table(DETha98$qc_NEE_lowcov)
-#> 
-#>     0     2 
-#> 11251    12
+summary_QC(DETha98, "qc_NEE_lowcov")
+#> no columns with 'na.as = 0' detected
+#>                QC_flag
+#> QC_filter       flag_0 flag_2 flag_NA
+#>   qc_NEE_lowcov   64.2    0.1    35.7
 DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
-table(DETha98$qc_NEE_runs)
-#> 
-#>     0     2 
-#> 11064   199
+summary_QC(DETha98, "qc_NEE_runs")
+#> no columns with 'na.as = 0' detected
+#>              QC_flag
+#> QC_filter     flag_0 flag_2 flag_NA
+#>   qc_NEE_runs   63.2    1.1    35.7
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
-           "qc_NEE_prelim", additive = FALSE, na.as = NA)
-DETha98$qc_NEE_despikeLF <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+           "qc_NEE_prelim")
+#> no columns with additive effect detected
+#> no columns with 'na.as = 0' detected
+DETha98$qc_NEE_spikesLF <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
 #> iter 1: 25
 #> iter 2: 1
 #> iter 3: 0
 #> Further iterations omitted
-table(DETha98$qc_NEE_despikeLF)
-#> 
-#>     0     2 
-#> 11024    26
+summary_QC(DETha98, "qc_NEE_spikesLF")
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
+#>                  QC_flag
+#> QC_filter         flag_0 flag_2
+#>   qc_NEE_spikesLF   99.9    0.1
 ```
 
-The QC results can be summarized in tabular or graphical form using `summary_QC`. It is possible to summarize each filter independently or summarize the cummulative effect of applied filters. Note that the fraction of flagged records in this example is negligible as DETha98 dataset was already quality checked.
+The QC results can be summarized in tabular or graphical form using
+`summary_QC`. It is possible to summarize each filter independently or
+summarize the cumulative effect of applied filters. Note that the
+fraction of flagged records in this example is negligible as DETha98
+data set was already quality checked.
 
 ``` r
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0))
-#>                   QC_flag
-#> QC_type               0    2 <NA>
-#>   qc_NEE           64.3  0.0 35.7
-#>   qc_NEE_lowcov    64.2  0.1 35.7
-#>   qc_NEE_runs      63.2  1.1 35.7
-#>   qc_NEE_despikeLF 99.9  0.1  0.0
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"))
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
+#>                  QC_flag
+#> QC_filter         flag_0 flag_2 flag_NA
+#>   qc_NEE            64.3    0.0    35.7
+#>   qc_NEE_lowcov     64.2    0.1    35.7
+#>   qc_NEE_runs       63.2    1.1    35.7
+#>   qc_NEE_spikesLF   99.9    0.1     0.0
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
+           cumul = TRUE, plot = TRUE, flux = "NEE")
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
+#> no columns with additive effect detected
 ```
 
 ![](README-unnamed-chunk-6-1.png)
 
-Although individual QC columns should be stored as they are useful to distinguish the reason why certain records were excluded, only the combined QC column (qc\_NEE\_composite) is usually used in further data processing and analysis.
+Although individual QC columns should be stored as they are useful to
+distinguish the reason why certain records were excluded, only the
+combined QC column (qc_NEE_composite) is usually used in further data
+processing and analysis.
 
 ``` r
 DETha98$qc_NEE_composite <- 
   combn_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
-           "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"), 
+           "qc_NEE_composite")
+#> no columns with additive effect detected
+#> detected columns with 'na.as = 0': qc_NEE_spikesLF
 ```
 
-Function `plot_eddy` is useful for visualization of the whole dataset including flux values, its respective QC flags and the most important micrometeorological parameters in monthly and weekly time resolution. Only a two week subset is presented here to limit the extent of output.
+Function `plot_eddy` is useful for visualization of the whole dataset
+including flux values, its respective QC flags and the most important
+micrometeorological parameters in monthly and weekly time resolution.
+Only a two week subset is presented here to limit the extent of output.
 
 ``` r
 DETha98[, c("P", "PAR", "Rn")] <- NA
 (varnames <- varnames(DETha98))
-#>  [1] "DateTime"         "Year"             "DoY"             
-#>  [4] "Hour"             "NEE"              "LE"              
-#>  [7] "H"                "Rg"               "Tair"            
-#> [10] "Tsoil"            "rH"               "VPD"             
-#> [13] "Ustar"            "-"                "qc_NEE_lowcov"   
-#> [16] "qc_NEE_runs"      "qc_NEE_prelim"    "qc_NEE_despikeLF"
-#> [19] "qc_NEE_composite" "-"                "-"               
-#> [22] "-"
+#>  [1] "DateTime"         "Year"             "DoY"              "Hour"            
+#>  [5] "NEE"              "LE"               "H"                "Rg"              
+#>  [9] "Tair"             "Tsoil"            "rH"               "VPD"             
+#> [13] "Ustar"            "-"                "qc_NEE_lowcov"    "qc_NEE_runs"     
+#> [17] "qc_NEE_prelim"    "qc_NEE_spikesLF"  "qc_NEE_composite" "-"               
+#> [21] "-"                "-"
 (units <- openeddy::units(DETha98))
 #>  [1] "POSIXDate Time" "-"              "-"              "-"             
 #>  [5] "umolm-2s-1"     "Wm-2"           "Wm-2"           "Wm-2"          
@@ -165,11 +204,14 @@ plot_eddy(DETha98_sub, "NEE", "qc_NEE", "qc_NEE_composite", skip = "monthly",
 
 ![](README-unnamed-chunk-8-1.png)
 
-In addition to actual despiking, `despikeLF` can be used also for visualization of the internally computed double-differenced time series in order to inspect selected 13 days blocks. See section Plotting in `despikeLF` help file for further description.
+In addition to actual despiking, `despikeLF` can be used also for
+visualization of the internally computed double-differenced time series
+in order to inspect selected 13 days blocks. See section Plotting in
+`despikeLF` help file for further description.
 
 ``` r
 despikeLF_plots <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL, plot = TRUE)$plots
 #> iter 1: 25
 #> iter 2: 1
@@ -180,9 +222,13 @@ despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 
 ![](README-unnamed-chunk-9-1.png)
 
-References
-----------
+## References
 
-Publication describing openeddy is not yet available. When describing the proposed quality control scheme, please refer to it as similar to:
+Publication describing `openeddy` is not yet available. When describing
+the proposed quality control scheme, please refer to it as similar to:
 
-Mauder, M., Cuntz, M., Drüe, C., Graf, A., Rebmann, C., Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty assessment of long-term eddy-covariance measurements. Agric. For. Meteorol. 169, 122-135, <https://doi.org/10.1016/j.agrformet.2012.09.006>
+Mauder, M., Cuntz, M., Drüe, C., Graf, A., Rebmann, C., Schmid, H.P.,
+Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and
+uncertainty assessment of long-term eddy-covariance measurements. Agric.
+For. Meteorol. 169, 122-135,
+<https://doi.org/10.1016/j.agrformet.2012.09.006>

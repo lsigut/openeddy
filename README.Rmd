@@ -16,26 +16,35 @@ knitr::opts_chunk$set(
 
 # openeddy
 
-This package provides utilities for eddy covariance data handling, 
-quality checking (similar to Mauder et al., 2013), processing, summarising 
-and plotting. It aims to standardise the automated quality checking and make 
-data processing reproducible.
+## Overview
+
+The `openeddy` package is a software infrastructure for eddy covariance data 
+post-processing. It provides tools for handling data with attached metadata,
+setting up quality control scheme and summarizing and plotting the results.
+It is aligned with [REddyProc](https://github.com/bgctw/REddyProc) package 
+that provides methods for uStar-filtering, gap-filling, and flux-partitioning. 
+Thus the combined use of `openeddy` and `REddyProc` allows to run the whole eddy 
+covariance post-processing chain. Learn more at 
+<https://github.com/lsigut/EC_workflow>.
 
 ## Installation
 
 1. Install devtools package if not available yet.
-```r
-install.packages("devtools")
-```
+
+    ```r
+    install.packages("devtools")
+    ```
+    
 1. Install openeddy
-```r
-devtools::install_github("lsigut/openeddy")
-```
+
+    ```r
+    devtools::install_github("lsigut/openeddy")
+    ```
 
 ## Extended Example
 
-An extended example describing the intended eddy covariance data processing
-workflow is available at:
+An extended example of applied `openeddy` software infrastructure is available 
+at:
 
 https://github.com/lsigut/EC_workflow
 
@@ -59,8 +68,10 @@ DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH',
                                Year = 'Year', Day = 'DoY', Hour = 'Hour')
 ```
 
-Certain variable names are expected by `openeddy`, thus DETha98 variable names need to be renamed. Net ecosystem exchange (NEE) is already filtered based on
-QC information (qc_NEE) that is not included. Though flag 2 values can be recreated, respective NEE values are missing and flag 1 cannot be resolved.
+Certain variable names are expected by `openeddy`, thus DETha98 variable names 
+need to be renamed. Net ecosystem exchange (NEE) is already filtered based on
+QC information (qc_NEE) that is not included. Though flag 2 values can be 
+recreated, respective NEE values are missing and flag 1 cannot be resolved.
 
 ```{r}
 rename <- names(DETha98) %in% c("DateTime", "Rg")
@@ -70,12 +81,12 @@ DETha98$qc_NEE <- ifelse(is.na(DETha98$NEE), NA, 0)
 
 Application of three general filters is presented. 
 
-1) Low covariance between vertical wind component and CO~2~ concentration 
+1. Low covariance between vertical wind component and CO~2~ concentration 
 ((CO~2~)) can be caused by frozen ultrasonic anemometer or problems with (CO~2~) 
 measurements. Such cases are flagged and saved to qc_NEE_lowcov. 
-1) Runs with repeating values are a sign of malfunctioning equipment 
+1. Runs with repeating values are a sign of malfunctioning equipment 
 (qc_NEE_runs).
-1) Spikes in low frequency data cause problems during gap-filling and should be
+1. Spikes in low frequency data cause problems during gap-filling and should be
 excluded. Since DETha98 was already quality checked, the amount of detected
 spikes is limited. In order to correctly evaluate spikes, preliminary QC 
 (qc_NEE_prelim) that combines available QC tests or filters should be produced
@@ -84,32 +95,31 @@ and used in `despikeLF`.
 ```{r}
 DETha98$qc_NEE_lowcov <- 
   apply_thr(DETha98$NEE, c(-0.01, 0.01), "qc_NEE_lowcov", "between")
-table(DETha98$qc_NEE_lowcov)
+summary_QC(DETha98, "qc_NEE_lowcov")
 DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
-table(DETha98$qc_NEE_runs)
+summary_QC(DETha98, "qc_NEE_runs")
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
-           "qc_NEE_prelim", additive = FALSE, na.as = NA)
-DETha98$qc_NEE_despikeLF <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+           "qc_NEE_prelim")
+DETha98$qc_NEE_spikesLF <- 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
-table(DETha98$qc_NEE_despikeLF)
+summary_QC(DETha98, "qc_NEE_spikesLF")
 ```
 
 The QC results can be summarized in tabular or graphical form using 
 `summary_QC`. It is possible to summarize each filter independently or 
-summarize the cummulative effect of applied filters. Note that the fraction of
-flagged records in this example is negligible as DETha98 dataset was already
+summarize the cumulative effect of applied filters. Note that the fraction of
+flagged records in this example is negligible as DETha98 data set was already
 quality checked.
 
 ```{r}
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"))
 summary_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"),
-           na.as = c(NA, NA, NA, 0), cumul = TRUE, plot = TRUE, flux = "NEE")
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
+           cumul = TRUE, plot = TRUE, flux = "NEE")
 ```
 
 Although individual QC columns should be stored as they are useful to 
@@ -120,8 +130,8 @@ analysis.
 ```{r}
 DETha98$qc_NEE_composite <- 
   combn_QC(DETha98, 
-           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_despikeLF"), 
-           "qc_NEE_composite", additive = FALSE, na.as = c(NA, NA, NA, 0))
+           c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"), 
+           "qc_NEE_composite")
 ```
 
 Function `plot_eddy` is useful for visualization of the whole dataset including
@@ -147,14 +157,14 @@ further description.
 
 ```{r}
 despikeLF_plots <- 
-  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_despikeLF", 
+  despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL, plot = TRUE)$plots
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
 
 ## References
 
-Publication describing openeddy is not yet available. When describing 
+Publication describing `openeddy` is not yet available. When describing 
 the proposed quality control scheme, please refer to it as similar to:
 
 Mauder, M., Cuntz, M., Drüe, C., Graf, A., Rebmann, C., Schmid, H.P., 
