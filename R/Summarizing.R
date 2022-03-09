@@ -339,7 +339,7 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   if (NEE_scor | GPP_scor) {
     cat("Sign correction (x -> -x):\n")
     cat(if (length(c(NEE, GPP)) > 0) paste(
-      NEE, GPP, collapse = ", ") else "None", "\n\n")
+      c(NEE, GPP), collapse = ", ") else "None", "\n\n")
   }
 
   cat("Unit conversion\n===============\n")
@@ -1167,15 +1167,15 @@ Griebel20_budgets <- function(df,
 
   isNEE <- grepl("NEE", targetCol)
   if (isNEE) {
-    # Rename NEE to NEP if present
-    targetCol <- names(df)[names(df) == targetCol] <- gsub(
-      "NEE", "NEP", targetCol)
     # Change sign in NEE variable
     if (NEE_scor) {
       df[targetCol] <- -df[targetCol]
       cat('Sign correction: df$', targetCol, ' -> -df$', targetCol, '\n',
           sep = '')
     }
+    # Rename NEE to NEP if present
+    targetCol <- names(df)[names(df) == targetCol] <- gsub(
+      "NEE", "NEP", targetCol)
   }
 
   isGPP <- grepl("GPP", targetCol)
@@ -1612,6 +1612,7 @@ spti_coverage <- function(df,
     results <- data.frame(matrix(ncol = 4, nrow = length(years)))
     names(results) <- c('year', 'spatial_SC', 'temporal_SC',
                         'spatio_temporal_SC')
+    units(results) <- rep("-", 4)
   } else {
     results <- vector('list', length = length(years))
     names(results) <- paste0('year_', years)
@@ -1623,6 +1624,7 @@ spti_coverage <- function(df,
   # loop through each year
   for (y in years){
     # calculate sampling coverage
+    # - notice that SC cannot be reported in percents - it has different meaning
     spti_sc <- calc_spti_cov(df, targetCol = targetCol, year = y, nInt = nInt,
                              plot = plot)
 
