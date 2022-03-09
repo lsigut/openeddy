@@ -1275,11 +1275,10 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
   if (length(lf) == 1) {
     # Attempt opening file and load old QC
     message("loading manual_QC file found at: ", lf)
-    old_qc <- if (with_units) openeddy::read_eddy(lf) else read.csv(lf)
+    old_qc <- if (with_units) read_eddy(lf) else read.csv(lf)
     if (!tname %in% names(old_qc))
       stop("timestamp column specified by 'tname' not found in file")
-    old_qc[, tname] <-
-      openeddy::strptime_eddy(old_qc[, tname], format = format)
+    old_qc[, tname] <- strptime_eddy(old_qc[, tname], format = format)
     trange_old <- range(old_qc[, tname])
     trange_new <- range(x[, tname])
     if (trange_old[1] < trange_new[1] | trange_old[2] > trange_new[2]) {
@@ -1327,13 +1326,12 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
     for (i in seq_along(vnames)) {
       # tests are ordered accordingly so they match, also with vnames
       # qnames is used only if column name exists in 'x'
-      cbn <- openeddy::combn_QC(all_qc, c(mnames[i], qnames[i]),
-                                no_messages = TRUE) # supress messages?
+      cbn <- combn_QC(all_qc, c(mnames[i], qnames[i]),
+                      no_messages = TRUE) # supress messages?
       message("Manual quality control of variable ", vnames[i], ":")
       # no need to shift timestamp for current version of exclude()
-      qc[, mnames[i]] <- openeddy::exclude(x[, vnames[i]], cbn,
-                                           win_size = win_size)
-      qc[, mnames[i]] <- openeddy::combn_QC(
+      qc[, mnames[i]] <- exclude(x[, vnames[i]], cbn, win_size = win_size)
+      qc[, mnames[i]] <- combn_QC(
         data.frame(old = all_qc[, mnames[i]], new = qc[, mnames[i]]),
         c("old", "new"), no_messages = TRUE)
       repeat {
@@ -1345,7 +1343,7 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
           # including date might be problematic (old file would need to be deleted)
           lf <- paste0(path, siteyear, "_manual_QC.csv")
         }
-        if (with_units) openeddy::write_eddy(qc, lf) else
+        if (with_units) write_eddy(qc, lf) else
           write.csv(qc, lf, row.names = FALSE)
       }
     }
@@ -1375,7 +1373,7 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
         # including date might be problematic (old file would need to be deleted)
         lf <- paste0(path, siteyear, "_manual_QC.csv")
       }
-      if (with_units) openeddy::write_eddy(qc, lf) else
+      if (with_units) write_eddy(qc, lf) else
         write.csv(qc, lf, row.names = FALSE)
     }
   }

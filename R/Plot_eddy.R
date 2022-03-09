@@ -641,11 +641,11 @@ plot_precheck <- function(x,
   }
   ylim <- x[, var]
   if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
-  ylim <- openeddy:::setRange(ylim)
+  ylim <- setRange(ylim)
   plot(x$timestamp, x[, var], ylim = ylim,
        pch = pch, cex = cex, col = adjustcolor('black', alpha.f),
        xaxt = "n", xlab = "timestamp",
-       ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
+       ylab = paste0(var, " [", units(x[var]), "]"),
        main = paste0(var,
                      "; quantile range = ",
                      ifelse(is.null(qrange),
@@ -671,7 +671,7 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
   plot(x$timestamp, x[, var], pch = pch, cex = cex, xaxt = "n",
        col = adjustcolor('black', alpha.f),
        xlab = "timestamp",
-       ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
+       ylab = paste0(var, " [", units(x[var]), "]"),
        main = var)
   r <- as.POSIXct(round(range(x$timestamp), units))
   axis.POSIXct(1, at = seq(r[1], r[2], by = interval), format = format)
@@ -724,7 +724,7 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
                                      "closure_fraction"))
                  c(0, 1) else NULL,
                xlab = if (!is.null(interval)) paste(interval, "timescale"),
-               ylab = paste0(var, " [", openeddy::units(x[var]), "]"),
+               ylab = paste0(var, " [", units(x[var]), "]"),
                main = var,
                xpd = FALSE)
   if (is.null(nTicks)) {
@@ -797,8 +797,8 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
   center <- match.fun(center_name)
   deviation_name <- match.arg(deviation)
   deviation <- match.fun(deviation_name)
-  units_x <- openeddy::units(data[x])
-  units_y <- openeddy::units(data[y])
+  units_x <- units(data[x])
+  units_y <- units(data[y])
   data <- na.omit(data[c("timestamp", x, y)])
   # including also mid points in sequence
   sq <- quantile(data[, x], seq(0, 1, len = breaks*2-1), na.rm = TRUE)
@@ -820,7 +820,7 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
   edge <- na.omit(edge)
   ylim <- data[, y]
   if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
-  ylim <- openeddy:::setRange(ylim)
+  ylim <- setRange(ylim)
   val <- center(data[, y], na.rm = TRUE)
   cline <- data.frame(x_lim = df$wind_dir[c(1, nrow(df))], y = val)
   data$DOY <- as.POSIXlt(data$timestamp)$yday + 1

@@ -263,10 +263,8 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
   out <- aggregate(x[names(x) != "timestamp"],
                    list(Intervals = x$timestamp), mean, ...)
   out <- merge(zz, out, sort = FALSE)
-  openeddy::varnames(out) <- c("Intervals", "days",
-                               openeddy::varnames(x[names(x) != "timestamp"]))
-  openeddy::units(out) <- c("-", "-",
-                            openeddy::units(x[names(x) != "timestamp"]))
+  varnames(out) <- c("Intervals", "days", varnames(x[names(x) != "timestamp"]))
+  units(out) <- c("-", "-", units(x[names(x) != "timestamp"]))
   names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_mean"))
   return(out)
 }
@@ -351,24 +349,24 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   x[quant] <- x[quant] * interval * 1e-6 / 4.57 # 4.57 Thimijan and Heins (1983)
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
-    cat("Quantum to energy (", openeddy::units(x[quant])[1],
+    cat("Quantum to energy (", units(x[quant])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(quant, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(x[quant]) <- rep(energy_units, ncol(x[quant]))
+  units(x[quant]) <- rep(energy_units, ncol(x[quant]))
 
   # conversion from power to energy units
   # - from W m-2 to MJ+1hh-1m-2
   power <- power[power %in% names(x)]
   x[power] <- x[power] * interval * 1e-6
   if (length(power) > 0) {
-    cat("Power to energy (", openeddy::units(x[power])[1],
+    cat("Power to energy (", units(x[power])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(power, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(x[power]) <- rep(energy_units, ncol(x[power]))
+  units(x[power]) <- rep(energy_units, ncol(x[power]))
 
   # conversion from mean CO2 concentration flux to integrated mass flux of C
   # - from umol+1s-1m-2 to g(C)+1hh-1m-2
@@ -377,12 +375,12 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
-        openeddy::units(x[carbon])[1],
+        units(x[carbon])[1],
         " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(x[carbon]) <- rep(carbon_units, ncol(x[carbon]))
+  units(x[carbon]) <- rep(carbon_units, ncol(x[carbon]))
 
   # conversion for evapotranspiration
   # - from mm hour-1 to mm interval-1
@@ -390,12 +388,12 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   x[ET] <- x[ET] / 3600 * interval
   ET_units <- "mm"
   if (length(ET) > 0) {
-    cat("Evapotranspiration (", openeddy::units(x[ET])[1],
+    cat("Evapotranspiration (", units(x[ET])[1],
         " -> ", trimws(paste(ET_units, agg_per)), "):\n\n",
         paste(ET, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(x[ET]) <- rep(ET_units, ncol(x[ET]))
+  units(x[ET]) <- rep(ET_units, ncol(x[ET]))
 
   if (sum(length(c(quant, power, carbon, ET))) == 0)
     cat("No variables available for conversion\n")
@@ -406,12 +404,10 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   out <- aggregate(x[names(x) != "timestamp"],
                    list(Intervals = x$timestamp), sum, ...)
   out <- merge(zz, out, sort = FALSE)
-  openeddy::varnames(out) <- c("Intervals", "days",
-                               openeddy::varnames(x[names(x) != "timestamp"]))
-  openeddy::units(out) <- c("-", "-",
-                            openeddy::units(x[names(x) != "timestamp"]))
-  if (!is.null(agg_per)) openeddy::units(out)[-(1:2)] <-
-    trimws(paste(openeddy::units(out)[-(1:2)], agg_per))
+  varnames(out) <- c("Intervals", "days", varnames(x[names(x) != "timestamp"]))
+  units(out) <- c("-", "-", units(x[names(x) != "timestamp"]))
+  if (!is.null(agg_per)) units(out)[-(1:2)] <-
+    trimws(paste(units(out)[-(1:2)], agg_per))
   names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_sum"))
   return(out)
 }
@@ -523,15 +519,15 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   agg_SD <- aggregate(fsd, by = list(Intervals = x$timestamp), function(x)
     if (all(is.na(x))) NA_real_ else mean(x^2, na.rm = TRUE), drop = FALSE)
   agg_SD <- merge(zz, agg_SD, sort = FALSE)
-  openeddy::varnames(agg_SD[c("Intervals", "days")]) <- c("Intervals", "days")
-  openeddy::units(agg_SD[c("Intervals", "days")]) <- c("-", "-")
+  varnames(agg_SD[c("Intervals", "days")]) <- c("Intervals", "days")
+  units(agg_SD[c("Intervals", "days")]) <- c("-", "-")
 
   res_SD <- as.data.frame(mapply(function(SD, nEff)
     sqrt(SD / ifelse(nEff <= 1, NA_real_, nEff - 1)),
     SD = agg_SD[-(1:2)], nEff = nEff, SIMPLIFY = FALSE))
   names(res_SD) <- paste0(fsd_names, "_fsd")
-  openeddy::varnames(res_SD) <- names(res_SD)
-  openeddy::units(res_SD) <- openeddy::units(fsd)
+  varnames(res_SD) <- names(res_SD)
+  units(res_SD) <- units(fsd)
 
   res_mean <- res_sum <- cbind(agg_SD[c("Intervals", "days")], res_SD)
 
@@ -547,12 +543,12 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
     x * interval * 1e-6 / 4.57)) # 4.57 Thimijan and Heins (1983)
   energy_units <- "MJ m-2"
   if (length(quant) > 0) {
-    cat("Quantum to energy (", openeddy::units(res_sum[quant])[1],
+    cat("Quantum to energy (", units(res_sum[quant])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(quant, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(res_sum[quant]) <- rep(energy_units, ncol(res_sum[quant]))
+  units(res_sum[quant]) <- rep(energy_units, ncol(res_sum[quant]))
 
   # conversion from power to energy units
   # - from W m-2 to MJ+1hh-1m-2
@@ -560,12 +556,12 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   res_sum[power] <- as.data.frame(lapply(res_sum[power], function(x)
     x * interval * 1e-6))
   if (length(power) > 0) {
-    cat("Power to energy (", openeddy::units(res_sum[power])[1],
+    cat("Power to energy (", units(res_sum[power])[1],
         " -> ", trimws(paste(energy_units, agg_per)), "):\n\n",
         paste(power, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(res_sum[power]) <- rep(energy_units, ncol(res_sum[power]))
+  units(res_sum[power]) <- rep(energy_units, ncol(res_sum[power]))
 
   # conversion from mean CO2 concentration flux to integrated mass flux of C
   # - from umol+1s-1m-2 to g(C)+1hh-1m-2
@@ -575,12 +571,12 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
-        openeddy::units(res_sum[carbon])[1],
+        units(res_sum[carbon])[1],
         " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(res_sum[carbon]) <- rep(carbon_units, ncol(res_sum[carbon]))
+  units(res_sum[carbon]) <- rep(carbon_units, ncol(res_sum[carbon]))
 
   # conversion for evapotranspiration
   # - from mm hour-1 to mm interval-1
@@ -589,12 +585,12 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
     x / 3600 * interval))
   ET_units <- "mm"
   if (length(ET) > 0) {
-    cat("Evapotranspiration (", openeddy::units(res_sum[ET])[1],
+    cat("Evapotranspiration (", units(res_sum[ET])[1],
         " -> ", trimws(paste(ET_units, agg_per)), "):\n\n",
         paste(ET, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(res_sum[ET]) <- rep(ET_units, ncol(res_sum[ET]))
+  units(res_sum[ET]) <- rep(ET_units, ncol(res_sum[ET]))
 
   if (sum(length(c(quant, power, carbon, ET))) == 0)
     cat("No variables available for conversion\n")
@@ -606,8 +602,8 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 
   names(res_mean)[-(1:2)] <- paste0(names(res_mean[-(1:2)]), "_mean")
   names(res_sum)[-(1:2)] <- paste0(names(res_sum[-(1:2)]), "_sum")
-  if (!is.null(agg_per)) openeddy::units(res_sum)[-(1:2)] <-
-    trimws(paste(openeddy::units(res_sum)[-(1:2)], agg_per))
+  if (!is.null(agg_per)) units(res_sum)[-(1:2)] <-
+    trimws(paste(units(res_sum)[-(1:2)], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)
@@ -729,16 +725,15 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
     aggregate(Reco_SD, by = list(Intervals = x$timestamp), function(x)
       if (all(is.na(x))) NA_real_ else mean(x^2, na.rm = TRUE), drop = FALSE)
   agg_Reco_SD <- merge(zz, agg_Reco_SD, sort = FALSE)
-  openeddy::varnames(agg_Reco_SD[c("Intervals", "days")]) <-
-    c("Intervals", "days")
-  openeddy::units(agg_Reco_SD[c("Intervals", "days")]) <- c("-", "-")
+  varnames(agg_Reco_SD[c("Intervals", "days")]) <- c("Intervals", "days")
+  units(agg_Reco_SD[c("Intervals", "days")]) <- c("-", "-")
 
   res_Reco_SD <- as.data.frame(mapply(function(SD, nEff)
     sqrt(SD / ifelse(nEff <= 1, NA_real_, nEff - 1)),
     SD = agg_Reco_SD[-(1:2)], nEff = nEff_DT, SIMPLIFY = FALSE))
   names(res_Reco_SD) <- paste0("Reco_DT_", names(Reco_SD), "_SD")
-  openeddy::varnames(res_Reco_SD) <- names(res_Reco_SD)
-  openeddy::units(res_Reco_SD) <- openeddy::units(Reco_SD)
+  varnames(res_Reco_SD) <- names(res_Reco_SD)
+  units(res_Reco_SD) <- units(Reco_SD)
 
   agg_GPP_SD <-
     aggregate(GPP_SD, by = list(Intervals = x$timestamp), function(x)
@@ -748,8 +743,8 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
     sqrt(SD / ifelse(nEff <= 1, NA_real_, nEff - 1)),
     SD = agg_GPP_SD[-1], nEff = nEff_DT, SIMPLIFY = FALSE))
   names(res_GPP_SD) <- paste0("GPP_DT_", names(GPP_SD), "_SD")
-  openeddy::varnames(res_GPP_SD) <- names(res_GPP_SD)
-  openeddy::units(res_GPP_SD) <- openeddy::units(GPP_SD)
+  varnames(res_GPP_SD) <- names(res_GPP_SD)
+  units(res_GPP_SD) <- units(GPP_SD)
 
   res_mean <- res_sum <- cbind(agg_Reco_SD[c("Intervals", "days")],
                                res_Reco_SD, res_GPP_SD)
@@ -767,19 +762,19 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
   carbon_units <- "g(C) m-2"
   if (length(carbon) > 0) {
     cat("CO2 concentration to C mass flux (",
-        openeddy::units(res_sum[carbon])[1],
+        units(res_sum[carbon])[1],
         " -> ", trimws(paste(carbon_units, agg_per)), "):\n\n",
         paste(carbon, collapse = ", "),
         "\n-------------------------------------------------------\n", sep = "")
   }
-  openeddy::units(res_sum[carbon]) <- rep(carbon_units, ncol(res_sum[carbon]))
+  units(res_sum[carbon]) <- rep(carbon_units, ncol(res_sum[carbon]))
   if (length(carbon) == 0)
     cat("No variables available for conversion\n")
 
   names(res_mean)[-(1:2)] <- paste0(names(res_mean[-(1:2)]), "_mean")
   names(res_sum)[-(1:2)] <- paste0(names(res_sum[-(1:2)]), "_sum")
-  if (!is.null(agg_per)) openeddy::units(res_sum)[-(1:2)] <-
-    trimws(paste(openeddy::units(res_sum)[-(1:2)], agg_per))
+  if (!is.null(agg_per)) units(res_sum)[-(1:2)] <-
+    trimws(paste(units(res_sum)[-(1:2)], agg_per))
 
   out <- list(mean = res_mean, sum = res_sum)
   return(out)
@@ -1231,8 +1226,8 @@ Griebel20_budgets <- function(df,
     # increase row number by 1
     i <- i + 1
   }
-  openeddy::varnames(results) <- names(results)
-  openeddy::units(results) <- c("-", rep(units, 4), "#")
+  varnames(results) <- names(results)
+  units(results) <- c("-", rep(units, 4), "#")
 
   return(results)
 }
@@ -1433,8 +1428,8 @@ spti_boot <- function(df,
     # increase row number by 1
     i <- i + 1
   }
-  openeddy::varnames(results) <- names(results)
-  openeddy::units(results) <- c("-", rep(units, 4), "#")
+  varnames(results) <- names(results)
+  units(results) <- c("-", rep(units, 4), "#")
 
   return(results)
 }

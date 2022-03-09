@@ -132,14 +132,14 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
 #'
 #' @export
 round_df <- function(x, digits = 6) {
-  v <- openeddy::varnames(x)
-  u <- openeddy::units(x)
+  v <- varnames(x)
+  u <- units(x)
   col_double <- unlist(lapply(x, is.double))
   rounded <- apply(data.matrix(x[col_double]), 2, signif, digits = digits,
                    simplify = FALSE) # this assures 1 row df is handled well
   x[col_double] <- as.data.frame(rounded)
-  openeddy::varnames(x) <- v
-  openeddy::units(x) <- u
+  varnames(x) <- v
+  units(x) <- u
   return(x)
 }
 
@@ -327,8 +327,8 @@ units <- function(x, names = FALSE) {
 #'   \code{\link{varnames}}.
 #' @export
 ex <- function(x, i, j, drop = TRUE) {
-  v <- openeddy::varnames(x, names = TRUE)
-  u <- openeddy::units(x, names = TRUE)
+  v <- varnames(x, names = TRUE)
+  u <- units(x, names = TRUE)
 
   if (is.atomic(x)) {
     out <- x[i]
@@ -337,8 +337,8 @@ ex <- function(x, i, j, drop = TRUE) {
     v <- v[j]
     u <- u[j]
   } else stop("'x' must be either atomic type or data frame")
-  openeddy::varnames(out) <- v
-  openeddy::units(out) <- u
+  varnames(out) <- v
+  units(out) <- u
   return(out)
 }
 
@@ -1475,28 +1475,26 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
       if (sum(!qc_index & index) >= 2) { # if multiple matches
         first <- which(!qc_index & index)[1]
         temp <- rowMeans(x[!qc_index & index], na.rm = na.rm)
-        openeddy::varnames(temp) <-
+        varnames(temp) <-
           paste0("mean(",
-                 paste(openeddy::varnames(x[!qc_index & index]),
-                       collapse = ", "),
+                 paste(varnames(x[!qc_index & index]), collapse = ", "),
                  ", na.rm = ", na.rm, ")")
-        openeddy::units(temp) <- openeddy::units(x[first])
+        units(temp) <- units(x[first])
         out[i] <- temp
         if (!is.null(qc)) {
           first_qc <- which(qc_index & index)[1]
           temp_qc <- rowMeans(x[qc_index & index], na.rm = na.rm)
-          openeddy::varnames(temp_qc) <-
+          varnames(temp_qc) <-
             paste0("mean(",
-                   paste(openeddy::varnames(x[qc_index & index]),
-                         collapse = ", "),
+                   paste(varnames(x[qc_index & index]), collapse = ", "),
                    ", na.rm = ", na.rm, ")")
-          openeddy::units(temp_qc) <- openeddy::units(x[first_qc])
+          units(temp_qc) <- units(x[first_qc])
           out[paste0("qc_", i)] <- temp_qc
         }
       } else if (sum(!qc_index & index) == 0) { # if no match
         out[i] <- NA
-        openeddy::varnames(out[i]) <- i
-        openeddy::units(out[i]) <- "-"
+        varnames(out[i]) <- i
+        units(out[i]) <- "-"
         cat(sprintf("Column with pattern '%s' not found in 'x'\n",
                     source[i]))
         cat(sprintf("Respective column '%s' initialized with NA values\n", i))
@@ -1514,8 +1512,8 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
         match(source[i], gsub(qc, "", names(x)[all_qc]), nomatch = 0)
       if (is.na(index)) {
         out[i] <- NA
-        openeddy::varnames(out[i]) <- i
-        openeddy::units(out[i]) <- "-"
+        varnames(out[i]) <- i
+        units(out[i]) <- "-"
         cat(sprintf("Column '%s' not found in 'x'\n", source[i]))
         cat(sprintf("Respective column '%s' initialized with NA values\n", i))
       } else {
@@ -1638,11 +1636,11 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   if (any(unlist(is_POSIXlt))) {
     for (i in sq) {
       if (!is_POSIXlt[i]) next
-      v <- openeddy::varnames(x[[i]], names = TRUE)
-      u <- openeddy::units(x[[i]], names = TRUE)
+      v <- varnames(x[[i]], names = TRUE)
+      u <- units(x[[i]], names = TRUE)
       x[[i]]$timestamp <- as.POSIXct(x[[i]]$timestamp)
-      openeddy::varnames(x[[i]]) <- v
-      openeddy::units(x[[i]]) <- u
+      varnames(x[[i]]) <- v
+      units(x[[i]]) <- u
     }
   }
 
@@ -1667,7 +1665,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
       message("removing rows in 'x' elements with duplicated timestamp at:\n",
               xrows)
       # remove the duplicated rows from the elements of 'x'
-      for (i in sq) x[[i]] <- openeddy::ex(x[[i]], !l_dupl[[i]], )
+      for (i in sq) x[[i]] <- ex(x[[i]], !l_dupl[[i]], )
     }
   }
 
@@ -1676,8 +1674,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     out <- x[[1]]
     out_vu <- as.data.frame(do.call(
       rbind,
-      list(openeddy::varnames(x[[1]], names = TRUE),
-           openeddy::units(x[[1]], names = TRUE))))
+      list(varnames(x[[1]], names = TRUE), units(x[[1]], names = TRUE))))
   } else {
     # normal case of merging multiple data frames in list 'x'
     out <- Reduce(function(x, y)
@@ -1686,8 +1683,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     # extract variables and units and bind within each list element as data frame
     vu <- lapply(x, function(x) as.data.frame(do.call(
       rbind,
-      list(openeddy::varnames(x, names = TRUE),
-           openeddy::units(x, names = TRUE)))))
+      list(varnames(x, names = TRUE), units(x, names = TRUE)))))
 
     # merge to get the same order and number of variables as in 'out'
     out_vu <- Reduce(function(x, y)
@@ -1754,8 +1750,8 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
 
   # Last merge could move timestamp so names need to be matched
   pos <- match(names(out), names(out_vu))
-  openeddy::varnames(out) <- t(out_vu)[pos, 1] # t() to extract as vector
-  openeddy::units(out) <- t(out_vu)[pos, 2]
+  varnames(out) <- t(out_vu)[pos, 1] # t() to extract as vector
+  units(out) <- t(out_vu)[pos, 2]
 
   # Force storage mode of timestamp to integer to simplify data frame rounding
   storage.mode(out$timestamp) <- "integer"
@@ -1831,8 +1827,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
     file <- tempfile()
     writeLines(l[[i]], file)
     # Load Meteo data with units and remove the temporary file
-    l[[i]] <-
-      openeddy::read_eddy(file, skip = 9, sep = ";", check.names = FALSE)
+    l[[i]] <- read_eddy(file, skip = 9, sep = ";", check.names = FALSE)
     unlink(file)
     # All files downloaded from MeteoDBS include empty last column without name
     # This complicates merging and should be removed
@@ -1841,18 +1836,18 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
       l[[i]][last_col] <- NULL
     # Create "timestamp" of class "POSIXct" required by merge_eddy()
     l[[i]]$timestamp <-
-      openeddy::strptime_eddy(l[[i]]$`date/time`, format, shift.by = shift.by,
-                              allow_gaps = allow_gaps)
+      strptime_eddy(l[[i]]$`date/time`, format, shift.by = shift.by,
+                    allow_gaps = allow_gaps)
   }
   # Merge all chunks together
-  res <- openeddy::merge_eddy(l, start, end)
+  res <- merge_eddy(l, start, end)
   message("if present, all gaps in timestamp were filled")
   # Overwrite original "date/time" by corrected (validated) "timestamp"
   res$`date/time` <- res$timestamp
   # Remove "timestamp" column that was not included in original data
   res$timestamp <- NULL
   # strptime_eddy() automatically sets "date/time" varname to "timestamp"
-  openeddy::varnames(res)[names(res) == "date/time"] <- "date/time"
+  varnames(res)[names(res) == "date/time"] <- "date/time"
   # Report stats about NA values in resulting data frame
   if (verbose) {
     # computations on data frames are highly inefficient - convert to matrix
@@ -1862,10 +1857,10 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
     # - computation can take few secs so moved above any printed text
     if (NA_tot) {
       # Find row indices without any meteorological data
-      i_NA_rows <- openeddy:::allNA(
+      i_NA_rows <- allNA(
         mres[, !(colnames(mres) %in% "date/time"), drop = FALSE], 1)
       # Find columns without any meteorological data
-      NA_cols <- openeddy:::allNA(mres, 2) # ("date/time" checked too)
+      NA_cols <- allNA(mres, 2) # ("date/time" checked too)
       # Find columns with gaps in meteorological data
       gaps <- apply(mres, 2, anyNA)
     }
@@ -1999,11 +1994,11 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
   l <- vector("list", length(lf))
   names(l) <- lf
   for (i in seq_along(lf)) {
-    l[[i]] <- openeddy::read_eddy(lf[i], check.names = FALSE, skip = skip,
-                                  fileEncoding = fileEncoding)
-    timestamp <- openeddy::strptime_eddy(paste(l[[i]]$date, l[[i]]$time),
-                                         format = format, shift.by = shift.by,
-                                         allow_gaps = allow_gaps)
+    l[[i]] <- read_eddy(lf[i], check.names = FALSE, skip = skip,
+                        fileEncoding = fileEncoding)
+    timestamp <- strptime_eddy(paste(l[[i]]$date, l[[i]]$time),
+                               format = format, shift.by = shift.by,
+                               allow_gaps = allow_gaps)
     l[[i]] <- cbind(timestamp, l[[i]])
     # exception1: rename old column name "max_speed" to new "max_wind_speed"
     exception1 <- grepl("max_speed", names(l[[i]]))
@@ -2012,7 +2007,7 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
       message("column name 'max_speed' renamed to 'max_wind_speed' in ", lf[i])
     }
   }
-  EP <- openeddy::merge_eddy(l, start, end)
+  EP <- merge_eddy(l, start, end)
   message("if present, all gaps in timestamp were filled")
   return(EP)
 }

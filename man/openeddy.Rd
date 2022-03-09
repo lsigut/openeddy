@@ -3,15 +3,15 @@
 \docType{package}
 \name{openeddy}
 \alias{openeddy}
-\title{The R Package for Low Frequency Eddy Covariance Data Processing}
+\title{Post-process eddy covariance data with ease}
 \description{
-This package provides utilities for eddy covariance data handling, quality
-checking (similar to Mauder et al., 2013), processing, summarising and
-plotting. It aims to standardise the automated quality checking and make data
-processing reproducible. In combination with \code{REddyProc} package it
-allows to process eddy covariance data with single processing chain. An
-extended example describing the intended eddy covariance data processing
-workflow is available at: \url{https://github.com/lsigut/EC_workflow}.
+The openeddy package is a software infrastructure for eddy covariance data
+post-processing. It provides tools for handling data with attached metadata,
+setting up quality control scheme and summarizing and plotting the results.
+It is aligned with REddyProc package that provides methods for
+uStar-filtering, gap-filling, and flux-partitioning. Thus the combined use of
+openeddy and REddyProc allows to run the whole eddy covariance
+post-processing chain. Learn more at <https://github.com/lsigut/EC_workflow>.
 }
 \section{References}{
  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
