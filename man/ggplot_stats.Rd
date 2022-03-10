@@ -61,6 +61,7 @@ x <- data.frame(timestamp = tstamp,
 openeddy::units(x) <- c("", "deg", "W m-2")
 ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
+
 }
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},

@@ -158,15 +158,16 @@ round_df <- function(x, digits = 6) {
 #' @seealso \code{\link{NA}} for general information about NAs and
 #'   \code{\link{apply}} for \code{apply} description.
 #' @examples
+#' \dontrun{
 #' xx <- matrix(1:20, nrow = 4)
 #' xx[2, ] <- NA
 #' allNA(xx, 2) # All columns have at least one non-missing value
 #' allNA(xx, 1) # Second row has all values missing
-#' \dontrun{
 #' apply(xx, 1, max, na.rm = TRUE)
-#' ## returns c(17, -Inf, 19, 20) and a warning message}
+#' ## returns c(17, -Inf, 19, 20) and a warning message
 #' ## Skip the allNA row in apply()
 #' apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
+#' }
 #' @keywords internal
 allNA <- function(x, margin) {
   apply(x, margin, function(x) all(is.na(x)))
@@ -275,6 +276,8 @@ units <- function(x, names = FALSE) {
 }
 
 #' @rdname varnames
+#'
+#' @importFrom methods is
 #' @export
 `units<-` <- function(x, value) {
   if (!is.atomic(value)) stop("'value' must be of atomic type")
@@ -718,6 +721,8 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #' (ex_data <- read_eddy("ex.data", row.names = 1))
 #' str(ex_data)
 #' unlink("ex.data")}
+#'
+#' @importFrom utils write.table
 #' @export
 write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
                        units_fill = "-", na = "-9999", row.names = FALSE,
@@ -1615,6 +1620,8 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' z1 <- ex(x, 8:20, 1:3)
 #' z <- merge_eddy(list(y1, z1))
 #'
+#' @importFrom stats median
+#' @importFrom utils relist
 #' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
                        interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
@@ -1811,6 +1818,9 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
 #'   automatically detected time interval.
 #' @param verbose A logical value. Should additional statistics about presence
 #'   of \code{NA} values in resulting data frame be printed to console?
+#'
+#' @importFrom stats median
+#' @importFrom utils read.table
 #' @export
 read_MeteoDBS <- function(path, start = NULL, end = NULL,
                           format = "%d.%m.%Y %H:%M", shift.by = NULL,
@@ -1976,7 +1986,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #'   reading data.
 #' @param fileEncoding A character string. If non-empty, declares the encoding
 #'   used on a file (not a connection) so the character data can be re-encoded.
-#'   See \code{\link{read_table}} for further details.
+#'   See \code{\link{read.table}} for further details.
 #' @param format A character string. Format of \code{start} (\code{end}) if
 #'   provided as a character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
@@ -2077,6 +2087,8 @@ strip_suffix <- function(x, warn = FALSE) {
 #' all_names <- c("TA", "TS", "VPD", "LE", "H", "NEE")
 #' names <- c("H", "LE", "PM10")
 #' choose_avail(names, all_names)
+#'
+#' @importFrom stats na.omit
 #' @export
 choose_avail <- function(names, all_names, show_ignored = FALSE) {
   names <- na.omit(names)

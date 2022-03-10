@@ -81,6 +81,7 @@ x <- data.frame(timestamp = tstamp, qc_H = rep(0, 10), H = rnorm(10))
 man <- check_manually(x, "./", vars = "H", qc_prefix = "qc_", qc_suffix = "",
 interactive = TRUE, siteyear = "MySite", win_size = 10)
 summary_QC(man, names(man)[-1])}
+
 }
 \seealso{
 \code{\link{exclude}}, \code{\link{locator}},

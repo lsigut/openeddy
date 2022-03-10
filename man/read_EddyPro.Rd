@@ -34,7 +34,7 @@ reading data.}
 
 \item{fileEncoding}{A character string. If non-empty, declares the encoding
 used on a file (not a connection) so the character data can be re-encoded.
-See \code{\link{read_table}} for further details.}
+See \code{\link{read.table}} for further details.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
 provided as a character string.}

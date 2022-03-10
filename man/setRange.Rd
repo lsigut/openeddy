@@ -29,6 +29,7 @@ If \code{x} length is higher than \code{filter} length, \code{filter} will be
 recycled.
 }
 \examples{
+\dontrun{
 (aa <- c(1, NA, Inf, -Inf, 3, NaN, rep(NA, 4)))
 range(aa, finite = TRUE)
 setRange(aa, TRUE) # same effect
@@ -37,6 +38,7 @@ aa[rep(c(FALSE, TRUE), each = 5)]
 suppressWarnings(range(aa[rep(c(FALSE, TRUE), each = 5)], finite = TRUE))
 setRange(aa, rep(c(FALSE, TRUE), each = 5)) # range taken from unfiltered 'aa'
 setRange(aa[c(FALSE, TRUE)]) # No finite values in 'x', applies 'man' range
+}
 }
 \seealso{
 \code{\link{range}}.

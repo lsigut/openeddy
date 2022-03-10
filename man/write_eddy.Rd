@@ -120,6 +120,7 @@ close(zz)
 (ex_data <- read_eddy("ex.data", row.names = 1))
 str(ex_data)
 unlink("ex.data")}
+
 }
 \seealso{
 \code{\link{write.table}} for information about full list of allowed

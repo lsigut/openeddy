@@ -274,6 +274,7 @@ results <- cbind(DETha98["timestamp"], EProc$sExportResults())
 (unc_DT <- agg_DT_SD(results, "\%b-\%y", agg_per = "month-1"))
 lapply(unc_DT, openeddy::units, names = TRUE)
 }
+
 }
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},

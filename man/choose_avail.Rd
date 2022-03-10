@@ -24,4 +24,5 @@ variables and missing cases are reported.
 all_names <- c("TA", "TS", "VPD", "LE", "H", "NEE")
 names <- c("H", "LE", "PM10")
 choose_avail(names, all_names)
+
 }

@@ -21,15 +21,16 @@ there are only \code{NA} values in selected margins and therefore e.g.
 statistics like \code{max} or \code{min} do not produce useful results.
 }
 \examples{
+\dontrun{
 xx <- matrix(1:20, nrow = 4)
 xx[2, ] <- NA
 allNA(xx, 2) # All columns have at least one non-missing value
 allNA(xx, 1) # Second row has all values missing
-\dontrun{
 apply(xx, 1, max, na.rm = TRUE)
-## returns c(17, -Inf, 19, 20) and a warning message}
+## returns c(17, -Inf, 19, 20) and a warning message
 ## Skip the allNA row in apply()
 apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
+}
 }
 \seealso{
 \code{\link{NA}} for general information about NAs and

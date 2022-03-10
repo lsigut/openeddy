@@ -210,6 +210,9 @@
 #' (unc_DT <- agg_DT_SD(results, "%b-%y", agg_per = "month-1"))
 #' lapply(unc_DT, openeddy::units, names = TRUE)
 #' }
+#'
+#' @importFrom stats median
+#' @importFrom stats aggregate
 #' @export
 agg_mean <- function(x, format, breaks = NULL, interval = NULL,
                      tz = "GMT", ...) {
@@ -270,6 +273,9 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
 }
 
 #' @rdname agg_mean
+#'
+#' @importFrom stats median
+#' @importFrom stats aggregate
 #' @export
 agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     NEE_scor = TRUE, GPP_scor = FALSE,
@@ -413,6 +419,9 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 }
 
 #' @rdname agg_mean
+#'
+#' @importFrom stats median
+#' @importFrom stats aggregate
 #' @export
 agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
@@ -610,6 +619,8 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 }
 
 #' @rdname agg_mean
+#' @importFrom stats median
+#' @importFrom stats aggregate
 #' @export
 agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
@@ -969,6 +980,8 @@ boot <- function(x, min_rec) {
 # size of sample according to smallest nRec across bins
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
+#'
+#' @importFrom stats quantile
 #' @keywords internal
 calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
                            samples, normalize) {
@@ -1437,6 +1450,26 @@ spti_boot <- function(df,
 # function to calculate spatio-temporal sampling coverage
 # must be applied to cleaned data frame
 # year argument accepts value "all" (applied across all years)
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 geom_area
+#' @importFrom ggplot2 geom_line
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 scale_fill_identity
+#' @importFrom ggplot2 scale_colour_manual
+#' @importFrom ggplot2 theme_classic
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 margin
+#' @importFrom ggplot2 element_text
+#' @importFrom ggplot2 labs
+#' @importFrom ggplot2 xlab
+#' @importFrom ggplot2 ylab
+#' @importFrom ggplot2 guides
+#' @importFrom ggplot2 guide_legend
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 geom_point
 #' @keywords internal
 calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   if (nInt < 2) stop("spatio-temporal coverage relevant only for nInt > 1")
@@ -1464,51 +1497,51 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   }
 
   x <- data.frame(uniform = uniform_cumul, SSC = space_cumul, TSC = time_cumul)
-  sp <- ggplot2::ggplot(x, ggplot2::aes(x = uniform)) +
-    ggplot2::geom_area(ggplot2::aes(y = uniform, fill = "grey60")) +
-    ggplot2::geom_area(ggplot2::aes(y = SSC, fill = "grey90")) +
-    ggplot2::geom_line(ggplot2::aes(y = SSC, color = "b")) +
-    ggplot2::geom_point(ggplot2::aes(y = SSC, color = "b")) +
-    ggplot2::scale_fill_identity(name = NULL,
-                                 guide = 'legend',
-                                 labels = c('uniform spatial coverage = 1',
-                                            paste('spatial sampling coverage =',
-                                                  SSC))) +
-    ggplot2::scale_colour_manual(name = NULL, values =c('b'='black'),
-                                 labels = c('observations')) +
-    ggplot2::theme_classic() +
-    ggplot2::theme(legend.position = c(0.1, 0.8),
-                   legend.justification = "left",
-                   legend.margin = ggplot2::margin(0, 0, 0, 0, "pt"),
-                   plot.title = ggplot2::element_text(hjust = 0.5)) +
-    ggplot2::labs(title = 'Spatial sampling coverage') +
-    ggplot2::xlab('Expected cumulative contribution') +
-    ggplot2::ylab('Observed cumulative contribution') +
-    ggplot2::guides(fill = ggplot2::guide_legend(order = 1),
-                    col = ggplot2::guide_legend(order = 2))
+  sp <- ggplot(x, aes(x = uniform)) +
+    geom_area(aes(y = uniform, fill = "grey60")) +
+    geom_area(aes(y = SSC, fill = "grey90")) +
+    geom_line(aes(y = SSC, color = "b")) +
+    geom_point(aes(y = SSC, color = "b")) +
+    scale_fill_identity(name = NULL,
+                        guide = 'legend',
+                        labels = c('uniform spatial coverage = 1',
+                                   paste('spatial sampling coverage =',
+                                         SSC))) +
+    scale_colour_manual(name = NULL, values =c('b'='black'),
+                        labels = c('observations')) +
+    theme_classic() +
+    theme(legend.position = c(0.1, 0.8),
+          legend.justification = "left",
+          legend.margin = margin(0, 0, 0, 0, "pt"),
+          plot.title = element_text(hjust = 0.5)) +
+    labs(title = 'Spatial sampling coverage') +
+    xlab('Expected cumulative contribution') +
+    ylab('Observed cumulative contribution') +
+    guides(fill = guide_legend(order = 1),
+           col = guide_legend(order = 2))
 
-  tp <- ggplot2::ggplot(x, ggplot2::aes(x = uniform)) +
-    ggplot2::geom_area(ggplot2::aes(y = uniform, fill = "grey60")) +
-    ggplot2::geom_area(ggplot2::aes(y = TSC, fill = "grey90")) +
-    ggplot2::geom_line(ggplot2::aes(y = TSC, color = "b")) +
-    ggplot2::geom_point(ggplot2::aes(y = TSC, color = "b")) +
-    ggplot2::scale_fill_identity(name = NULL,
-                                 guide = 'legend',
-                                 labels = c('uniform temporal coverage = 1',
-                                            paste('temporal sampling coverage =',
-                                                  TSC))) +
-    ggplot2::scale_colour_manual(name = NULL, values =c('b'='black'),
-                                 labels = c('observations')) +
-    ggplot2::theme_classic() +
-    ggplot2::theme(legend.position = c(0.1, 0.8),
-                   legend.justification = "left",
-                   legend.margin = ggplot2::margin(0, 0, 0, 0, "pt"),
-                   plot.title = ggplot2::element_text(hjust = 0.5)) +
-    ggplot2::labs(title = 'Temporal sampling coverage') +
-    ggplot2::xlab('Expected cumulative contribution') +
-    ggplot2::ylab('Observed cumulative contribution') +
-    ggplot2::guides(fill = ggplot2::guide_legend(order = 1),
-                    col = ggplot2::guide_legend(order = 2))
+  tp <- ggplot(x, aes(x = uniform)) +
+    geom_area(aes(y = uniform, fill = "grey60")) +
+    geom_area(aes(y = TSC, fill = "grey90")) +
+    geom_line(aes(y = TSC, color = "b")) +
+    geom_point(aes(y = TSC, color = "b")) +
+    scale_fill_identity(name = NULL,
+                        guide = 'legend',
+                        labels = c('uniform temporal coverage = 1',
+                                   paste('temporal sampling coverage =',
+                                         TSC))) +
+    scale_colour_manual(name = NULL, values =c('b'='black'),
+                        labels = c('observations')) +
+    theme_classic() +
+    theme(legend.position = c(0.1, 0.8),
+          legend.justification = "left",
+          legend.margin = margin(0, 0, 0, 0, "pt"),
+          plot.title = element_text(hjust = 0.5)) +
+    labs(title = 'Temporal sampling coverage') +
+    xlab('Expected cumulative contribution') +
+    ylab('Observed cumulative contribution') +
+    guides(fill = guide_legend(order = 1),
+           col = guide_legend(order = 2))
 
   list(spatial_sampling_coverage = sp, temporal_sampling_coverage = tp)
 }

@@ -595,6 +595,9 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 #' @return A logical vector. \code{TRUE} values flag spikes.
 #'
 #' @seealso use \code{\link{despikeLF}} instead.
+#'
+#' @importFrom stats median
+#' @importFrom stats mad
 #' @keywords internal
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
                  refBlock2 = refBlock1, z, c) {
@@ -640,6 +643,8 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'   var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
 #'   data frame identical to the one produced if \code{plot = FALSE}) and
 #'   \code{plots} containing a list of \code{ggplot} objects.
+#'
+#' @importFrom stats na.omit
 #' @keywords internal
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
@@ -1054,6 +1059,10 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #'
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
+#'
+#' @importFrom graphics lines
+#' @importFrom graphics identify
+#' @importFrom graphics points
 #' @export
 exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   len <- length(x)
@@ -1199,6 +1208,9 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
 #' man <- check_manually(x, "./", vars = "H", qc_prefix = "qc_", qc_suffix = "",
 #' interactive = TRUE, siteyear = "MySite", win_size = 10)
 #' summary_QC(man, names(man)[-1])}
+#'
+#' @importFrom utils read.csv
+#' @importFrom utils write.csv
 #' @export
 check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
                            siteyear, tname = "timestamp", with_units = FALSE,
