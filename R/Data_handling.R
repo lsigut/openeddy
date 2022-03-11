@@ -328,6 +328,7 @@ units <- function(x, names = FALSE) {
 #'
 #' @seealso \code{\link{Extract}}, \code{\link{drop}} and
 #'   \code{\link{varnames}}.
+#'
 #' @export
 ex <- function(x, i, j, drop = TRUE) {
   v <- varnames(x, names = TRUE)
@@ -465,6 +466,7 @@ ex <- function(x, i, j, drop = TRUE) {
 #' "24.1.2015,1.70
 #' 24.1.2016,1.72")
 #' str(bb)
+#'
 #' @export
 read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
                       quote = "\"", dec = ".", units_fill = "-",
@@ -599,6 +601,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' ## interval argument provided incorrectly
 #' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)
 #' }
+#'
 #' @export
 strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
@@ -810,6 +813,7 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
 #' correct(c("qc_co2_flux", "qc_NEE_SSITC"), unique = TRUE)
 #' correct(c("[m]", "(s)", "kg"), attr = "units")
+#'
 #' @export
 correct <- function(x, attr = c("names", "units"), ...) {
   attr <- match.arg(attr)
@@ -911,6 +915,7 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #' na.as = 2, name_out = "add_F_na.as_2")
 #' str(aa)
 #' aa
+#'
 #' @export
 combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
                      na.as = NULL, additive_pattern = "interdep$|wresid$",
@@ -1031,6 +1036,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' aa$flux_stc <- add_st(aa$flux, aa$st, aa$stp, "flux_stc")
 #' aa
 #' lapply(aa, attributes)
+#'
 #' @export
 add_st <- function(flux, st, stp = NULL, name_out = "-") {
   if (length(flux) != length(st)) {
@@ -1129,6 +1135,7 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #'   deficit values should be checked.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#'
 #' @encoding UTF-8
 #' @export
 set_OT_input <- function(x, names_in,
@@ -1279,6 +1286,7 @@ set_OT_input <- function(x, names_in,
 #' (xx <- summary_QC(aa, letters[1:6], cumul = TRUE, plot = TRUE,
 #' flux = "CO2 flux"))
 #' xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
+#'
 #' @export
 summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
                        flux = NULL, na.as = NULL,
@@ -1449,6 +1457,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #'   assigned to each respective column.
 #'
 #' @seealso \code{\link{varnames}}.
+#'
 #' @export
 remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
                        na.rm = TRUE) {
@@ -1620,7 +1629,6 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' z1 <- ex(x, 8:20, 1:3)
 #' z <- merge_eddy(list(y1, z1))
 #'
-#' @importFrom stats median
 #' @importFrom utils relist
 #' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
@@ -1819,7 +1827,6 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
 #' @param verbose A logical value. Should additional statistics about presence
 #'   of \code{NA} values in resulting data frame be printed to console?
 #'
-#' @importFrom stats median
 #' @importFrom utils read.table
 #' @export
 read_MeteoDBS <- function(path, start = NULL, end = NULL,
@@ -1994,6 +2001,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
 #'   not have to be regular but time differences must be multiples of
 #'   automatically detected time interval.
+#'
 #' @export
 read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
                          fileEncoding = "UTF-8", format = "%Y-%m-%d %H:%M",
@@ -2030,6 +2038,7 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
 #' @param path A character vector. The full paths to TXT files.
 #'
 #' @seealso \code{\link{readLines}}.
+#'
 #' @export
 combine_docu <- function(path) {
   unlist(lapply(path, function(x) c(readLines(x, warn = FALSE), "")))
@@ -2052,6 +2061,7 @@ combine_docu <- function(path) {
 #' @examples
 #' x <- c("TA_1_1_1", "TS_1_1_1", "VPD")
 #' strip_suffix(x)
+#'
 #' @export
 strip_suffix <- function(x, warn = FALSE) {
   x <- as.character(x)
@@ -2088,7 +2098,6 @@ strip_suffix <- function(x, warn = FALSE) {
 #' names <- c("H", "LE", "PM10")
 #' choose_avail(names, all_names)
 #'
-#' @importFrom stats na.omit
 #' @export
 choose_avail <- function(names, all_names, show_ignored = FALSE) {
   names <- na.omit(names)

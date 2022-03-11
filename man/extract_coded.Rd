@@ -65,6 +65,7 @@ xx <- replicate(10,
 is.na(xx) <- c(2, 5)
 units(xx) <- "8u/v/w/ts/h2o/co2"
 cbind(xx, extract_coded(xx))
+
 }
 \seealso{
 \code{\link{extract_QC}}.

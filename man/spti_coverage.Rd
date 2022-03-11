@@ -102,6 +102,7 @@ filled$DateTime <- filled$DateTime - 900
 spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc", plot = TRUE)
 }
+
 }
 \seealso{
 \code{\link{Griebel20_budgets}} and \code{\link{spti_boot}}.

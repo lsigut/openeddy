@@ -43,6 +43,7 @@ aa[c(4, 8, 9, 11, 15, 18, 22, 25, 27, 29)] <- NA
 aa$flux_stc <- add_st(aa$flux, aa$st, aa$stp, "flux_stc")
 aa
 lapply(aa, attributes)
+
 }
 \seealso{
 \code{\link{units}}.

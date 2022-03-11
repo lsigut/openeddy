@@ -104,6 +104,7 @@ aa$add_F_na.as_2 <- combn_QC(aa, qc_names = c("xx", "yy"), additive = FALSE,
 na.as = 2, name_out = "add_F_na.as_2")
 str(aa)
 aa
+
 }
 \seealso{
 \code{\link{summary_QC}}.

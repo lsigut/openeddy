@@ -194,17 +194,8 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
 #'
-#' @importFrom graphics lines
-#' @importFrom graphics points
-#' @importFrom graphics par
-#' @importFrom graphics grid
-#' @importFrom graphics axis.POSIXct
-#' @importFrom graphics axis
-#' @importFrom graphics abline
-#' @importFrom graphics mtext
-#' @importFrom graphics legend
-#' @importFrom graphics layout
-#' @importFrom graphics barplot
+#' @importFrom graphics lines points par grid axis.POSIXct axis abline mtext
+#'   legend layout barplot
 #' @export
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       flux_gf = "none", NEE_sep = FALSE,
@@ -639,7 +630,6 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #' plot_precheck(x, "H")
 #' plot_precheck(x, "H", units = "days", interval = "2 months", format = "%d-%b")
 #'
-#' @importFrom stats quantile
 #' @importFrom graphics axis.POSIXct
 #' @importFrom grDevices adjustcolor
 #' @export
@@ -732,9 +722,7 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
 #' aggd <- agg_sum(x, "%Y-%m-%d")
 #' barplot_agg(aggd, var = "H_sum", "daily")
 #'
-#' @importFrom graphics barplot
-#' @importFrom graphics axis
-#' @importFrom graphics box
+#' @importFrom graphics barplot axis box
 #' @export
 barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
                         names.arg = x$Intervals) {
@@ -809,12 +797,7 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 #' ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
 #'
-#' @importFrom stats median
-#' @importFrom stats mad
-#' @importFrom stats sd
-#' @importFrom stats na.omit
-#' @importFrom stats quantile
-#' @importFrom stats approx
+#' @importFrom stats mad sd approx
 #' @importFrom grDevices hcl.colors
 #' @export
 ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,

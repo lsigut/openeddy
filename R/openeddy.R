@@ -15,4 +15,6 @@
 #'
 #' @docType package
 #' @name openeddy
+#'
+#' @importFrom stats median na.omit quantile aggregate
 NULL

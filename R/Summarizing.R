@@ -211,8 +211,6 @@
 #' lapply(unc_DT, openeddy::units, names = TRUE)
 #' }
 #'
-#' @importFrom stats median
-#' @importFrom stats aggregate
 #' @export
 agg_mean <- function(x, format, breaks = NULL, interval = NULL,
                      tz = "GMT", ...) {
@@ -274,8 +272,6 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
 
 #' @rdname agg_mean
 #'
-#' @importFrom stats median
-#' @importFrom stats aggregate
 #' @export
 agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     NEE_scor = TRUE, GPP_scor = FALSE,
@@ -420,8 +416,6 @@ agg_sum <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 
 #' @rdname agg_mean
 #'
-#' @importFrom stats median
-#' @importFrom stats aggregate
 #' @export
 agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                     quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
@@ -619,8 +613,7 @@ agg_fsd <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 }
 
 #' @rdname agg_mean
-#' @importFrom stats median
-#' @importFrom stats aggregate
+#'
 #' @export
 agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
                       carbon = grep("^Reco|^GPP", names(x), value = TRUE),
@@ -981,7 +974,6 @@ boot <- function(x, min_rec) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #'
-#' @importFrom stats quantile
 #' @keywords internal
 calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
                            samples, normalize) {
@@ -1152,6 +1144,7 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' filled$DateTime <- filled$DateTime - 900
 #' Griebel20_budgets(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 #' }
+#'
 #' @export
 Griebel20_budgets <- function(df,
                               TimestampCol = "TIMESTAMP_START",
@@ -1359,6 +1352,7 @@ Griebel20_budgets <- function(df,
 #' filled$DateTime <- filled$DateTime - 900
 #' spti_boot(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 #' }
+#'
 #' @export
 spti_boot <- function(df,
                       TimestampCol = "TIMESTAMP_START",
@@ -1450,26 +1444,9 @@ spti_boot <- function(df,
 # function to calculate spatio-temporal sampling coverage
 # must be applied to cleaned data frame
 # year argument accepts value "all" (applied across all years)
-#' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes
-#' @importFrom ggplot2 geom_area
-#' @importFrom ggplot2 geom_line
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 scale_fill_identity
-#' @importFrom ggplot2 scale_colour_manual
-#' @importFrom ggplot2 theme_classic
-#' @importFrom ggplot2 theme
-#' @importFrom ggplot2 margin
-#' @importFrom ggplot2 element_text
-#' @importFrom ggplot2 labs
-#' @importFrom ggplot2 xlab
-#' @importFrom ggplot2 ylab
-#' @importFrom ggplot2 guides
-#' @importFrom ggplot2 guide_legend
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 geom_point
-#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 ggplot aes geom_area geom_line geom_point
+#'   scale_fill_identity scale_colour_manual theme_classic theme margin
+#'   element_text labs xlab ylab guides guide_legend
 #' @keywords internal
 calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   if (nInt < 2) stop("spatio-temporal coverage relevant only for nInt > 1")
@@ -1624,6 +1601,7 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 #' spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc", plot = TRUE)
 #' }
+#'
 #' @export
 spti_coverage <- function(df,
                           TimestampCol = "TIMESTAMP_START",

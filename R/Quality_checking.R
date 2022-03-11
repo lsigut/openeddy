@@ -46,6 +46,7 @@
 #' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
+#'
 #' @export
 apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower")) {
@@ -109,6 +110,7 @@ apply_thr <- function(x, thr, name_out = "-",
 #' flag_runs(xx, "qc_xx_runs")
 #' (yy <- rep(1:6, rep(c(2, 1), 3)))
 #' flag_runs(yy, "qc_yy_runs")
+#'
 #' @export
 flag_runs <- function(x, name_out = "-", length = 2) {
   if (!is.numeric(x)) stop("'x' must be numeric")
@@ -138,6 +140,7 @@ flag_runs <- function(x, name_out = "-", length = 2) {
 
 #' Helper function utilized in extract_coded() for abslim and spikesHF
 #' - controls column splitting
+#'
 #' @keywords internal
 separate <- function(x, ...) {
   strsplit(as.character(gsub(...,"", x)), NULL)
@@ -148,6 +151,7 @@ separate <- function(x, ...) {
 #' - 9 is EddyPro code for NA
 #' - in case of missing half hour inserts NAs according to number of variables
 #'   in 'units'
+#'
 #' @keywords internal
 handleNA <- function(x, variables) {
   out <- as.numeric(unlist(x))
@@ -211,6 +215,7 @@ handleNA <- function(x, variables) {
 #' is.na(xx) <- c(2, 5)
 #' units(xx) <- "8u/v/w/ts/h2o/co2"
 #' cbind(xx, extract_coded(xx))
+#'
 #' @export
 extract_coded <- function(x, prefix = "[8]", split = "[/]") {
   if (!is.atomic(x)) stop("'x' must be an atomic type")
@@ -367,6 +372,7 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'   thresholds for rotated w used if \code{wresid = TRUE}.
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
+#'
 #' @export
 extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
                        scf = TRUE, wresid = TRUE, rotation = c("double",
@@ -527,6 +533,7 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
 #'   \code{"open"} for open path systems. Can be abbreviated.
 #'
 #' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
+#'
 #' @export
 interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
   if (!is.atomic(qc_LE) || !is.atomic(qc_H)) {
@@ -596,7 +603,6 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 #'
 #' @seealso use \code{\link{despikeLF}} instead.
 #'
-#' @importFrom stats median
 #' @importFrom stats mad
 #' @keywords internal
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
@@ -644,7 +650,6 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'   data frame identical to the one produced if \code{plot = FALSE}) and
 #'   \code{plots} containing a list of \code{ggplot} objects.
 #'
-#' @importFrom stats na.omit
 #' @keywords internal
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
@@ -848,6 +853,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
+#'
 #' @export
 despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
                       iter = 10, plot = FALSE, light = c("PAR", "GR"),
@@ -1010,6 +1016,7 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 #' set.seed(20)
 #' (xx <- data.frame(x_70perc = sample(1:1000, 10), WD = sample(0:360, 10)))
 #' fetch_filter(xx, "x_70perc", "WD", 300, "qc_ALL_fetch70")
+#'
 #' @export
 fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
   x_names <- colnames(x)
@@ -1060,9 +1067,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
 #'
-#' @importFrom graphics lines
-#' @importFrom graphics identify
-#' @importFrom graphics points
+#' @importFrom graphics lines identify points
 #' @export
 exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
   len <- length(x)
@@ -1209,8 +1214,7 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
 #' interactive = TRUE, siteyear = "MySite", win_size = 10)
 #' summary_QC(man, names(man)[-1])}
 #'
-#' @importFrom utils read.csv
-#' @importFrom utils write.csv
+#' @importFrom utils read.csv write.csv
 #' @export
 check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
                            siteyear, tname = "timestamp", with_units = FALSE,

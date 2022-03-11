@@ -55,6 +55,7 @@ distance 300 m.}
 set.seed(20)
 (xx <- data.frame(x_70perc = sample(1:1000, 10), WD = sample(0:360, 10)))
 fetch_filter(xx, "x_70perc", "WD", 300, "qc_ALL_fetch70")
+
 }
 \seealso{
 \code{\link{combn_QC}} and \code{\link{extract_QC}}.

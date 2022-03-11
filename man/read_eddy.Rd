@@ -154,6 +154,7 @@ bb <- read_eddy(header = FALSE, units = FALSE, text =
 "24.1.2015,1.70
 24.1.2016,1.72")
 str(bb)
+
 }
 \seealso{
 \code{\link{read.table}} for information about further arguments

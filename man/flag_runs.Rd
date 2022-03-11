@@ -32,4 +32,5 @@ flag scheme.
 flag_runs(xx, "qc_xx_runs")
 (yy <- rep(1:6, rep(c(2, 1), 3)))
 flag_runs(yy, "qc_yy_runs")
+
 }

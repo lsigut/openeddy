@@ -62,6 +62,7 @@ xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
 xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 xx
 str(xx)
+
 }
 \seealso{
 \code{\link{extract_QC}}.

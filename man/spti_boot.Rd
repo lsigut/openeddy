@@ -149,6 +149,7 @@ filled <- cbind(DETha98, EProc$sExportResults())
 filled$DateTime <- filled$DateTime - 900
 spti_boot(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 }
+
 }
 \seealso{
 \code{\link{Griebel20_budgets}} and \code{\link{spti_coverage}}.

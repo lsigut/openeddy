@@ -91,6 +91,7 @@ strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M") # error returned
 ## interval argument provided incorrectly
 strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)
 }
+
 }
 \seealso{
 \code{\link{strptime}} provides the details about conversions

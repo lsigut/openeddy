@@ -26,4 +26,5 @@ detected. This might be undesired based on the application.
 \examples{
 x <- c("TA_1_1_1", "TS_1_1_1", "VPD")
 strip_suffix(x)
+
 }

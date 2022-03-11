@@ -100,6 +100,7 @@ library(ggplot2)
 (xx <- summary_QC(aa, letters[1:6], cumul = TRUE, plot = TRUE,
 flux = "CO2 flux"))
 xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
+
 }
 \seealso{
 \code{\link{combn_QC}}, \code{\link{ggplot}}.

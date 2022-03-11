@@ -47,6 +47,7 @@ empty string.
 correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70\%", "*[-(z-d)/L"))
 correct(c("qc_co2_flux", "qc_NEE_SSITC"), unique = TRUE)
 correct(c("[m]", "(s)", "kg"), attr = "units")
+
 }
 \seealso{
 \code{\link{make.names}}.
