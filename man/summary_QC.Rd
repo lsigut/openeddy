@@ -99,7 +99,7 @@ summary_QC(aa, letters[1:6], cumul = TRUE, additive = is_add)
 library(ggplot2)
 (xx <- summary_QC(aa, letters[1:6], cumul = TRUE, plot = TRUE,
 flux = "CO2 flux"))
-xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
+xx + theme(text = element_text(size = 20))
 
 }
 \seealso{

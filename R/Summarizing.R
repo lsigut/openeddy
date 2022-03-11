@@ -1474,11 +1474,11 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   }
 
   x <- data.frame(uniform = uniform_cumul, SSC = space_cumul, TSC = time_cumul)
-  sp <- ggplot(x, aes(x = uniform)) +
-    geom_area(aes(y = uniform, fill = "grey60")) +
-    geom_area(aes(y = SSC, fill = "grey90")) +
-    geom_line(aes(y = SSC, color = "b")) +
-    geom_point(aes(y = SSC, color = "b")) +
+  sp <- ggplot(x, aes(x = .data$uniform)) +
+    geom_area(aes(y = .data$uniform, fill = "grey60")) +
+    geom_area(aes(y = .data$SSC, fill = "grey90")) +
+    geom_line(aes(y = .data$SSC, color = "b")) +
+    geom_point(aes(y = .data$SSC, color = "b")) +
     scale_fill_identity(name = NULL,
                         guide = 'legend',
                         labels = c('uniform spatial coverage = 1',
@@ -1497,11 +1497,11 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
     guides(fill = guide_legend(order = 1),
            col = guide_legend(order = 2))
 
-  tp <- ggplot(x, aes(x = uniform)) +
-    geom_area(aes(y = uniform, fill = "grey60")) +
-    geom_area(aes(y = TSC, fill = "grey90")) +
-    geom_line(aes(y = TSC, color = "b")) +
-    geom_point(aes(y = TSC, color = "b")) +
+  tp <- ggplot(x, aes(x = .data$uniform)) +
+    geom_area(aes(y = .data$uniform, fill = "grey60")) +
+    geom_area(aes(y = .data$TSC, fill = "grey90")) +
+    geom_line(aes(y = .data$TSC, color = "b")) +
+    geom_point(aes(y = .data$TSC, color = "b")) +
     scale_fill_identity(name = NULL,
                         guide = 'legend',
                         labels = c('uniform temporal coverage = 1',

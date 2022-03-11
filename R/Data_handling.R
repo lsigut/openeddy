@@ -1285,7 +1285,7 @@ set_OT_input <- function(x, names_in,
 #' library(ggplot2)
 #' (xx <- summary_QC(aa, letters[1:6], cumul = TRUE, plot = TRUE,
 #' flux = "CO2 flux"))
-#' xx + ggplot2::theme(text = ggplot2::element_text(size = 20))
+#' xx + theme(text = element_text(size = 20))
 #'
 #' @export
 summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
@@ -1395,7 +1395,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
                            collapse = " - "))
     y_label <- ifelse(perc, "Percentage", "Count")
     ggplot2::ggplot(tab_m) +
-      ggplot2::aes(x = QC_filter, y = value, fill = QC_flag) +
+      ggplot2::aes(x = .data$QC_filter, y = .data$value, fill = .data$QC_flag) +
       ggplot2::geom_bar(stat = 'identity',
                         position = ggplot2::position_stack(reverse = TRUE)) +
       ggplot2::scale_fill_hue(guide = ggplot2::guide_legend(reverse = TRUE)) +

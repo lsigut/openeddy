@@ -650,6 +650,7 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'   data frame identical to the one produced if \code{plot = FALSE}) and
 #'   \code{plots} containing a list of \code{ggplot} objects.
 #'
+#' @importFrom ggplot2 aes
 #' @keywords internal
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
@@ -697,17 +698,17 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
       xs2 <- SD_sub[block, ][desp_res$spike, c("timestamp", "var")]
       xs <- na.omit(reshape2::melt(merge(xs1, xs2, all = TRUE),
                                    id = "timestamp"))
-      plots[[i]] <- ggplot2::ggplot(x, ggplot2::aes(timestamp, value)) +
+      plots[[i]] <- ggplot2::ggplot(x, aes(.data$timestamp, .data$value)) +
         ggplot2::geom_point() + ggplot2::geom_line() +
         ggplot2::facet_grid(variable ~ ., scales = "free_y") +
         ggplot2::ggtitle(paste(SD_Date, "-", SD_Date + 12)) +
         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
-        ggplot2::geom_rect(data = d, ggplot2::aes(xmin = xmin, xmax = xmax,
-                                                  ymin = ymin, ymax = ymax),
+        ggplot2::geom_rect(data = d, aes(xmin = .data$xmin, xmax = .data$xmax,
+                                         ymin = .data$ymin, ymax = .data$ymax),
                   inherit.aes = FALSE, alpha = 1/5) +
-        ggplot2::geom_hline(data = d, ggplot2::aes(yintercept = yintercept)) +
-        ggplot2::geom_point(data = xs, ggplot2::aes(x = timestamp, y = value,
-                                                    colour = variable))
+        ggplot2::geom_hline(data = d, aes(yintercept = .data$yintercept)) +
+        ggplot2::geom_point(data = xs, aes(x = .data$timestamp, y = .data$value,
+                                           colour = .data$variable))
       names(plots)[i] <- paste(SD_Date, "-", SD_Date + 12)
       i <- i + 1L
     }

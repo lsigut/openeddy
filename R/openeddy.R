@@ -17,4 +17,5 @@
 #' @name openeddy
 #'
 #' @importFrom stats median na.omit quantile aggregate
+#' @importFrom rlang .data
 NULL

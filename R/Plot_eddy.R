@@ -838,9 +838,9 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
   val <- center(data[, y], na.rm = TRUE)
   cline <- data.frame(x_lim = df$wind_dir[c(1, nrow(df))], y = val)
   data$DOY <- as.POSIXlt(data$timestamp)$yday + 1
-  ggplot2::ggplot(data, ggplot2::aes_string(x, y)) +
+  ggplot2::ggplot(data, ggplot2::aes(.data[[x]], .data[[y]])) +
     ggplot2::geom_point(
-      ggplot2::aes(color = DOY),
+      ggplot2::aes(color = .data$DOY),
       size = 1,
       na.rm = TRUE,
       alpha = 0.5
@@ -850,23 +850,28 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
     ) +
     ggplot2::geom_ribbon(
       data = df, inherit.aes = FALSE,
-      ggplot2::aes(x = wind_dir, ymin = cen - dev, ymax = cen + dev,
+      ggplot2::aes(x = .data$wind_dir,
+                   ymin = .data$cen - .data$dev,
+                   ymax = .data$cen + .data$dev,
                    fill = !!deviation_name),
       color = "grey30", alpha = 0.5, size = 0.8
     ) +
     ggplot2::geom_linerange(
       data = edge, inherit.aes = FALSE,
-      ggplot2::aes(x = wind_dir, ymin = edg - dev, ymax = edg + dev),
+      ggplot2::aes(x = .data$wind_dir,
+                   ymin = .data$edg - .data$dev,
+                   ymax = .data$edg + .data$dev),
       color = "grey30", size = 0.6
     ) +
     ggplot2::geom_line(data = cline,
-                       ggplot2::aes(x = x_lim, y = y),
+                       ggplot2::aes(x = .data$x_lim, y = .data$y),
                        color = "grey30", size = 0.8) +
     ggplot2::geom_point(data = df[-c(1, nrow(df)),],
-                        ggplot2::aes(wind_dir, cen, alpha = !!center_name),
+                        ggplot2::aes(.data$wind_dir, .data$cen,
+                                     alpha = !!center_name),
                         color = "black", size = 2) +
     ggplot2::geom_line(data = df,
-                       ggplot2::aes(wind_dir, cen),
+                       ggplot2::aes(.data$wind_dir, .data$cen),
                        color = "black", size = 0.8) +
     ggplot2::scale_fill_manual(name = NULL, values = "white") +
     ggplot2::scale_alpha_manual(name = NULL, values = 1) +
