@@ -1358,7 +1358,7 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
       if (opt == "y") {
         if (length(lf) == 0) {
           # including date might be problematic (old file would need to be deleted)
-          lf <- paste0(path, siteyear, "_manual_QC.csv")
+          lf <- file.path(path, paste0(siteyear, "_manual_QC.csv"))
         }
         if (with_units) write_eddy(qc, lf) else
           write.csv(qc, lf, row.names = FALSE)
@@ -1388,7 +1388,7 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
     if (opt == "y") {
       if (length(lf) == 0) {
         # including date might be problematic (old file would need to be deleted)
-        lf <- paste0(path, siteyear, "_manual_QC.csv")
+        lf <- file.path(path, paste0(siteyear, "_manual_QC.csv"))
       }
       if (with_units) write_eddy(qc, lf) else
         write.csv(qc, lf, row.names = FALSE)
