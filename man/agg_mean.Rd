@@ -18,7 +18,7 @@ agg_sum(
   NEE_scor = TRUE,
   GPP_scor = FALSE,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
-  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
+  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^G$|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE|^GPP|^Reco", names(x), value = TRUE),
   ET = grep("^ET", names(x), value = TRUE),
   tz = "GMT",
@@ -32,7 +32,7 @@ agg_fsd(
   breaks = NULL,
   interval = NULL,
   quant = grep("^PAR|^PPFD|^APAR", names(x), value = TRUE),
-  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^H|^LE", names(x), value = TRUE),
+  power = grep("^GR|^Rg|^SW|^SR|^LW|^LR|^Rn|^NETRAD|^G$|^H|^LE", names(x), value = TRUE),
   carbon = grep("^NEE", names(x), value = TRUE),
   ET = grep("^ET", names(x), value = TRUE),
   tz = "GMT"

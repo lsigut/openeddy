@@ -35,7 +35,7 @@ BugReports: https://github.com/lsigut/openeddy/issues
 Date: 2022-03-11
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Imports:
     methods,
     rlang (>= 1.0.2),
