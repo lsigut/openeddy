@@ -992,6 +992,11 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
                        function(x) sapply(split(x[, targetCol], x$time_int),
                                           length))
   min_rec <- min(dfsub_nRec)
+  if (min_rec < 5) stop("year ", year,
+                        " - number of records across bins too low: ",
+                        min_rec,
+                        "\ntip: reduce 'nInt'",
+                        call. = FALSE)
   message("year ", year,
           " - minimum number of records across spatio-temporal bins: ",
           min_rec)
@@ -1435,8 +1440,9 @@ spti_boot <- function(df,
     # increase row number by 1
     i <- i + 1
   }
+  results$nInt <- nInt
   varnames(results) <- names(results)
-  units(results) <- c("-", rep(units, 4), "#")
+  units(results) <- c("-", rep(units, 4), rep("#", 2))
 
   return(results)
 }
