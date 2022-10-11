@@ -13,6 +13,7 @@ check_manually(
   interactive,
   siteyear,
   tname = "timestamp",
+  shift.by = NULL,
   with_units = FALSE,
   win_size = 672,
   format = "\%Y-\%m-\%d \%H:\%M"
@@ -40,6 +41,9 @@ file with manual flags will be reloaded or \code{NULL} will be returned.}
 \item{tname}{A string. Name of variable in \code{x} with date-time
 information.}
 
+\item{shift.by}{An integer value specifying the time shift (in seconds) to be
+applied to the date-time information of the reloaded manual QC if present.}
+
 \item{with_units}{A logical value indicating whether read (or written) data
 frame with manual flags includes (should include) also units.}
 
@@ -62,12 +66,13 @@ Saving and reloading of results is supported.
 \details{
 Automatic reload of previously saved results in \code{path} with filename
 including pattern \code{"manual_QC"} is attempted. If found, timestamp is
-aligned with date-time information in \code{x} if not identical and quality
+merged with date-time information in \code{x} if not identical and quality
 control is combined with the new flags marked by user (flag 2 marks data
-exclusion). \code{path} is also used for saving file (\code{"manual_QC"}
-pattern) with results. Actual flagging allows to run \code{\link{exclude}}
-over all \code{vars}. Each variable is required to have associated quality
-control column in format \code{qc_prefix+vars+qc_suffix}.
+exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
+\code{path} is also used for saving file (\code{"manual_QC"} pattern) with
+results. Actual flagging allows to run \code{\link{exclude}} over all
+\code{vars}. Each variable is required to have associated quality control
+column in format \code{qc_prefix+vars+qc_suffix}.
 
 Function can be run in two modes. If \code{interactive = TRUE}, attempt to
 load previously saved manual QC will be performed, user will be allowed to

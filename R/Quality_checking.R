@@ -1167,12 +1167,13 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
 #'
 #' Automatic reload of previously saved results in \code{path} with filename
 #' including pattern \code{"manual_QC"} is attempted. If found, timestamp is
-#' aligned with date-time information in \code{x} if not identical and quality
+#' merged with date-time information in \code{x} if not identical and quality
 #' control is combined with the new flags marked by user (flag 2 marks data
-#' exclusion). \code{path} is also used for saving file (\code{"manual_QC"}
-#' pattern) with results. Actual flagging allows to run \code{\link{exclude}}
-#' over all \code{vars}. Each variable is required to have associated quality
-#' control column in format \code{qc_prefix+vars+qc_suffix}.
+#' exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
+#' \code{path} is also used for saving file (\code{"manual_QC"} pattern) with
+#' results. Actual flagging allows to run \code{\link{exclude}} over all
+#' \code{vars}. Each variable is required to have associated quality control
+#' column in format \code{qc_prefix+vars+qc_suffix}.
 #'
 #' Function can be run in two modes. If \code{interactive = TRUE}, attempt to
 #' load previously saved manual QC will be performed, user will be allowed to
@@ -1193,6 +1194,8 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
 #' @param siteyear A string. Unique label of inspected data set.
 #' @param tname A string. Name of variable in \code{x} with date-time
 #'   information.
+#' @param shift.by An integer value specifying the time shift (in seconds) to be
+#'   applied to the date-time information of the reloaded manual QC if present.
 #' @param with_units A logical value indicating whether read (or written) data
 #'   frame with manual flags includes (should include) also units.
 #' @param win_size An integer. Number of values displayed per plot.
@@ -1218,8 +1221,9 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
 #' @importFrom utils read.csv write.csv
 #' @export
 check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
-                           siteyear, tname = "timestamp", with_units = FALSE,
-                           win_size = 672, format = "%Y-%m-%d %H:%M") {
+                           siteyear, tname = "timestamp", shift.by = NULL,
+                           with_units = FALSE, win_size = 672,
+                           format = "%Y-%m-%d %H:%M") {
   # Design of the function
   # - initialize manual_QC data frame with all respective TAU, H, LE, FC flux
   #   QC flags (all flags = 0)
@@ -1295,7 +1299,8 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
     old_qc <- if (with_units) read_eddy(lf) else read.csv(lf)
     if (!tname %in% names(old_qc))
       stop("timestamp column specified by 'tname' not found in file")
-    old_qc[, tname] <- strptime_eddy(old_qc[, tname], format = format)
+    old_qc[, tname] <- strptime_eddy(old_qc[, tname], format = format,
+                                     shift.by = shift.by)
     trange_old <- range(old_qc[, tname])
     trange_new <- range(x[, tname])
     if (trange_old[1] < trange_new[1] | trange_old[2] > trange_new[2]) {

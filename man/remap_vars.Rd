@@ -40,9 +40,9 @@ initializes one if missing.
 \details{
 New data frame is created based on \code{x} and specified \code{source}.
 Original \code{x} names are changed according to respective \code{new}
-elements and kept as \code{varnames} attributes for tracebility. Accordingly,
-if \code{qc} is specified, quality control columns are marked by \code{"qc_"}
-prefix.
+elements and kept as \code{varnames} attributes for traceability.
+Accordingly, if \code{qc} is specified, quality control columns are marked by
+\code{"qc_"} prefix.
 
 If \code{regexp = FALSE} (the default), strictly one variable (column) will
 be remapped to new name. The \code{source} elements must exactly match
