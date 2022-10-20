@@ -120,12 +120,13 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'
 #'   Flags specified by \code{qc_flag} separate corresponding flux values to two
 #'   groups. \emph{Used data} for flags 0 and 1 (black points) and
-#'   \emph{Excluded data} for flags 2 and \code{NA} (grey points). The range of
-#'   y-axis limit in the figures with \code{flux} values is based on \emph{Used
-#'   data} only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The
-#'   time interval used for setting the range is one month both for monthly
+#'   \emph{Excluded data} for flags 2 and \code{NA} (grey points). The y-axis
+#'   limits in the figures with \code{flux} values are based on \emph{Used data}
+#'   only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The time
+#'   interval used for setting the range is one month both for monthly
 #'   (respective month) and weekly (month centered on the respective week)
-#'   plots.
+#'   plots. Alternatively, fixed \code{ylim} can be set for the figures with
+#'   \code{flux} values (e.g. in case of large outliers).
 #'
 #'   In order to emphasize \code{flux} values with lower quality, \code{test}
 #'   can be specified. Values with QC flag = 1 have green center of the point.
@@ -172,6 +173,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param skip A character string. Determines whether plotting should be done in
 #'   monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
 #'   "monthly"}) or both (\code{skip = "none"}).
+#' @param ylim A numeric vector of length two or \code{NULL}. If \code{NULL}
+#'   (default), the treatment of \code{y-axis} limits in the figures with
+#'   \code{flux} values is automated. See 'Quality Control'.
 #' @param panel_top A character string. Selects one of the available modules for
 #'   plotting additional variables. This module is displayed above the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
@@ -262,6 +266,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       flux_gf = "none", NEE_sep = FALSE,
                       skip = c("none", "monthly", "weekly"),
+                      ylim = NULL,
                       panel_top = c("T_light", "VPD_Rn", "H_err_var",
                                     "blue_red", "violet_orange"),
                       panel_top_vars = NULL,
@@ -387,7 +392,8 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
       }
       plot(time[mon], vals[mon], type = "n", xaxt = "n", yaxt = "n",
            ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
-           xlim = range(xaxis), ylim = setRange(y, f))
+           xlim = range(xaxis), ylim = if (is.null(ylim)) setRange(y, f)
+           else ylim)
       # Halfday shift of ticks to mark the middle of day
       axis.POSIXct(1,
                    at = seq(min(xaxis), max(xaxis), by = "5 days") + 12 * 3600,
@@ -579,7 +585,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
         y <- c(y, Reco, GPP)
         f <- c(f, rep(mon, 2))
       }
-      yRange <- setRange(y, f)
+      yRange <- if(is.null(ylim)) setRange(y, f) else ylim
       plot(time[week], vals[week], type = "n", xaxt = "n", yaxt = "n",
            ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
            xlim = range(xaxis), ylim = yRange)

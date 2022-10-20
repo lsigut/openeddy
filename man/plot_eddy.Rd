@@ -12,6 +12,7 @@ plot_eddy(
   flux_gf = "none",
   NEE_sep = FALSE,
   skip = c("none", "monthly", "weekly"),
+  ylim = NULL,
   panel_top = c("T_light", "VPD_Rn", "H_err_var", "blue_red", "violet_orange"),
   panel_top_vars = NULL,
   panel_bottom = c("VPD_Rn", "T_light", "H_err_var", "blue_red", "violet_orange"),
@@ -47,6 +48,10 @@ expected in \code{x}.}
 \item{skip}{A character string. Determines whether plotting should be done in
 monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
 "monthly"}) or both (\code{skip = "none"}).}
+
+\item{ylim}{A numeric vector of length two or \code{NULL}. If \code{NULL}
+(default), the treatment of \code{y-axis} limits in the figures with
+\code{flux} values is automated. See 'Quality Control'.}
 
 \item{panel_top}{A character string. Selects one of the available modules for
 plotting additional variables. This module is displayed above the panel
@@ -144,12 +149,13 @@ Weekly plotting regions are described in 'Modules' section (see below).
 
   Flags specified by \code{qc_flag} separate corresponding flux values to two
   groups. \emph{Used data} for flags 0 and 1 (black points) and
-  \emph{Excluded data} for flags 2 and \code{NA} (grey points). The range of
-  y-axis limit in the figures with \code{flux} values is based on \emph{Used
-  data} only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The
-  time interval used for setting the range is one month both for monthly
+  \emph{Excluded data} for flags 2 and \code{NA} (grey points). The y-axis
+  limits in the figures with \code{flux} values are based on \emph{Used data}
+  only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The time
+  interval used for setting the range is one month both for monthly
   (respective month) and weekly (month centered on the respective week)
-  plots.
+  plots. Alternatively, fixed \code{ylim} can be set for the figures with
+  \code{flux} values (e.g. in case of large outliers).
 
   In order to emphasize \code{flux} values with lower quality, \code{test}
   can be specified. Values with QC flag = 1 have green center of the point.
