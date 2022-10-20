@@ -10,6 +10,7 @@ ggplot_stats(
   y,
   breaks = 20,
   circular = FALSE,
+  ylim = NULL,
   qrange = c(0.005, 0.995),
   center = c("median", "mean"),
   deviation = c("mad", "sd"),
@@ -27,6 +28,13 @@ plot on x-axis (y-axis).}
 to \code{breaks - 1} intervals.}
 
 \item{circular}{A logical value. Is \code{x} a circular variable?}
+
+\item{ylim}{Either \code{NULL}, \code{"band"} or a numeric vector of length
+2. If \code{NULL} (default), y-axis limits are taken from the original
+data, potentially modified by \code{qrange}. If \code{"band"}, y-axis
+limits are chosen to fit only the computed uncertainty band. If numeric
+vector, manually specified limits are applied. In latter two cases
+\code{qrange} is ignored.}
 
 \item{qrange}{A numeric vector of length 2, giving the quantile range of
 y-axis.}
@@ -61,6 +69,7 @@ x <- data.frame(timestamp = tstamp,
 openeddy::units(x) <- c("", "deg", "W m-2")
 ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
+ggplot_stats(x, x = "wd", y = "H", ylim = "band")
 
 }
 \seealso{

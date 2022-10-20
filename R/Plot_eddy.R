@@ -846,6 +846,12 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' @param breaks An integer. Number of breakpoints separating variable \code{x}
 #'   to \code{breaks - 1} intervals.
 #' @param circular A logical value. Is \code{x} a circular variable?
+#' @param ylim Either \code{NULL}, \code{"band"} or a numeric vector of length
+#'   2. If \code{NULL} (default), y-axis limits are taken from the original
+#'   data, potentially modified by \code{qrange}. If \code{"band"}, y-axis
+#'   limits are chosen to fit only the computed uncertainty band. If numeric
+#'   vector, manually specified limits are applied. In latter two cases
+#'   \code{qrange} is ignored.
 #' @param qrange A numeric vector of length 2, giving the quantile range of
 #'   y-axis.
 #' @param center,deviation A character string. Statistics applied to each x-axis
@@ -868,11 +874,12 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' openeddy::units(x) <- c("", "deg", "W m-2")
 #' ggplot_stats(x, x = "wd", y = "H", qrange = c(0.005, 0.9))
 #' ggplot_stats(x, x = "wd", y = "H", circular = TRUE, qrange = c(0.005, 0.9))
+#' ggplot_stats(x, x = "wd", y = "H", ylim = "band")
 #'
 #' @importFrom stats mad sd approx
 #' @importFrom grDevices hcl.colors
 #' @export
-ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
+ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE, ylim = NULL,
                          qrange = c(0.005, 0.995), center = c("median", "mean"),
                          deviation = c("mad", "sd"), header = TRUE) {
   if (is.null(data$timestamp)) stop("missing 'data$timestamp'")
@@ -904,9 +911,15 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE,
                      edg = approx(df$wind_dir, df$cen, sq[c(TRUE, FALSE)])$y,
                      dev = approx(df$wind_dir, df$dev, sq[c(TRUE, FALSE)])$y)
   edge <- na.omit(edge)
-  ylim <- data[, y]
-  if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
-  ylim <- setRange(ylim)
+  # case when ylim = NULL (original data range or qrange)
+  if (is.null(ylim)) {
+    ylim <- data[, y]
+    if (!is.null(qrange)) ylim <- quantile(ylim, qrange, na.rm = TRUE)
+    ylim <- setRange(ylim)
+  } else if ("band" %in% ylim) {
+    # case when ylim should reflect only the uncertainty band, not all data
+    ylim <- range(edge$edg + edge$dev, edge$edg - edge$dev, na.rm = TRUE)
+  } # in other cases use ylim as is (implicit)
   val <- center(data[, y], na.rm = TRUE)
   cline <- data.frame(x_lim = df$wind_dir[c(1, nrow(df))], y = val)
   data$DOY <- as.POSIXlt(data$timestamp)$yday + 1
