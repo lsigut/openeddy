@@ -88,15 +88,16 @@ required that it contains column named \code{"timestamp"} of class
 allowed. Thus, if no records exist for given date-time value, it still has to
 be included. It also has to contain required (depends on the argument values
 and applied modules) column names. If required auxiliary variable is not
-available (e.g. \code{"P"}, \code{"Tsoil"}), it still has to be included in
+available (e.g. \code{"Tair"}, \code{"PAR"}), it still has to be included in
 \code{x} as a named column with \code{NA} values. The \code{x} column defined
 by argument \code{flux} is the only one that has to contain at least one
-non-missing value.
+non-missing value. If present, column \code{"P"} is expected to contain
+precipitation.
 
 If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
 \code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
-\code{"monthly"}, \code{"P"} and respective names specified in 'Modules' (see
-below) are also required.
+\code{"monthly"}, respective names specified in 'Modules' (see below) are
+also required.
 
 Variable names for plot labels are extracted from required column names of
 \code{x}. Units are extracted from \code{x} if they are present as
@@ -117,8 +118,8 @@ Weekly plotting regions are described in 'Modules' section (see below).
   of auxiliary variables. Weekly plotting regions consist of two figures
   representing separately two consecutive weeks. Each figure contains three
   panels on top of each other. The middle panel always contains the values
-  from \code{flux} and \code{"P"} columns of \code{x}. Variables used in the
-  upper and lower panel can be changed by \code{panel_top} and
+  from \code{flux} and, if present, \code{"P"} columns of \code{x}. Variables
+  used in the upper and lower panel can be changed by \code{panel_top} and
   \code{panel_bottom}. These arguments specify the respective modules that
   will be loaded (can be the same) and thus also a certain set of required
   column names of \code{x} (variables).
@@ -181,6 +182,68 @@ Weekly plotting regions are described in 'Modules' section (see below).
   variance [K2]}
 }
 
+\examples{
+# prepare mock data
+set.seed(87)
+my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+my_var[my_var > 5] <- 5
+t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
+P <- vector("numeric", 48 * 14)
+P[c(180:188, 250:253, 360:366, 500:505)] <- sample(1:15, 26, replace = TRUE)
+PAR <- (-my_var + 5) * 100
+Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
+VPD <- -my_var + 10
+VPD <- VPD[c(43:48, 0:42)]
+Rn <- PAR / 2 - 50
+
+# combine into data frame
+a <- data.frame(
+  timestamp = t,
+  my_var = my_var + rnorm(48 * 14),
+  my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+  P = P,
+  PAR = PAR,
+  Tair = Tair,
+  Tsoil = Tsoil,
+  VPD = VPD,
+  Rn = Rn
+)
+
+# specify units
+openeddy::units(a) <- c("-", "units", "-", "mm", "umol m-2 s-1", "degC",
+                        "degC", "hPa", "W m-2")
+
+# plot in weekly resolution (flux can be any variable)
+plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
+skip = "monthly")
+
+# test can be used to distinguish up to 3 groups (0-2 flagging scheme)
+# - example with 2 groups:
+a$day <- a$PAR > 0 # 2 groups (TRUE / FALSE; i.e. 1 / 0)
+plot_eddy(a, "my_var", "my_qc", "day", skip = "monthly") # daytime is green
+# - example with 3 groups:
+a$Tair_levels <- cut(a$Tair, c(13, 16, 19, 22))
+a$Tair_levels <- as.numeric(a$Tair_levels) - 1 # only flags 0-2 supported
+plot_eddy(a, "my_var", "my_qc", "Tair_levels", skip = "monthly")
+
+# make a custom setup of top and bottom panels
+plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
+          skip = "monthly",
+          panel_top = "blue_red", panel_top_vars = c("Tair", "Rn"),
+          panel_bottom = "violet_orange", panel_bottom_vars = c("PAR", "VPD"))
+
+# any time resolution is supported
+b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
+plot_eddy(b, "my_var", "my_qc", "my_qc", skip = "monthly")
+
+# Precipitation is treated specifically and can be missing
+d <- a
+d["P"] <- NULL
+plot_eddy(d, "my_var", "my_qc", "my_qc", skip = "monthly")
+
+}
 \seealso{
 \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
 }
