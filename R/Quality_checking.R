@@ -1061,6 +1061,8 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @param x A numeric vector with values to inspect.
 #' @param qc_x An integer vector in the range \code{0 - 2} providing quality
 #'   control information about \code{x}.
+#' @param y,z A numeric vector with values of auxiliary variable helping with
+#'   the interpretation of \code{x}.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
 #' @param win_size An integer. Number of \code{x} values displayed per plot.
@@ -1068,13 +1070,47 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
 #'
+#' @examples
+#' \dontrun{
+#' # prepare mock data
+#' set.seed(87)
+#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+#' my_var[my_var > 5] <- 5
+#' PAR <- (-my_var + 5) * 100
+#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+#'
+#' # combine into data frame
+#' a <- data.frame(
+#'   my_var = my_var + rnorm(48 * 14),
+#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+#'   PAR = PAR,
+#'   Tair = Tair
+#' )
+#'
+#' # include spikes
+#' a$my_var[c(152, 479)] <- c(231, -2000)
+#'
+#' # flag data manually
+#' exclude(x = a$my_var, qc_x = a$my_qc)
+#' exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR)
+#' exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
+#' }
+#'
 #' @importFrom graphics lines identify points
 #' @export
-exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
+exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
+                    win_size = 672) {
   len <- length(x)
   if (!is.null(qc_x)) {
     if (len != length(qc_x)) stop("'qc_x' must be of same lenght as 'x'")
     x <- ifelse(qc_x == 2, NA, x)
+  }
+  if (!is.null(y)) {
+    if (len != length(y)) stop("'y' must be of same lenght as 'x'")
+  }
+  if (!is.null(z)) {
+    if (len != length(z)) stop("'z' must be of same lenght as 'x'")
   }
   if (!is.atomic(name_out) || length(name_out) != 1) {
     stop("atomic type 'name_out' must have length 1")
@@ -1098,16 +1134,73 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
     if (n < 1 | n > n_iter) return(read_plot_num())
     return(n)
   }
+  # set the plot layout
+  rows <- 1 + (!is.null(y)) + (!is.null(z))
+  if (rows > 1) {
+    # setting multiple par()s due to layout - requires saving op separately
+    op <- par(no.readonly = TRUE)
+    par(mar = c(0, 0, 0, 0), oma = c(5, 6, 4, 6))
+    panels <- if (rows == 2) {
+      cbind(c(1, 2, 2))
+    } else {
+      cbind(c(1, 3, 3, 2))
+    }
+  }
+  # plot settings
+  x_cex <- if (rows == 1) 0.5 else 0.8
+  yz_cex <- 0.7
+  yz_col <- "grey40"
+  cex_axis <- 1.5
   # Loop with options
   i <- 1
   while (i <= n_iter) {
-    plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
-         ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
-                                                             na.rm = TRUE),
-         main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+    if (rows > 1) {
+      layout(panels)
+      if (!is.null(y)) {
+        plot(range, y[range],
+             type = 'o', pch = 19, cex = yz_cex, col = yz_col,
+             xaxt = "n", yaxt = "n",
+             ylim = setRange(y, seq_along(x) %in% range),
+             xlab = "", ylab = "")
+        axis(4, cex.axis = cex_axis)
+        mtext("y", side = 4, line = 3)
+        mtext(paste0("Plot ", i, "/", n_iter),
+              side = 3, line = 1, font = 2, cex = 1.2)
+      }
+      if (!is.null(z)) {
+        plot(range, z[range],
+             type = 'o', pch = 19, cex = yz_cex, col = yz_col,
+             xaxt = "n", yaxt = "n",
+             ylim = setRange(z, seq_along(x) %in% range),
+             xlab = "", ylab = "")
+        axis(4, cex.axis = cex_axis)
+        mtext("z", side = 4, line = 3)
+        # in case of both y and z provided this plot is on the bottom of panel
+        if (rows == 3) {
+          axis(1, cex.axis = cex_axis)
+          mtext("Index", side = 1, line = 3)
+        }
+        # in case of only z provided but missing y
+        if (rows == 2) mtext(paste0("Plot ", i, "/", n_iter),
+                             side = 3, line = 1, font = 2, cex = 1.2)
+      }
+    }
+    plot(range, x[range], type = 'o', pch = 19,
+         cex = x_cex,
+         xaxt = "n", yaxt = "n",
+         ylim = setRange(x, seq_along(x) %in% range),
+         ylab = "", xlab = "")
+    axis(2, cex.axis = if (rows == 1) NULL else cex_axis)
+    mtext("x", side = 2, line = 3)
+    if (rows != 3) {
+      axis(1, cex.axis = if (rows == 1) NULL else cex_axis)
+      mtext("Index", side = 1, line = 3)
+    }
+    if (rows == 1) mtext(paste0("Plot ", i, "/", n_iter),
+                         side = 3, line = 1, font = 2, cex = 1.2)
     filter <- as.logical(out[range]) # to keep red lines with opt == 5
     lines(range[filter], x[range[filter]],
-          col = 'red', type = "o", pch = 19, cex = 0.5)
+          col = 'red', type = "o", pch = 19, cex = x_cex)
     msg <- paste0("\n", paste0(rep("-", 14), collapse = ""),
                   "\nChoose option:\n1. flag values\n2. undo last\n",
                   "3. refresh plots\n4. next plot\n5. jump to plot ...\n",
@@ -1118,11 +1211,11 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
         sel <- numeric()
         for (j in 1:2) {
           sel[j] <- identify(x, n = 1, plot = FALSE, tolerance = 0.25)
-          points(sel[j], x[sel[j]], col = 'red', pch = 19, cex = 0.5)
+          points(sel[j], x[sel[j]], col = 'red', pch = 19, cex = x_cex)
         }
         sel_range <- sel[1]:sel[2]
         lines(sel_range, x[sel_range],
-              col = 'red', type = "o", pch = 19, cex = 0.5)
+              col = 'red', type = "o", pch = 19, cex = x_cex)
         out_old <- out
         x_old <- x
         out[sel_range] <- 2L
@@ -1130,14 +1223,53 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
       if (opt == 2) {
         out <- out_old
         x <- x_old
-        lines(sel_range, x[sel_range], type = "o", pch = 19, cex = 0.5)
+        lines(sel_range, x[sel_range], type = "o", pch = 19, cex = x_cex)
       }
       if (opt == 3) {
         x <- ifelse(out == 2, NA, x)
-        plot(range, x[range], type = 'o', pch = 19, cex = 0.5,
-             ylim = if (all(is.na(x[range]))) c(0, 0) else range(x[range],
-                                                                 na.rm = TRUE),
-             main = paste0("Plot ", i, "/", n_iter), ylab = "x", xlab = "Index")
+        if (rows > 1) {
+          if (!is.null(y)) {
+            plot(range, y[range],
+                 type = 'o', pch = 19, cex = yz_cex, col = yz_col,
+                 xaxt = "n", yaxt = "n",
+                 ylim = setRange(y, seq_along(x) %in% range),
+                 xlab = "", ylab = "")
+            axis(4, cex.axis = cex_axis)
+            mtext("y", side = 4, line = 3)
+            mtext(paste0("Plot ", i, "/", n_iter),
+                  side = 3, line = 1, font = 2, cex = 1.2)
+          }
+          if (!is.null(z)) {
+            plot(range, z[range],
+                 type = 'o', pch = 19, cex = yz_cex, col = yz_col,
+                 xaxt = "n", yaxt = "n",
+                 ylim = setRange(z, seq_along(x) %in% range),
+                 xlab = "", ylab = "")
+            axis(4, cex.axis = cex_axis)
+            mtext("z", side = 4, line = 3)
+            # in case of both y and z provided this plot is on the bottom of panel
+            if (rows == 3) {
+              axis(1, cex.axis = cex_axis)
+              mtext("Index", side = 1, line = 3)
+            }
+            # in case of only z provided but missing y
+            if (rows == 2) mtext(paste0("Plot ", i, "/", n_iter),
+                                 side = 3, line = 1, font = 2, cex = 1.2)
+          }
+        }
+        plot(range, x[range], type = 'o', pch = 19,
+             cex = x_cex,
+             xaxt = "n", yaxt = "n",
+             ylim = setRange(x, seq_along(x) %in% range),
+             ylab = "", xlab = "")
+        axis(2, cex.axis = if (rows == 1) NULL else cex_axis)
+        mtext("x", side = 2, line = 3)
+        if (rows != 3) {
+          axis(1, cex.axis = if (rows == 1) NULL else cex_axis)
+          mtext("Index", side = 1, line = 3)
+        }
+        if (rows == 1) mtext(paste0("Plot ", i, "/", n_iter),
+                             side = 3, line = 1, font = 2, cex = 1.2)
       }
       if (opt == 4) {
         break
@@ -1155,6 +1287,7 @@ exclude <- function(x, qc_x = NULL, name_out = "-", win_size = 672) {
     i <- i + 1
     range <- ((i - 1) * win_size + 1):(i * win_size)
   }
+  if (rows > 1) par(op)
   attributes(out) <- list(varnames = name_out, units = "-")
   return(out)
 }

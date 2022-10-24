@@ -4,13 +4,16 @@
 \alias{exclude}
 \title{Exclude Values}
 \usage{
-exclude(x, qc_x = NULL, name_out = "-", win_size = 672)
+exclude(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-", win_size = 672)
 }
 \arguments{
 \item{x}{A numeric vector with values to inspect.}
 
 \item{qc_x}{An integer vector in the range \code{0 - 2} providing quality
 control information about \code{x}.}
+
+\item{y, z}{A numeric vector with values of auxiliary variable helping with
+the interpretation of \code{x}.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
@@ -38,4 +41,32 @@ the flagging and return the results.}
 
 The interactive session will be finished successfully also when option 4
 (next plot) is executed while at the last plot.
+}
+\examples{
+\dontrun{
+# prepare mock data
+set.seed(87)
+my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+my_var[my_var > 5] <- 5
+PAR <- (-my_var + 5) * 100
+Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+
+# combine into data frame
+a <- data.frame(
+  my_var = my_var + rnorm(48 * 14),
+  my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+  PAR = PAR,
+  Tair = Tair
+)
+
+# include spikes
+a$my_var[c(152, 479)] <- c(231, -2000)
+
+# flag data manually
+exclude(x = a$my_var, qc_x = a$my_qc)
+exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR)
+exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
+}
+
 }
