@@ -50,8 +50,9 @@ monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
 "monthly"}) or both (\code{skip = "none"}).}
 
 \item{ylim}{A numeric vector of length two or \code{NULL}. If \code{NULL}
-(default), the treatment of \code{y-axis} limits in the figures with
-\code{flux} values is automated. See 'Quality Control'.}
+(default), the treatment of y-axis limits in the figures with \code{flux}
+values is fully automated. Otherwise, \code{ylim} sets the maximum range of
+automatically computed y-axis limits. See 'Quality Control'.}
 
 \item{panel_top}{A character string. Selects one of the available modules for
 plotting additional variables. This module is displayed above the panel
@@ -154,8 +155,8 @@ Weekly plotting regions are described in 'Modules' section (see below).
   only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The time
   interval used for setting the range is one month both for monthly
   (respective month) and weekly (month centered on the respective week)
-  plots. Alternatively, fixed \code{ylim} can be set for the figures with
-  \code{flux} values (e.g. in case of large outliers).
+  plots. Additionally, maximum \code{ylim} range can be set for the figures
+  with \code{flux} values (e.g. in case of large outliers).
 
   In order to emphasize \code{flux} values with lower quality, \code{test}
   can be specified. Values with QC flag = 1 have green center of the point.

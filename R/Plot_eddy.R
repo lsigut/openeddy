@@ -125,8 +125,8 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The time
 #'   interval used for setting the range is one month both for monthly
 #'   (respective month) and weekly (month centered on the respective week)
-#'   plots. Alternatively, fixed \code{ylim} can be set for the figures with
-#'   \code{flux} values (e.g. in case of large outliers).
+#'   plots. Additionally, maximum \code{ylim} range can be set for the figures
+#'   with \code{flux} values (e.g. in case of large outliers).
 #'
 #'   In order to emphasize \code{flux} values with lower quality, \code{test}
 #'   can be specified. Values with QC flag = 1 have green center of the point.
@@ -174,8 +174,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
 #'   "monthly"}) or both (\code{skip = "none"}).
 #' @param ylim A numeric vector of length two or \code{NULL}. If \code{NULL}
-#'   (default), the treatment of \code{y-axis} limits in the figures with
-#'   \code{flux} values is automated. See 'Quality Control'.
+#'   (default), the treatment of y-axis limits in the figures with \code{flux}
+#'   values is fully automated. Otherwise, \code{ylim} sets the maximum range of
+#'   automatically computed y-axis limits. See 'Quality Control'.
 #' @param panel_top A character string. Selects one of the available modules for
 #'   plotting additional variables. This module is displayed above the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
@@ -390,10 +391,12 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
         y <- c(y, Reco, GPP)
         f <- c(f, rep(mon, 2))
       }
+      y_range <- setRange(y, f)
       plot(time[mon], vals[mon], type = "n", xaxt = "n", yaxt = "n",
            ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
-           xlim = range(xaxis), ylim = if (is.null(ylim)) setRange(y, f)
-           else ylim)
+           xlim = range(xaxis),
+           ylim = c(max(ylim[1], y_range[1], na.rm = TRUE),
+                    min(ylim[2], y_range[2], na.rm = TRUE)))
       # Halfday shift of ticks to mark the middle of day
       axis.POSIXct(1,
                    at = seq(min(xaxis), max(xaxis), by = "5 days") + 12 * 3600,
@@ -585,7 +588,9 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
         y <- c(y, Reco, GPP)
         f <- c(f, rep(mon, 2))
       }
-      yRange <- if(is.null(ylim)) setRange(y, f) else ylim
+      y_range <- setRange(y, f)
+      yRange <- c(max(ylim[1], y_range[1], na.rm = TRUE),
+                  min(ylim[2], y_range[2], na.rm = TRUE))
       plot(time[week], vals[week], type = "n", xaxt = "n", yaxt = "n",
            ylab = "", xlab = "", panel.first = grid(nx = NA, ny = NULL),
            xlim = range(xaxis), ylim = yRange)
