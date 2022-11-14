@@ -1316,15 +1316,26 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' @param x A data frame.
 #' @param path A string. Specifies a path to directory where results should be
 #'   saved.
-#' @param vars A character vector providing names of variables in \code{x} that
-#'   will be inspected.
+#' @param vars A character vector, matrix or data frame providing names of
+#'   variables in data frame \code{x} that will be inspected. If character
+#'   vector, each value is iteratively used as argument \code{x} in
+#'   \code{\link{exclude}}. If matrix or data frame, first, second and third
+#'   column are respectively interpreted as arguments \code{x} (quality checked
+#'   variable), \code{y} and \code{z} (auxiliary variables) in
+#'   \code{\link{exclude}} and used iteratively across rows. If auxiliary
+#'   variables are not needed for certain combinations (\code{vars} rows),
+#'   provide \code{NA} values.
 #' @param qc_prefix,qc_suffix A string. Quality control columns corresponding to
 #'   \code{vars} names are required in \code{x} in format
-#'   \code{qc_prefix+vars+qc_suffix}.
+#'   \code{qc_prefix+vars+qc_suffix}. If \code{vars} is matrix or data frame,
+#'   \code{qc_prefix} and \code{qc_suffix} is applied only for the first column.
+#'   Set to \code{NULL} if either \code{qc_prefix} or \code{qc_suffix} is not
+#'   applicable.
 #' @param interactive A logical value. If \code{TRUE}, manual checking will be
 #'   provided in an interactive session. If \code{FALSE}, previously created
 #'   file with manual flags will be reloaded or \code{NULL} will be returned.
-#' @param siteyear A string. Unique label of inspected data set.
+#' @param siteyear A string. Unique label for the saved \emph{manual_QC} CSV
+#'   file if no file with "manual_QC" pattern was found in \code{path}.
 #' @param tname A string. Name of variable in \code{x} with date-time
 #'   information.
 #' @param shift.by An integer value specifying the time shift (in seconds) to be
@@ -1345,17 +1356,87 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'
 #' @examples
 #' \dontrun{
-#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = 10)
-#' x <- data.frame(timestamp = tstamp, qc_H = rep(0, 10), H = rnorm(10))
-#' man <- check_manually(x, "./", vars = "H", qc_prefix = "qc_", qc_suffix = "",
-#' interactive = TRUE, siteyear = "MySite", win_size = 10)
-#' summary_QC(man, names(man)[-1])}
+#' # prepare mock data
+#' set.seed(87)
+#' NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+#' NEE[NEE > 5] <- 5
+#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
+#' PAR <- (-NEE + 5) * 100
+#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+#' Rn <- PAR / 2 - 50
+#' H <- Rn * 0.7
+#' LE <- Rn * 0.3
+#'
+#' # combine into data frame
+#' a <- data.frame(
+#'   timestamp = t,
+#'   H = H + rnorm(48 * 14),
+#'   qc_H = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+#'   LE = LE + rnorm(48 * 14),
+#'   qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+#'   NEE = NEE + rnorm(48 * 14),
+#'   qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+#'   PAR = PAR,
+#'   Tair = Tair,
+#'   Rn = Rn
+#' )
+#'
+#' # introduce outliers
+#' a$H[c(97, 210, 450, 650)] <- c(-300, 2000, -800, 3200)
+#' a$LE[c(88, 182, 350, 550)] <- c(900, -400, -1000, 2000)
+#' a$NEE[c(10, 152, 400, 500)] <- c(50, -100, 70, -250)
+#'
+#' # single variable example without auxiliary variables
+#' man <- check_manually(a, vars = "H", interactive = TRUE,
+#'                       siteyear = "MySite2022")
+#' summary_QC(man, names(man)[-1])
+#'
+#' # multiple vars provided as vector (without auxiliary variables)
+#' man <- check_manually(a, vars = c("H", "LE", "NEE"),
+#'                       interactive = TRUE)
+#'
+#' # multiple vars provided as matrix (including auxiliary variables)
+#' man <- check_manually(a,
+#'                       vars = cbind(
+#'                         c("H", "LE", "NEE"), # main variables (x)
+#'                         c("Rn", "Rn", "PAR") # auxiliary variables (y)
+#'                       ),
+#'                       interactive = TRUE)
+#'
+#' # two sets of auxiliary variables
+#' # - "missing_var" not present in "a", thus handled as if NA was provided
+#' man <- check_manually(a,
+#'                       vars = cbind(
+#'                         c("H", "LE", "NEE"),      # main variables (x)
+#'                         c("Rn", "Rn", NA),        # auxiliary variables (y)
+#'                         c("missing_var", "H", NA) # auxiliary variables (z)
+#'                       ),
+#'                       interactive = TRUE)
+#'
+#' # multiple vars provided as data frame (including two sets of auxiliary vars)
+#' man <- check_manually(a,
+#'                       vars = data.frame(
+#'                         x = c("H", "LE", "NEE"),
+#'                         y = c("Rn", "Rn", "PAR"),
+#'                         z = c("LE", "H", "Tair")
+#'                       ),
+#'                       interactive = TRUE)
+#' }
 #'
 #' @importFrom utils read.csv write.csv
 #' @export
-check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
-                           siteyear, tname = "timestamp", shift.by = NULL,
-                           with_units = FALSE, win_size = 672,
+check_manually <- function(x,
+                           path = ".",
+                           vars,
+                           qc_prefix = "qc_",
+                           qc_suffix = NULL,
+                           interactive = FALSE,
+                           siteyear = NULL,
+                           tname = "timestamp",
+                           shift.by = NULL,
+                           with_units = FALSE,
+                           win_size = 672,
                            format = "%Y-%m-%d %H:%M") {
   # Design of the function
   # - initialize manual_QC data frame with all respective TAU, H, LE, FC flux
@@ -1413,15 +1494,33 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
   }
   if (length(lf) > 1)
     stop("multiple CSV files with pattern 'manual_QC' in 'path'")
-  vnames <- names(x)[match(vars, strip_suffix(names(x)))]
-  na_names <- is.na(vnames)
+  # vars can be provided as vector, matrix or data frame/tibble
+  # - unify to matrix
+  vars <- as.matrix(vars)
+  vnrow <- nrow(vars)
+  # check NAs: at least one variable in the first column must exist in x
+  # - use only first 3 columns (x, y, z arguments of exclude)
+  # - na.omit in case NA is in vars and in names(x)
+  na_names <- !(vars %in% na.omit(strip_suffix(names(x))))
+  if (length(vars) > (vnrow * 3)) na_names <- na_names[1:(vnrow * 3)]
   if (all(na_names))
     stop("pattern of 'vars' does not match any column name in 'x'")
+  if (all(na_names[1:vnrow]))
+    stop("pattern of 'vars' to inspect not matching any column name in 'x'")
   if (any(na_names)) {
     message("following 'vars' are missing in 'x', thus skipped: ",
-            paste0(vars[na_names], collapse = ", "))
+            paste0(na.omit(vars[na_names]), collapse = ", "))
   }
-  vnames <- vnames[!na_names]
+  # After checking and reporting missing vars set missing vars to NA
+  is.na(vars) <- na_names
+  # remove vars rows if exclude arg x not available or not present in names(x)
+  vars <- vars[!na_names[1:vnrow], , drop = FALSE]
+  # check and prepare exclude() arguments y and z if available
+  # - extract y and z as a vector
+  y <- if (ncol(vars) > 1) vars[, 2] else NA
+  z <- if (ncol(vars) > 2) vars[, 3] else NA
+  # extract exclude() argument x
+  vnames <- vars[, 1] # extract a vector (dimensions dropped on purpose)
   qc <- as.data.frame(matrix(0, ncol = length(vnames), nrow = nrow(x)))
   names(qc) <- mnames <- paste0("qc_", vnames, "_man")
   qc <- cbind(x[tname], qc)
@@ -1461,7 +1560,7 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
       message("please make sure that manual_QC file is closed")
     qnames <- vnames
     # overwriting with gsub() due to handling of FLUXNET H_V_R suffix
-    for (i in vars) qnames <- gsub(i, paste0(qc_prefix, i, qc_suffix), qnames)
+    for (i in vnames) qnames <- gsub(i, paste0(qc_prefix, i, qc_suffix), qnames)
     # qnames need to align with vnames and mnames (same length):
     # names <- data.frame(vnames = vnames, qnames = qnames, mnames = mnames)
     qmiss <- !(qnames %in% names(x))
@@ -1484,8 +1583,15 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
       cbn <- combn_QC(all_qc, c(mnames[i], qnames[i]),
                       no_messages = TRUE) # supress messages?
       message("Manual quality control of variable ", vnames[i], ":")
+      if (!is.na(y[i])) message("- auxiliary variable ", y[i], " (y)")
+      if (!is.na(z[i])) message("- auxiliary variable ", z[i], " (z)")
       # no need to shift timestamp for current version of exclude()
-      qc[, mnames[i]] <- exclude(x[, vnames[i]], cbn, win_size = win_size)
+      qc[, mnames[i]] <- exclude(
+        x[, vnames[i]],
+        cbn,
+        y = if(is.na(y[i])) NULL else x[, y[i]],
+        z = if(is.na(z[i])) NULL else x[, z[i]],
+        win_size = win_size)
       qc[, mnames[i]] <- combn_QC(
         data.frame(old = all_qc[, mnames[i]], new = qc[, mnames[i]]),
         c("old", "new"), no_messages = TRUE)
@@ -1496,7 +1602,10 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
       if (opt == "y") {
         if (length(lf) == 0) {
           # including date might be problematic (old file would need to be deleted)
-          lf <- file.path(path, paste0(siteyear, "_manual_QC.csv"))
+          lf <- file.path(
+            path,
+            if (is.null(siteyear)) "manual_QC.csv" else
+              paste0(siteyear, "_manual_QC.csv"))
         }
         if (with_units) write_eddy(qc, lf) else
           write.csv(qc, lf, row.names = FALSE)
@@ -1526,7 +1635,10 @@ check_manually <- function(x, path, vars, qc_prefix, qc_suffix, interactive,
     if (opt == "y") {
       if (length(lf) == 0) {
         # including date might be problematic (old file would need to be deleted)
-        lf <- file.path(path, paste0(siteyear, "_manual_QC.csv"))
+        lf <- file.path(
+          path,
+          if (is.null(siteyear)) "manual_QC.csv" else
+            paste0(siteyear, "_manual_QC.csv"))
       }
       if (with_units) write_eddy(qc, lf) else
         write.csv(qc, lf, row.names = FALSE)
