@@ -1646,3 +1646,43 @@ check_manually <- function(x,
   }
   return(qc)
 }
+
+#' Use Quality Control
+#'
+#' Apply quality control information to the respective numeric vector.
+#'
+#' Values of \code{x} are set to \code{NA} if \code{qc} value (flag) equals or
+#' is above \code{qc_thr} or if \code{qc} value is missing.
+#'
+#' \code{na.as = 0} can be used to preserve \code{x} values with respective
+#' \code{NA} \code{qc} values.
+#'
+#' @param x A numeric vector.
+#' @param qc A numeric vector.
+#' @param qc_thr A numeric value.
+#' @param na.as A numeric value or \code{NA}.
+#'
+#' @return A numeric vector of length \code{x}.
+#'
+#' @examples
+#' set.seed(215)
+#' qc <- sample(0:2, 10, replace = TRUE)
+#' use_QC(1:10, qc)
+#'
+#' # set stricter qc_thr
+#' use_QC(1:10, qc, qc_thr = 1)
+#'
+#' # NAs in qc
+#' is.na(qc) <- c(4, 6)
+#' use_QC(1:10, qc)
+#'
+#' # preserve x values for NA qc
+#' use_QC(1:10, qc, na.as = 0)
+#'
+#' @export
+use_QC <- function(x, qc, qc_thr = 2, na.as = NA) {
+  if (length(x) != length(qc)) stop("'qc' length not matching 'x' length")
+  qc[is.na(qc)] <- na.as
+  test <- (qc >= qc_thr) | is.na(qc)
+  ifelse(test, NA, x)
+}
