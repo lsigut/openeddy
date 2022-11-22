@@ -7,7 +7,7 @@
 #' inputs required to run the proposed workflow
 #' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
 #' metadata in levels corresponding to processing stage. The folder structure is
-#' not required to succesfully apply the workflow but simplifies its use.
+#' not required to successfully apply the workflow but simplifies its use.
 #'
 #' Data processing stages \itemize{\item Level 0: Raw files with measured high
 #' frequency eddy covariance data and relevant metadata or instrument setup
