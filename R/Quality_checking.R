@@ -162,9 +162,9 @@ handleNA <- function(x, variables) {
 
 #' Extract Quality Control Information from Coded Values
 #'
-#' This function is called by \code{\link{extract_QC}} and is not inteded to be
-#' used directly. QC information for multiple variables stored in a character
-#' vector of certain properties is extracted and interpreted.
+#' This function is called by \code{\link{extract_QC}} and is not intended to be
+#' used directly. Coded QC information for one or multiple variables stored in a
+#' character vector of certain properties is extracted and interpreted.
 #'
 #' Each element of \code{x} is expected to have the same structure according to
 #' the format specified by \code{units} attribute of \code{x}. \code{units}
@@ -179,11 +179,15 @@ handleNA <- function(x, variables) {
 #'
 #' \code{x} is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
-#' data for computation of Tau and H fluxes. A combination of SA and GA (SAGA)
-#' is needed for measurements of LE and NEE. To confirm the correct performance
-#' of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0. In case of
-#' SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"} must have flag
-#' 0. Results are reported according to the QC scheme using QC flag range 0 - 2.
+#' data for computation of Tau and H fluxes. GA is used only for measurements of
+#' LE and NEE. A combination of SA and GA (SAGA) is used for measurements of LE
+#' and NEE. Filters where flags would be identical for both SA and GA have
+#' prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
+#' the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
+#' have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
+#' 0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
+#' must have flag 0. Results are reported according to the QC scheme using QC
+#' flag range 0 - 2.
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
@@ -194,11 +198,14 @@ handleNA <- function(x, variables) {
 #'   [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
 #'   concentration [umol mol-1]}.
 #'
-#' @return A data frame with columns \code{"SA"} and \code{"SAGA"}. Each
-#'   column has attributes \code{"varnames"} and \code{"units"} and length equal
-#'   to that of \code{x}.
+#' @return A data frame with relevant column names defined by
+#'   \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
+#'   \code{name_out_ALL}. Each column has attributes \code{"varnames"} and
+#'   \code{"units"} and length equal to that of \code{x}.
 #'
 #' @param x An atomic type.
+#' @param name_out_SA,name_out_GA,name_out_SAGA,name_out_ALL A character string.
+#'   Name of the output column with QC related to SA, GA, SAGA or ALL.
 #' @param prefix Character string containing a \code{\link{regular expression}}
 #'   identifying the prefix of coded values.
 #' @param split Character string containing a \code{\link{regular expression}}
@@ -217,30 +224,61 @@ handleNA <- function(x, variables) {
 #' cbind(xx, extract_coded(xx))
 #'
 #' @export
-extract_coded <- function(x, prefix = "[8]", split = "[/]") {
+extract_coded <- function(x,
+                          name_out_SA = "SA",
+                          name_out_GA = "GA",
+                          name_out_SAGA = "SAGA",
+                          name_out_ALL = "ALL",
+                          prefix = "[8]",
+                          split = "[/]"
+                          ) {
   if (!is.atomic(x)) stop("'x' must be an atomic type")
+  # read the units in the coded format
   units <- units(x)
+  # extract the units as vector
   vars <- unlist(strsplit(gsub(prefix, "", units),
                           split = split))
-  req_vars <- c("u", "v", "w", "ts", "h2o", "co2")
-  if (!all(req_vars %in% vars)) {
-    stop(paste("coded variables in units of coded vector are missing:",
-               paste0(req_vars[!(req_vars %in% vars)], collapse = ", ")))
-  }
+  # separate coded variables within the column into a list
   l <- lapply(x, separate, prefix)
+
+  # support Angle of attack and Non-steady wind filters
+  if ("aa" %in% vars || "U" %in% vars) {
+    # list carries only 1 extracted variable so can be simplified
+    out <- data.frame(ALL = as.integer(unlist(l)))
+    out$ALL[out$ALL == 1] <- 2L
+    names(out) <- varnames(out) <- name_out_ALL
+    units(out) <- "-"
+    return(out)
+  }
+
+  # make data frame with variables in each column from the list
   df <- as.data.frame(t(sapply(l, handleNA, vars)))
   names(df) <- vars
+
+  # support Timelag filters (only vars c("h2o", "co2") expected)
+  if (!all(c("u", "v", "w", "ts") %in% vars)) {
+    out <- data.frame(GA = apply(df[c("co2", "h2o")],
+                                 1,
+                                 function(x) max(as.integer(x))))
+    out$GA[out$GA == 1] <- 2L
+    names(out) <- varnames(out) <- name_out_GA
+    units(out) <- "-"
+    return(out)
+  }
+
+  # support other statistical flags
   out <- data.frame(SA = apply(df[c("u", "v", "w", "ts")],
                                1,
                                function(x) max(as.integer(x))))
-  out$SAGA <- apply(df[c("u", "v", "w", "ts", "h2o", "co2")],
+  out$SAGA <- apply(df[c("u", "v", "w", "ts", "co2", "h2o")],
                     1,
                     function(x) max(as.integer(x)))
   # values above 0 are interpreted as flag 2 for given variable
   out$SA[out$SA == 1]     <- 2L
   out$SAGA[out$SAGA == 1] <- 2L
+  names(out) <- c(name_out_SA, name_out_SAGA)
   for (i in seq_len(ncol(out))) {
-    varnames(out[, i]) <- c("SA", "SAGA")[i]
+    varnames(out[, i]) <- c(name_out_SA, name_out_SAGA)[i]
     units(out[, i]) <- "-"
   }
   return(out)
@@ -325,15 +363,20 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #'
 #' @section References: Foken, T., Wichura, B., 1996. Tools for quality
 #'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-#'   83–105. doi:10.1016/0168-1923(95)02248-1
+#'   83–105. doi:10.1016/0168-1923(95)02248-1.
 #'
 #'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
 #'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
 #'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-#'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006
+#'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006.
+#'
+#'   McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
+#'   2018. Energy balance closure at a variety of ecosystems in Central Europe
+#'   with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
+#'   doi:10.1016/j.agrformet.2017.10.003.
 #'
 #' @return A data frame. Each column has attributes \code{"varnames"} and
-#'   \code{"units"} .
+#'   \code{"units"}.
 #'
 #' @param x A data frame with column names representing required variables.
 #' @param abslim A logical value. Determines whether plausibility limits check
@@ -374,7 +417,11 @@ extract_coded <- function(x, prefix = "[8]", split = "[/]") {
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
 #'
 #' @export
-extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
+extract_QC <- function(x,
+                       filters = c("spikesHF", "ampresHF", "dropoutHF",
+                                   "abslimHF", "skewkurtHF", "skewkurtSF",
+                                   "discontHF", "discontSF"),
+                       abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
                        scf = TRUE, wresid = TRUE, rotation = c("double",
                        "planar fit"), prefix = "[8]", split = "[/]",
                        missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3),
@@ -411,26 +458,40 @@ extract_QC <- function(x, abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
   # Create output dataframe for saving qc flags
   out <- x[, 0]
 
-  # abslim creates composite flags for H, LE and CO2 based on EddyPro
-  # absolute_limits_hf column ==================================================
-  if (abslim) {
-    abslim_df <- extract_coded(x$absolute_limits_hf, prefix, split)
-    for (i in 1:2) {
-      varnames(abslim_df[, i]) <- c("qc_SA_abslim", "qc_SAGA_abslim")[i]
-    }
-    out$qc_SA_abslim <- abslim_df$SA
-    out$qc_SAGA_abslim <- abslim_df$SAGA
-  }
+  ### Extract coded filters (require extract_coded()) ==========================
 
-  # spikesHF creates composite flags for H, LE and CO2 based on EddyPro
-  # spikes_hf column ===========================================================
-  if (spikesHF) {
-    spike_df <- extract_coded(x$spikes_hf, prefix, split)
-    for (i in 1:2) {
-      varnames(spike_df[, i]) <- c("qc_SA_spikesHF", "qc_SAGA_spikesHF")[i]
+  # check filters against supported list (internal object coded_vars)
+  if (any(filters %in% coded_vars$QC_suffix, na.rm = TRUE)) {
+    # choose only filters requiring extract_coded()
+    filters_coded <- filters[filters %in% coded_vars$QC_suffix]
+    # out of those which of the full list of available QC_suffices was requested
+    reqf <- coded_vars$QC_suffix %in% filters_coded
+    # out of those all required EddyPro columns available?
+    EP_avail <- (coded_vars$EddyPro_name %in% x_names) & reqf
+    message("Extracting filters from coded EddyPro columns")
+    if (sum(reqf) > sum(EP_avail)) {
+      message("- missing EddyPro columns: ",
+              # required by user but not available in EddyPro output
+              paste0(coded_vars$EddyPro_name[reqf & !EP_avail],
+                     collapse = ", "))
+      message("-> skipping filters: ",
+              paste0(coded_vars$QC_suffix[reqf & !EP_avail],
+                     collapse = ", "))
     }
-    out$qc_SA_spikesHF <- spike_df$SA
-    out$qc_SAGA_spikesHF <- spike_df$SAGA
+    # subset table only to available and required filters
+    cd_avail <- coded_vars[EP_avail, ]
+    # SA and SAGA provided separately to extract_coded()
+    SA <- cd_avail$name_out_SA
+    SAGA <- cd_avail$name_out_SAGA
+    for (i in seq_len(sum(EP_avail))) {
+      out[c(SA[i], SAGA[i])] <-
+        extract_coded(x[, cd_avail$EddyPro_name[i]],
+                      SA[i], SAGA[i], prefix, split)
+    }
+    message("-> extracted filters: ",
+            if (sum(EP_avail)) {
+              paste0(cd_avail$QC_suffix, collapse = ", ")
+              } else "none")
   }
 
   # missfrac creates overall flag for halfhours with insufficient

@@ -4,10 +4,21 @@
 \alias{extract_coded}
 \title{Extract Quality Control Information from Coded Values}
 \usage{
-extract_coded(x, prefix = "[8]", split = "[/]")
+extract_coded(
+  x,
+  name_out_SA = "SA",
+  name_out_GA = "GA",
+  name_out_SAGA = "SAGA",
+  name_out_ALL = "ALL",
+  prefix = "[8]",
+  split = "[/]"
+)
 }
 \arguments{
 \item{x}{An atomic type.}
+
+\item{name_out_SA, name_out_GA, name_out_SAGA, name_out_ALL}{A character string.
+Name of the output column with QC related to SA, GA, SAGA or ALL.}
 
 \item{prefix}{Character string containing a \code{\link{regular expression}}
 identifying the prefix of coded values.}
@@ -16,14 +27,15 @@ identifying the prefix of coded values.}
 identifying the separator of variable names in \code{units} attribute.}
 }
 \value{
-A data frame with columns \code{"SA"} and \code{"SAGA"}. Each
-  column has attributes \code{"varnames"} and \code{"units"} and length equal
-  to that of \code{x}.
+A data frame with relevant column names defined by
+  \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
+  \code{name_out_ALL}. Each column has attributes \code{"varnames"} and
+  \code{"units"} and length equal to that of \code{x}.
 }
 \description{
-This function is called by \code{\link{extract_QC}} and is not inteded to be
-used directly. QC information for multiple variables stored in a character
-vector of certain properties is extracted and interpreted.
+This function is called by \code{\link{extract_QC}} and is not intended to be
+used directly. Coded QC information for one or multiple variables stored in a
+character vector of certain properties is extracted and interpreted.
 }
 \details{
 Each element of \code{x} is expected to have the same structure according to
@@ -39,11 +51,15 @@ given variable (\code{NA}).}
 
 \code{x} is interpreted in respect to instruments required to measure given
 fluxes. SA is required for measurements of all fluxes and solely provides
-data for computation of Tau and H fluxes. A combination of SA and GA (SAGA)
-is needed for measurements of LE and NEE. To confirm the correct performance
-of SA, all variables \code{"u", "v", "w", "ts"} must have flag 0. In case of
-SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"} must have flag
-0. Results are reported according to the QC scheme using QC flag range 0 - 2.
+data for computation of Tau and H fluxes. GA is used only for measurements of
+LE and NEE. A combination of SA and GA (SAGA) is used for measurements of LE
+and NEE. Filters where flags would be identical for both SA and GA have
+prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
+the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
+have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
+0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
+must have flag 0. Results are reported according to the QC scheme using QC
+flag range 0 - 2.
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item SA: Sonic

@@ -6,6 +6,8 @@
 \usage{
 extract_QC(
   x,
+  filters = c("spikesHF", "ampresHF", "dropoutHF", "abslimHF", "skewkurtHF",
+    "skewkurtSF", "discontHF", "discontSF"),
   abslim = TRUE,
   spikesHF = TRUE,
   missfrac = TRUE,
@@ -71,7 +73,7 @@ thresholds for rotated w used if \code{wresid = TRUE}.}
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and
-  \code{"units"} .
+  \code{"units"}.
 }
 \description{
 QC information stored in columns of data frame \code{x} is extracted and
@@ -161,12 +163,17 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
 \section{References}{
  Foken, T., Wichura, B., 1996. Tools for quality
   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-  83–105. doi:10.1016/0168-1923(95)02248-1
+  83–105. doi:10.1016/0168-1923(95)02248-1.
 
   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-  169, 122-135. doi:10.1016/j.agrformet.2012.09.006
+  169, 122-135. doi:10.1016/j.agrformet.2012.09.006.
+
+  McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
+  2018. Energy balance closure at a variety of ecosystems in Central Europe
+  with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
+  doi:10.1016/j.agrformet.2017.10.003.
 }
 
 \seealso{
