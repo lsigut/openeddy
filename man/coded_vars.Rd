@@ -3,14 +3,15 @@
 \docType{data}
 \name{coded_vars}
 \alias{coded_vars}
-\title{used within extract_QC() to link column names with SA and SAGA names}
+\title{Coded variables}
 \format{
-An object of class \code{data.frame} with 8 rows and 4 columns.
+An object of class \code{data.frame} with 12 rows and 6 columns.
 }
 \usage{
 coded_vars
 }
 \description{
-used within extract_QC() to link column names with SA and SAGA names
+Used within \code{\link{extract_QC}} to link names of filters (QC_suffices)
+with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
 }
 \keyword{internal}

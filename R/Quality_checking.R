@@ -138,14 +138,18 @@ flag_runs <- function(x, name_out = "-", length = 2) {
   return(out)
 }
 
-#' Helper function utilized in extract_coded() for abslim and spikesHF
-#' - controls column splitting
+#' Separate columns
+#'
+#' Helper function utilized in \code{\link{extract_coded}} for coded variables
+#' that controls column splitting.
 #'
 #' @keywords internal
 separate <- function(x, ...) {
   strsplit(as.character(gsub(...,"", x)), NULL)
 }
 
+#' Handle NA values
+#'
 #' Helper function utilized in extract_coded() for abslim and spikesHF
 #' - controls NAs in splitted columns
 #' - 9 is EddyPro code for NA
@@ -172,10 +176,16 @@ handleNA <- function(x, variables) {
 #' (\code{"8"}) that is followed by variable names (\code{"u", "v", "w", "ts",
 #' "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
 #' of \code{x} thus consist of either seven components (prefix and six flags for
-#' each variable) or one \code{NA} value. Flags can have three values: \itemize{
-#' \item Flag 0: measured variable passed the test. \item Flag 1: measured
-#' variable failed the test. \item Flag 9: flag could not be obtained for the
-#' given variable (\code{NA}).}
+#' each variable) or one \code{NA} value. Flags of coded variables can have
+#' three values: \itemize{ \item flag 0: measured variable passed the test.
+#' \item flag 1: measured variable failed the test. \item flag 9: flag could not
+#' be obtained for the given variable (\code{NA}).}
+#'
+#' The original flags are then interpreted within the QC scheme using QC flag
+#' range 0 - 2. Coded variable can represent either \itemize{\item hard flag
+#' (suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as flag 2.
+#' \item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1
+#' interpreted as flag 1.}
 #'
 #' \code{x} is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
@@ -186,8 +196,7 @@ handleNA <- function(x, variables) {
 #' the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
 #' have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
 #' 0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
-#' must have flag 0. Results are reported according to the QC scheme using QC
-#' flag range 0 - 2.
+#' must have flag 0.
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
@@ -210,6 +219,8 @@ handleNA <- function(x, variables) {
 #'   identifying the prefix of coded values.
 #' @param split Character string containing a \code{\link{regular expression}}
 #'   identifying the separator of variable names in \code{units} attribute.
+#' @param sf A logical value. Coded variable represents hard flag (\code{sf =
+#'   FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.
 #'
 #' @seealso \code{\link{extract_QC}}.
 #'
@@ -230,11 +241,14 @@ extract_coded <- function(x,
                           name_out_SAGA = "SAGA",
                           name_out_ALL = "ALL",
                           prefix = "[8]",
-                          split = "[/]"
-                          ) {
+                          split = "[/]",
+                          sf = FALSE) {
   if (!is.atomic(x)) stop("'x' must be an atomic type")
   # read the units in the coded format
   units <- units(x)
+  if (units == "-")
+    stop("missing units containing the format of coded variable",
+         call. = FALSE)
   # extract the units as vector
   vars <- unlist(strsplit(gsub(prefix, "", units),
                           split = split))
@@ -245,7 +259,7 @@ extract_coded <- function(x,
   if ("aa" %in% vars || "U" %in% vars) {
     # list carries only 1 extracted variable so can be simplified
     out <- data.frame(ALL = as.integer(unlist(l)))
-    out$ALL[out$ALL == 1] <- 2L
+    out$ALL[out$ALL == 1] <- if (sf) 1L else 2L
     names(out) <- varnames(out) <- name_out_ALL
     units(out) <- "-"
     return(out)
@@ -260,7 +274,7 @@ extract_coded <- function(x,
     out <- data.frame(GA = apply(df[c("co2", "h2o")],
                                  1,
                                  function(x) max(as.integer(x))))
-    out$GA[out$GA == 1] <- 2L
+    out$GA[out$GA == 1] <- if (sf) 1L else 2L
     names(out) <- varnames(out) <- name_out_GA
     units(out) <- "-"
     return(out)
@@ -274,8 +288,8 @@ extract_coded <- function(x,
                     1,
                     function(x) max(as.integer(x)))
   # values above 0 are interpreted as flag 2 for given variable
-  out$SA[out$SA == 1]     <- 2L
-  out$SAGA[out$SAGA == 1] <- 2L
+  out$SA[out$SA == 1]     <- if (sf) 1L else 2L
+  out$SAGA[out$SAGA == 1] <- if (sf) 1L else 2L
   names(out) <- c(name_out_SA, name_out_SAGA)
   for (i in seq_len(ncol(out))) {
     varnames(out[, i]) <- c(name_out_SA, name_out_SAGA)[i]
@@ -284,26 +298,38 @@ extract_coded <- function(x,
   return(out)
 }
 
+#' Missing fraction of records
+#'
+#' Computes missing fraction of high frequency records for particular flux.
+#'
+#' @param x A data frame. Contains two columns with the count of high frequency
+#'   spikes detected for the pair of variables used to compute covariance.
+#' @param ur An integer vector. Number of used records for computation of
+#'   covariance.
+#' @param mfr An integer value. Maximum number of records in a file (per whole
+#'   dataset).
+#'
+#' @keywords internal
+mf <- function(x, ur, mfr) {
+  1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
+}
+
 #' Extract Quality Control Information
 #'
 #' QC information stored in columns of data frame \code{x} is extracted and
 #' interpreted in respect to instruments or individual fluxes.
 #'
 #' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column names according to considered QC checks. See
-#' 'Arguments' above. Attribute \code{units} is required for columns
-#' \code{"absolute_limits_hf" and "spikes_hf"} to extract the coded QC
-#' information. See '\code{\link{extract_coded}}'.
+#' required that it contains column names according to considered QC filters. In
+#' the case of coded variables, attribute \code{units} containing the format of
+#' coded variable is required to extract the coded QC information. See
+#' \code{\link{extract_coded}}.
 #'
 #' Extracted QC information can be relevant to fluxes measured by given
 #' instrument(s), specific flux or is applicable to all fluxes. See 'Naming
 #' Strategy' below. Results are reported according to the QC scheme using QC
 #' flag range 0 - 2. In cases when extracted variable is checked against
-#' thresholds (missfrac, scf, wresid), \code{\link{apply_thr}} is used to assign
-#' flag values. First value of \code{missfrac_thr}, \code{scf_thr},
-#' \code{w_unrot_thr} or \code{w_rot_thr} sets threshold for flag 1, second
-#' value sets threshold for flag 2. If both threshold values are the same, only
-#' flag 0 and 2 will be resolved (hard flag).
+#' thresholds, \code{\link{apply_thr}} is used to assign flag values.
 #'
 #' Check of missing data in averaging period (missfrac) takes into account
 #' number of valid records used for given averaging period. This number is
@@ -311,35 +337,62 @@ extract_coded <- function(x,
 #' variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
 #' ts (H); w, h2o (LE) and w, co2 (NEE).
 #'
-#' @section Extracted QC Checks: \itemize{ \item Check of plausibility limits
-#'   (abslim). Test is not additive. \item Check of high frequency data spike
-#'   percentage in averaging period against thresholds (spikesHF). Test is not
-#'   additive. \item Check of missing data in averaging period against
-#'   thresholds (missfrac). Test is not additive. \item Check of spectral
-#'   correction factor against thresholds (scf). Test is not additive. \item
-#'   Check of mean unrotated w (double rotation) or w residual (planar fit)
-#'   against thresholds (wresid). Additive test.}
+#' @section Extracted QC Checks: Filters from coded EddyPro columns (thresholds
+#'   are set within EddyPro software). All of the filters extracted from coded
+#'   variables are not additive. \itemize{ \item spikesHF: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
+#'    frequency data spike percentage} in averaging period against thresholds.
+#'   HF in spikesHF means high frequency and distinguishes despiking done on raw
+#'   data (spikesHF) from despiking done on low frequency data (spikesLF; see
+#'   \code{\link{despikeLF}}). \item ampres: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
+#'    resolution} in the recorded data. \item dropout: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
+#'    i.e. situations when the time series stays for “too long” on a value that
+#'   is far from the mean. \item abslim: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
+#'    limits} when raw data are out of plausible range. \item skewkurt_sf and
+#'   skewkurt_hf: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
+#'    and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
+#'   skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
+#'   discont_hf: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
+#'    that lead to semi-permanent changes in the time series. If \code{simplify
+#'   = TRUE}, discont_sf and discont_hf are combined into discont column
+#'   instead. \item timelag_sf and timelag_hf: check of estimated
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
+#'    compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
+#'   and timelag_hf are combined into timelag column instead. \item attangle:
+#'   check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
+#'    of attack}. \item nonsteady: check of
+#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
+#'    of horizontal wind}.}
 #'
-#' @section Content and Format of Columns: \itemize{ \item
-#'   \code{"absolute_limits_hf"}: hard flags (passed or failed the test) for
-#'   individual variables for absolute limits. Limits for each variable are set
-#'   in the post-processing software which also reports the resulting flags in a
-#'   coded format. See '\code{\link{extract_coded}}'. \item \code{"spikes_hf"}:
-#'   hard flags (passed or failed the test) for individual variables for spike
-#'   test. Threshold for maximum allowed percentage of spikes within averaging
-#'   period for all variables is set in the post-processing software which also
-#'   reports the resulting flags in a coded format. See
-#'   '\code{\link{extract_coded}}'. \item \code{"file_records"}: number of valid
-#'   records found in the raw file \item \code{"used_records"}: number of valid
-#'   records used at given averaging period. This number can also contain high
-#'   frequency spikes that should be excluded. \item \code{"u_spikes",
-#'   "ts_spikes", "h2o_spikes" and "co2_spikes"}: number of high frequency
-#'   spikes detected at given averaging period in respective variable. Values
-#'   can be set to 0 if \code{"used_records"} already accounts for spikes. \item
-#'   \code{"Tau_scf", "H_scf", "LE_scf" and "co2_scf"}: spectral correction
-#'   factor for given flux. Values are above 1. \item \code{"w_unrot", "w_rot"}:
-#'   unrotated and rotated w wind component, respectively (should be close to
-#'   0).}
+#'   Additional filters extracted from EddyPro output. The only additive test is
+#'   "wresid". \itemize{ \item missfrac: check of missing data in averaging
+#'   period against thresholds. \item scf: check of spectral correction factor
+#'   against thresholds. \item wresid: check of mean unrotated \emph{w} (double
+#'   rotation) or \emph{w} residual (planar fit) against thresholds. \item runs:
+#'   check of runs with repeating values. \item lowcov: check of fluxes too
+#'   close to zero (assuming issues during covariance computation) \item var:
+#'   check of variances against thresholds. \item LI7200: check of CO2 and H2O
+#'   signal strength against thresholds.}
+#'
+#' @section Content and Format of Columns: \itemize{ \item For details
+#'   concerning coded variables see \code{\link{extract_coded}}. \item
+#'   \code{"file_records"}: number of valid records found in the raw file \item
+#'   \code{"used_records"}: number of valid records used at given averaging
+#'   period. This number can also contain high frequency spikes that should be
+#'   excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
+#'   "co2_spikes"}: number of high frequency spikes detected at given averaging
+#'   period in respective variable. Values can be set to 0 if
+#'   \code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
+#'   "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
+#'   flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
+#'   rotated \emph{w} wind component, respectively (should be close to 0 m
+#'   s-1).}
 #'
 #' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
 #'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
@@ -349,9 +402,9 @@ extract_coded <- function(x,
 #'   qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
 #'   qc_ALL: applicable to all fluxes}
 #'
-#'   \strong{QC suffixes} (specifies which QC check was applied to get this QC
-#'   output): \itemize{ \item abslim, spikesHF, missfrac, wresid. See 'Included
-#'   QC Checks' above.}
+#'   \strong{QC suffixes} (specifies which QC check was performed to get this QC
+#'   output): \itemize{ \item See 'Extracted QC Checks' above for the complete
+#'   list.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
 #'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
@@ -363,40 +416,29 @@ extract_coded <- function(x,
 #'
 #' @section References: Foken, T., Wichura, B., 1996. Tools for quality
 #'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-#'   83–105. doi:10.1016/0168-1923(95)02248-1.
+#'   83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
+#'
+#'   Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
+#'   for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
+#'   14(3), 512-526.
+#'   \url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
 #'
 #'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
 #'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
 #'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-#'   169, 122-135. doi:10.1016/j.agrformet.2012.09.006.
+#'   169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 #'
 #'   McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
 #'   2018. Energy balance closure at a variety of ecosystems in Central Europe
 #'   with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-#'   doi:10.1016/j.agrformet.2017.10.003.
+#'   \url{https://doi.org/10.1016/j.agrformet.2017.10.003}
 #'
 #' @return A data frame. Each column has attributes \code{"varnames"} and
 #'   \code{"units"}.
 #'
 #' @param x A data frame with column names representing required variables.
-#' @param abslim A logical value. Determines whether plausibility limits check
-#'   should be considered. If \code{abslim = TRUE}, column
-#'   \code{"absolute_limits_hf"} is required in \code{x}.
-#' @param spikesHF A logical value. Determines whether check of spike percentage
-#'   in averaging period should be considered. If \code{spikesHF = TRUE}, column
-#'   \code{"spikes_hf"} is required in \code{x}.
-#' @param missfrac A logical value. Determines whether check of missing data in
-#'   averaging period against thresholds should be done. If \code{missfrac =
-#'   TRUE}, columns \code{"file_records", "used_records", "w_spikes",
-#'   "u_spikes", "ts_spikes", "h2o_spikes" and "co2_spikes"} are required in
-#'   \code{x}.
-#' @param scf A logical value. Determines whether check of spectral correction
-#'   factor against thresholds should be done. If \code{scf = TRUE}, columns
-#'   \code{"Tau_scf", "H_scf", "LE_scf" and "co2_scf"} are required in \code{x}.
-#' @param wresid A logical value. Determines whether check of mean unrotated w
-#'   and w residual after planar fit against thresholds should be done. If
-#'   \code{wresid = TRUE}, columns \code{"w_unrot"} and \code{"w_rot"} are
-#'   required in \code{x}.
+#' @param filters A character vector. A full set of supported filters to extract
+#'   (default) or its subset.
 #' @param rotation A character string. Specifies the type of coordinate rotation
 #'   applied. Allowed values are "double" and "planar fit". Can be abbreviated.
 #' @param prefix Character string containing a \code{\link{regular expression}}
@@ -405,58 +447,63 @@ extract_coded <- function(x,
 #'   identifying the separator of variable names in \code{units} attribute. See
 #'   '\code{\link{extract_coded}}'.
 #' @param missfrac_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds (allowed fraction of missing high frequency data within
-#'   averaging period) used if \code{missfrac = TRUE}.
+#'   thresholds for fraction of missing high frequency data within averaging
+#'   period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}}
+#'   flags the records higher than the given thresholds.
 #' @param scf_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds used if \code{scf = TRUE}.
+#'   thresholds for spectral correction factor if \code{filters} include
+#'   \code{"scf"}. \code{\link{apply_thr}} flags the records higher than the
+#'   given thresholds.
 #' @param w_unrot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for unrotated w used if \code{wresid = TRUE}.
+#'   thresholds for absolute value of unrotated \emph{w} if \code{filters}
+#'   include \code{"wresid"} and \code{rotation = "double"}.
+#'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
 #' @param w_rot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for rotated w used if \code{wresid = TRUE}.
+#'   thresholds for absolute value of rotated \emph{w} if \code{filters} include
+#'   \code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}}
+#'   flags the records higher than the given thresholds.
+#' @param lowcov_thr A numeric vector with 2 non-missing values. Represents
+#'   thresholds for computed covariance if \code{filters} include
+#'   \code{"lowcov"}. \code{\link{apply_thr}} flags the records between given
+#'   thresholds.
+#' @param ts_var_thr A numeric vector with 2 non-missing values. Represents
+#'   thresholds for sonic temperature variance if \code{filters} include
+#'   \code{"var"}. \code{\link{apply_thr}} flags the records higher than the
+#'   given thresholds.
+#' @param LI7200_signal_thr A numeric vector with 2 non-missing values.
+#'   Represents thresholds for CO2 and H2O signal strength provided by LI-COR
+#'   7200 if \code{filters} include \code{"LI7200"}. \code{\link{apply_thr}}
+#'   flags the records lower than the given thresholds.
+#' @param simplify A logical value. Should be soft (suffix \code{"_sf"} in
+#'   EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
+#'   flags extracted from EddyPro coded variables combined? See
+#'   \code{\link{extract_coded}}.
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
 #'
 #' @export
 extract_QC <- function(x,
-                       filters = c("spikesHF", "ampresHF", "dropoutHF",
-                                   "abslimHF", "skewkurtHF", "skewkurtSF",
-                                   "discontHF", "discontSF"),
-                       abslim = TRUE, spikesHF = TRUE, missfrac = TRUE,
-                       scf = TRUE, wresid = TRUE, rotation = c("double",
-                       "planar fit"), prefix = "[8]", split = "[/]",
+                       filters = c("spikesHF", "ampres", "dropout",
+                                   "abslim", "skewkurt_hf", "skewkurt_sf",
+                                   "discont_hf", "discont_sf", "timelag_hf",
+                                   "timelag_sf", "attangle", "nonsteady",
+                                   "missfrac", "scf", "wresid", "runs",
+                                   "lowcov", "var", "LI7200"),
+                       rotation = c("double", "planar fit"),
+                       prefix = "[8]", split = "[/]",
                        missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3),
-                       w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15)) {
+                       w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15),
+                       lowcov_thr = c(-0.005, 0.005), ts_var_thr = c(2, 2),
+                       LI7200_signal_thr = c(90, 80), simplify = TRUE) {
   # Basic check of input =======================================================
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' must be of class data.frame with colnames")
   }
-  req_vars <- character()
-  if (abslim) req_vars <- c(req_vars, "absolute_limits_hf")
-  if (spikesHF) req_vars <- c(req_vars, "spikes_hf")
-  if (missfrac) {
-    req_vars <- c(req_vars, "file_records", "used_records", "u_spikes",
-                  "w_spikes", "ts_spikes", "co2_spikes", "h2o_spikes")
-  }
-  if (scf) {
-    req_vars <- c(req_vars, "Tau_scf", "H_scf", "LE_scf", "co2_scf")
-  }
-  if (wresid) {
-    req_vars <- c(req_vars, "w_unrot", "w_rot")
-  }
-  if (length(req_vars) > 0 && !all(req_vars %in% x_names)) {
-    stop(paste("missing", paste0(req_vars[!(req_vars %in% x_names)],
-                                 collapse = ", ")))
-  }
-  units <- units(x, names = TRUE)
-  if (abslim && units["absolute_limits_hf"] == "-") {
-    stop("missing absolute_limits_hf format in its units attribute")
-  }
-  if (spikesHF && units["spikes_hf"] == "-") {
-    stop("missing spikes_hf format in its units attribute")
-  }
   # Create output dataframe for saving qc flags
   out <- x[, 0]
+  # vector of all fluxes supported
+  fluxes <- c("Tau", "H", "LE", "NEE")
 
   ### Extract coded filters (require extract_coded()) ==========================
 
@@ -482,69 +529,211 @@ extract_QC <- function(x,
     cd_avail <- coded_vars[EP_avail, ]
     # SA and SAGA provided separately to extract_coded()
     SA <- cd_avail$name_out_SA
+    GA <- cd_avail$name_out_GA
     SAGA <- cd_avail$name_out_SAGA
+    ALL <- cd_avail$name_out_ALL
     for (i in seq_len(sum(EP_avail))) {
-      out[c(SA[i], SAGA[i])] <-
+      out[na.omit(c(SA[i], GA[i], SAGA[i], ALL[i]))] <-
         extract_coded(x[, cd_avail$EddyPro_name[i]],
-                      SA[i], SAGA[i], prefix, split)
+                      SA[i], GA[i], SAGA[i], ALL[i], prefix, split,
+                      sf = grepl("_sf$", cd_avail$EddyPro_name[i]))
     }
     message("-> extracted filters: ",
             if (sum(EP_avail)) {
               paste0(cd_avail$QC_suffix, collapse = ", ")
-              } else "none")
+            } else "none")
+    if (simplify) {
+      sf_all <- c("qc_SA_skewkurt_sf", "qc_SAGA_skewkurt_sf",
+                  "qc_SA_discont_sf", "qc_SAGA_discont_sf",
+                  "qc_GA_timelag_sf")
+      sfhf <- cbind(sf_all, gsub("_sf$", "_hf", sf_all))
+      for (i in seq_len(NROW(sfhf))) {
+        nout <- gsub("_sf", "", sfhf[i, 1])
+        sfhf_av <- sfhf[i, ] %in% names(out)
+        if (sum(sfhf_av)) {
+          # combn_QC results note: all hard flags are also soft flags
+          out[, nout] <- combn_QC(out, sfhf[i, ][sfhf_av], nout,
+                                  no_messages = TRUE)
+          # remove the sfhf original columns from out
+          out[sfhf[i, ][sfhf_av]] <- NULL
+        }
+      }
+      message("-> soft and hard flags were combined (simplify = TRUE)")
+    }
   }
 
-  # missfrac creates overall flag for halfhours with insufficient
-  # high frequency readings ====================================================
-  if (missfrac) {
-    # Flag according to argument 'missfrac_thr' (missing fraction thresholds):
-    # missfrac > missfrac_thr[1]: flag = 1, missfrac > missfrac_thr[2]: flag = 2
-    if (!all(is.na(x$file_records))) {
+  ### Extract missfrac filters =================================================
+
+  # checks the fraction of missing high frequency records against missfrac_thr
+  if ("missfrac" %in% filters) {
+    message("Extracting 'missfrac' filters")
+    mf_vars <- c("file_records", "used_records", "w_spikes", "u_spikes",
+                 "ts_spikes", "h2o_spikes", "co2_spikes")
+    mf_avail <- mf_vars %in% x_names
+    if (any(!mf_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(mf_vars[!mf_avail], collapse = ", "))
+    }
+    if (all(mf_avail)) {
       ur <- x$used_records
       mfr <- max(x$file_records, na.rm = TRUE) # maximum file records (mfr)
-      # mf computes missing fraction for particular flux
-      mf <- function(x, ur, mfr) {
-        1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
-      }
-      mf_Tau   <- mf(x[c("w_spikes", "u_spikes")], ur, mfr)
-      mf_H     <- mf(x[c("w_spikes", "ts_spikes")], ur, mfr)
-      mf_LE    <- mf(x[c("w_spikes", "h2o_spikes")], ur, mfr)
+      mf_Tau  <- mf(x[c("w_spikes", "u_spikes")], ur, mfr)
+      mf_H    <- mf(x[c("w_spikes", "ts_spikes")], ur, mfr)
+      mf_LE   <- mf(x[c("w_spikes", "h2o_spikes")], ur, mfr)
       mf_NEE  <- mf(x[c("w_spikes", "co2_spikes")], ur, mfr)
+
+      # Flag according to argument 'missfrac_thr' (missing fraction thresholds):
+      # missfrac > missfrac_thr[1]: flag = 1,
+      # missfrac > missfrac_thr[2]: flag = 2
       out$qc_Tau_missfrac <- apply_thr(mf_Tau, missfrac_thr, "qc_Tau_missfrac")
       out$qc_H_missfrac   <- apply_thr(mf_H, missfrac_thr, "qc_H_missfrac")
       out$qc_LE_missfrac  <- apply_thr(mf_LE, missfrac_thr, "qc_LE_missfrac")
       out$qc_NEE_missfrac <- apply_thr(mf_NEE, missfrac_thr, "qc_NEE_missfrac")
-    } else {
-      warning("'x$file_records' has no non-missing values, skipped missfrac",
-              call. = FALSE)
-    }
+      message("-> success")
+    } else message("-> skipped")
   }
 
-  # scf creates flag for halfhours with excessive spectral correction ==========
-  if (scf) {
+  ### Extract scf filters ======================================================
+
+  # scf creates flag for half-hours with excessive spectral correction
+  if ("scf" %in% filters) {
+    message("Extracting 'scf' filters")
     # Flag according to argument 'scf_thr' (spectral correction factor
     # thresholds): scf > scf_thr[1]: flag = 1, scf > scf_thr[2]: flag = 2
-    nin <- c("Tau_scf", "H_scf", "LE_scf", "co2_scf")
-    nout <- c("qc_Tau_scf", "qc_H_scf", "qc_LE_scf", "qc_NEE_scf")
-    for (i in seq_along(nout)) {
-      out[, nout[i]] <- apply_thr(x[, nin[i]], scf_thr, nout[i])
+    nin <- sprintf("%s_scf", c("Tau", "H", "LE", "co2"))
+    nout <- sprintf("qc_%s_scf", fluxes)
+    scf_avail <- nin %in% x_names
+    if (any(!scf_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(nin[!scf_avail], collapse = ", "))
+    }
+    if (all(scf_avail)) {
+      for (i in seq_along(nout)) {
+        out[, nout[i]] <- apply_thr(x[, nin[i]], scf_thr, nout[i])
+      }
+      message("-> success")
+    } else message("-> skipped")
+  }
+
+  ### Extract wresid filter ====================================================
+
+  # wresid creates flag correction (additive filter) for half-hours with
+  # probable advection
+  if ("wresid" %in% filters) {
+    message("Extracting 'wresid' filter")
+    rotation <- match.arg(rotation)
+    wr_var <- ifelse(rotation == "double", "w_unrot", "w_rot")
+    message(paste("-", rotation, "rotation -> using",
+                  ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
+    # double rotation: abs(w_unrot) should be < 0.35 m/s
+    # planar fit: flag correction according to residual absolute w
+    # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
+    wr_avail <- wr_var %in% x_names
+    if (!wr_avail) {
+      message("- missing EddyPro column: ", wr_var)
+      message("-> skipped")
+    } else {
+      thr <- if (rotation == "double") w_unrot_thr else w_rot_thr
+      absw <- abs(if (rotation == "double") x$w_unrot else x$w_rot)
+      out$qc_ALL_wresid <- apply_thr(absw, thr, "qc_ALL_wresid")
+      message("-> success")
     }
   }
 
-  # wresid creates overall flag for halfhours with probable advection ==========
-  if (wresid) {
-    rotation <- match.arg(rotation)
-    message(paste("wresid:", rotation, "rotation - using",
-                  ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
-    out$qc_ALL_wresid <- if (rotation == "double") {
-      # In case of double rotation abs(w_unrot) should be < 0.35 m/s
-      apply_thr(abs(x$w_unrot), w_unrot_thr, "qc_ALL_wresid")
-    } else {
-      # Flag correction according to residual absolute w after planar fit
-      # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
-      apply_thr(abs(x$w_rot), w_rot_thr, "qc_ALL_wresid")
+  ### Extract runs filters =====================================================
+
+  # runs flag repeated flux measurements (statistically unlikely)
+  # - results depend on the flux rounding precision
+  if ("runs" %in% filters) {
+    message("Extracting 'runs' filters")
+    nout <- sprintf("qc_%s_runs", fluxes)
+    runs_avail <- fluxes %in% x_names
+    if (any(!runs_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(fluxes[!runs_avail], collapse = ", "))
+      # it is expected that user corrected co2_flux name to NEE first
+      if (!("NEE" %in% x_names) && "co2_flux" %in% x_names) {
+        message("- hint: run correct() over names(x) first")
+      }
     }
+    if (all(runs_avail)) {
+      for (i in seq_along(nout)) {
+        out[, nout[i]] <- flag_runs(x[, fluxes[i]], nout[i])
+      }
+      message("-> success")
+    } else message("-> skipped")
   }
+
+  ### Extract lowcov filters ===================================================
+
+  # runs flag repeated flux measurements (statistically unlikely)
+  # - results depend on the flux rounding precision
+  if ("lowcov" %in% filters) {
+    message("Extracting 'lowcov' filters")
+    lc_fluxes <- fluxes[!(fluxes %in% "Tau")]
+    nout <- sprintf("qc_%s_lowcov", lc_fluxes)
+    lowcov_avail <- lc_fluxes %in% x_names
+    if (any(!lowcov_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(lc_fluxes[!lowcov_avail], collapse = ", "))
+      # it is expected that user corrected co2_flux name to NEE first
+      if (!("NEE" %in% x_names) && "co2_flux" %in% x_names) {
+        message("- hint: run correct() over names(x) first")
+      }
+    }
+    if (all(lowcov_avail)) {
+      for (i in seq_along(nout)) {
+        out[, nout[i]] <- apply_thr(x[, lc_fluxes[i]], lowcov_thr, nout[i],
+                                    flag = "between")
+      }
+      message("-> success")
+    } else message("-> skipped")
+  }
+
+  ### Extract var filter =======================================================
+
+  # H fluxes are not reliable if sonic temperature variance is above 2
+  # - no other reliable threshold found for other fluxes yet (needs more testing)
+  if ("var" %in% filters) {
+    message("Extracting 'var' filter")
+    v_vars <- "ts_var"
+    v_fluxes <- "H"
+    nout <- sprintf("qc_%s_var", v_fluxes)
+    var_avail <- v_vars %in% x_names
+    if (any(!var_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(v_vars[!var_avail], collapse = ", "))
+    }
+    if (all(var_avail)) {
+      for (i in seq_along(nout)) {
+        out[, nout[i]] <- apply_thr(x[, v_vars[i]], ts_var_thr, nout[i],
+                                    flag = "higher")
+      }
+      message("-> success")
+    } else message("-> skipped")
+  }
+
+  ### Extract LI7200 filter =======================================================
+
+  # LE and NEE fluxes are not reliable if signal strength is too low
+  # - <90 flag 1, <80 flag 2
+  if ("LI7200" %in% filters) {
+    message("Extracting 'LI7200' filter")
+    LI_vars <- c("co2_signal_strength_7200_mean",
+                "h2o_signal_strength_7200_mean")
+    nout <- "qc_GA_LI7200"
+    LI7200_avail <- LI_vars %in% x_names
+    if (any(!LI7200_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(LI_vars[!LI7200_avail], collapse = ", "))
+    }
+    if (all(LI7200_avail)) {
+      signal <- rowMeans(x[LI_vars])
+      out[, nout] <- apply_thr(signal, LI7200_signal_thr, nout, flag = "lower")
+      message("-> success")
+    } else message("-> skipped")
+  }
+
   return(out)
 }
 

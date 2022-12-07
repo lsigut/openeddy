@@ -6,47 +6,27 @@
 \usage{
 extract_QC(
   x,
-  filters = c("spikesHF", "ampresHF", "dropoutHF", "abslimHF", "skewkurtHF",
-    "skewkurtSF", "discontHF", "discontSF"),
-  abslim = TRUE,
-  spikesHF = TRUE,
-  missfrac = TRUE,
-  scf = TRUE,
-  wresid = TRUE,
+  filters = c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf", "skewkurt_sf",
+    "discont_hf", "discont_sf", "timelag_hf", "timelag_sf", "attangle", "nonsteady",
+    "missfrac", "scf", "wresid", "runs", "lowcov", "var", "LI7200"),
   rotation = c("double", "planar fit"),
   prefix = "[8]",
   split = "[/]",
   missfrac_thr = c(0.1, 0.1),
   scf_thr = c(2, 3),
   w_unrot_thr = c(0.35, 0.35),
-  w_rot_thr = c(0.1, 0.15)
+  w_rot_thr = c(0.1, 0.15),
+  lowcov_thr = c(-0.005, 0.005),
+  ts_var_thr = c(2, 2),
+  LI7200_signal_thr = c(90, 80),
+  simplify = TRUE
 )
 }
 \arguments{
 \item{x}{A data frame with column names representing required variables.}
 
-\item{abslim}{A logical value. Determines whether plausibility limits check
-should be considered. If \code{abslim = TRUE}, column
-\code{"absolute_limits_hf"} is required in \code{x}.}
-
-\item{spikesHF}{A logical value. Determines whether check of spike percentage
-in averaging period should be considered. If \code{spikesHF = TRUE}, column
-\code{"spikes_hf"} is required in \code{x}.}
-
-\item{missfrac}{A logical value. Determines whether check of missing data in
-averaging period against thresholds should be done. If \code{missfrac =
-TRUE}, columns \code{"file_records", "used_records", "w_spikes",
-"u_spikes", "ts_spikes", "h2o_spikes" and "co2_spikes"} are required in
-\code{x}.}
-
-\item{scf}{A logical value. Determines whether check of spectral correction
-factor against thresholds should be done. If \code{scf = TRUE}, columns
-\code{"Tau_scf", "H_scf", "LE_scf" and "co2_scf"} are required in \code{x}.}
-
-\item{wresid}{A logical value. Determines whether check of mean unrotated w
-and w residual after planar fit against thresholds should be done. If
-\code{wresid = TRUE}, columns \code{"w_unrot"} and \code{"w_rot"} are
-required in \code{x}.}
+\item{filters}{A character vector. A full set of supported filters to extract
+(default) or its subset.}
 
 \item{rotation}{A character string. Specifies the type of coordinate rotation
 applied. Allowed values are "double" and "planar fit". Can be abbreviated.}
@@ -59,17 +39,44 @@ identifying the separator of variable names in \code{units} attribute. See
 '\code{\link{extract_coded}}'.}
 
 \item{missfrac_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds (allowed fraction of missing high frequency data within
-averaging period) used if \code{missfrac = TRUE}.}
+thresholds for fraction of missing high frequency data within averaging
+period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}}
+flags the records higher than the given thresholds.}
 
 \item{scf_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds used if \code{scf = TRUE}.}
+thresholds for spectral correction factor if \code{filters} include
+\code{"scf"}. \code{\link{apply_thr}} flags the records higher than the
+given thresholds.}
 
 \item{w_unrot_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for unrotated w used if \code{wresid = TRUE}.}
+thresholds for absolute value of unrotated \emph{w} if \code{filters}
+include \code{"wresid"} and \code{rotation = "double"}.
+\code{\link{apply_thr}} flags the records higher than the given thresholds.}
 
 \item{w_rot_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for rotated w used if \code{wresid = TRUE}.}
+thresholds for absolute value of rotated \emph{w} if \code{filters} include
+\code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}}
+flags the records higher than the given thresholds.}
+
+\item{lowcov_thr}{A numeric vector with 2 non-missing values. Represents
+thresholds for computed covariance if \code{filters} include
+\code{"lowcov"}. \code{\link{apply_thr}} flags the records between given
+thresholds.}
+
+\item{ts_var_thr}{A numeric vector with 2 non-missing values. Represents
+thresholds for sonic temperature variance if \code{filters} include
+\code{"var"}. \code{\link{apply_thr}} flags the records higher than the
+given thresholds.}
+
+\item{LI7200_signal_thr}{A numeric vector with 2 non-missing values.
+Represents thresholds for CO2 and H2O signal strength provided by LI-COR
+7200 if \code{filters} include \code{"LI7200"}. \code{\link{apply_thr}}
+flags the records lower than the given thresholds.}
+
+\item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in
+EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
+flags extracted from EddyPro coded variables combined? See
+\code{\link{extract_coded}}.}
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and
@@ -81,20 +88,16 @@ interpreted in respect to instruments or individual fluxes.
 }
 \details{
 The data frame \code{x} is expected to have certain properties. It is
-required that it contains column names according to considered QC checks. See
-'Arguments' above. Attribute \code{units} is required for columns
-\code{"absolute_limits_hf" and "spikes_hf"} to extract the coded QC
-information. See '\code{\link{extract_coded}}'.
+required that it contains column names according to considered QC filters. In
+the case of coded variables, attribute \code{units} containing the format of
+coded variable is required to extract the coded QC information. See
+\code{\link{extract_coded}}.
 
 Extracted QC information can be relevant to fluxes measured by given
 instrument(s), specific flux or is applicable to all fluxes. See 'Naming
 Strategy' below. Results are reported according to the QC scheme using QC
 flag range 0 - 2. In cases when extracted variable is checked against
-thresholds (missfrac, scf, wresid), \code{\link{apply_thr}} is used to assign
-flag values. First value of \code{missfrac_thr}, \code{scf_thr},
-\code{w_unrot_thr} or \code{w_rot_thr} sets threshold for flag 1, second
-value sets threshold for flag 2. If both threshold values are the same, only
-flag 0 and 2 will be resolved (hard flag).
+thresholds, \code{\link{apply_thr}} is used to assign flag values.
 
 Check of missing data in averaging period (missfrac) takes into account
 number of valid records used for given averaging period. This number is
@@ -103,37 +106,64 @@ variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
 ts (H); w, h2o (LE) and w, co2 (NEE).
 }
 \section{Extracted QC Checks}{
- \itemize{ \item Check of plausibility limits
-  (abslim). Test is not additive. \item Check of high frequency data spike
-  percentage in averaging period against thresholds (spikesHF). Test is not
-  additive. \item Check of missing data in averaging period against
-  thresholds (missfrac). Test is not additive. \item Check of spectral
-  correction factor against thresholds (scf). Test is not additive. \item
-  Check of mean unrotated w (double rotation) or w residual (planar fit)
-  against thresholds (wresid). Additive test.}
+ Filters from coded EddyPro columns (thresholds
+  are set within EddyPro software). All of the filters extracted from coded
+  variables are not additive. \itemize{ \item spikesHF: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
+   frequency data spike percentage} in averaging period against thresholds.
+  HF in spikesHF means high frequency and distinguishes despiking done on raw
+  data (spikesHF) from despiking done on low frequency data (spikesLF; see
+  \code{\link{despikeLF}}). \item ampres: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
+   resolution} in the recorded data. \item dropout: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
+   i.e. situations when the time series stays for “too long” on a value that
+  is far from the mean. \item abslim: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
+   limits} when raw data are out of plausible range. \item skewkurt_sf and
+  skewkurt_hf: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
+   and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
+  skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
+  discont_hf: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
+   that lead to semi-permanent changes in the time series. If \code{simplify
+  = TRUE}, discont_sf and discont_hf are combined into discont column
+  instead. \item timelag_sf and timelag_hf: check of estimated
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
+   compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
+  and timelag_hf are combined into timelag column instead. \item attangle:
+  check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
+   of attack}. \item nonsteady: check of
+  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
+   of horizontal wind}.}
+
+  Additional filters extracted from EddyPro output. The only additive test is
+  "wresid". \itemize{ \item missfrac: check of missing data in averaging
+  period against thresholds. \item scf: check of spectral correction factor
+  against thresholds. \item wresid: check of mean unrotated \emph{w} (double
+  rotation) or \emph{w} residual (planar fit) against thresholds. \item runs:
+  check of runs with repeating values. \item lowcov: check of fluxes too
+  close to zero (assuming issues during covariance computation) \item var:
+  check of variances against thresholds. \item LI7200: check of CO2 and H2O
+  signal strength against thresholds.}
 }
 
 \section{Content and Format of Columns}{
- \itemize{ \item
-  \code{"absolute_limits_hf"}: hard flags (passed or failed the test) for
-  individual variables for absolute limits. Limits for each variable are set
-  in the post-processing software which also reports the resulting flags in a
-  coded format. See '\code{\link{extract_coded}}'. \item \code{"spikes_hf"}:
-  hard flags (passed or failed the test) for individual variables for spike
-  test. Threshold for maximum allowed percentage of spikes within averaging
-  period for all variables is set in the post-processing software which also
-  reports the resulting flags in a coded format. See
-  '\code{\link{extract_coded}}'. \item \code{"file_records"}: number of valid
-  records found in the raw file \item \code{"used_records"}: number of valid
-  records used at given averaging period. This number can also contain high
-  frequency spikes that should be excluded. \item \code{"u_spikes",
-  "ts_spikes", "h2o_spikes" and "co2_spikes"}: number of high frequency
-  spikes detected at given averaging period in respective variable. Values
-  can be set to 0 if \code{"used_records"} already accounts for spikes. \item
-  \code{"Tau_scf", "H_scf", "LE_scf" and "co2_scf"}: spectral correction
-  factor for given flux. Values are above 1. \item \code{"w_unrot", "w_rot"}:
-  unrotated and rotated w wind component, respectively (should be close to
-  0).}
+ \itemize{ \item For details
+  concerning coded variables see \code{\link{extract_coded}}. \item
+  \code{"file_records"}: number of valid records found in the raw file \item
+  \code{"used_records"}: number of valid records used at given averaging
+  period. This number can also contain high frequency spikes that should be
+  excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
+  "co2_spikes"}: number of high frequency spikes detected at given averaging
+  period in respective variable. Values can be set to 0 if
+  \code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
+  "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
+  flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
+  rotated \emph{w} wind component, respectively (should be close to 0 m
+  s-1).}
 }
 
 \section{Naming Strategy}{
@@ -145,9 +175,9 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
   qc_ALL: applicable to all fluxes}
 
-  \strong{QC suffixes} (specifies which QC check was applied to get this QC
-  output): \itemize{ \item abslim, spikesHF, missfrac, wresid. See 'Included
-  QC Checks' above.}
+  \strong{QC suffixes} (specifies which QC check was performed to get this QC
+  output): \itemize{ \item See 'Extracted QC Checks' above for the complete
+  list.}
 }
 
 \section{Abbreviations}{
@@ -163,17 +193,22 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
 \section{References}{
  Foken, T., Wichura, B., 1996. Tools for quality
   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-  83–105. doi:10.1016/0168-1923(95)02248-1.
+  83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
+
+  Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
+  for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
+  14(3), 512-526.
+  \url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
 
   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-  169, 122-135. doi:10.1016/j.agrformet.2012.09.006.
+  169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 
   McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
   2018. Energy balance closure at a variety of ecosystems in Central Europe
   with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-  doi:10.1016/j.agrformet.2017.10.003.
+  \url{https://doi.org/10.1016/j.agrformet.2017.10.003}
 }
 
 \seealso{

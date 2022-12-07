@@ -11,7 +11,8 @@ extract_coded(
   name_out_SAGA = "SAGA",
   name_out_ALL = "ALL",
   prefix = "[8]",
-  split = "[/]"
+  split = "[/]",
+  sf = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,9 @@ identifying the prefix of coded values.}
 
 \item{split}{Character string containing a \code{\link{regular expression}}
 identifying the separator of variable names in \code{units} attribute.}
+
+\item{sf}{A logical value. Coded variable represents hard flag (\code{sf =
+FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.}
 }
 \value{
 A data frame with relevant column names defined by
@@ -44,10 +48,16 @@ format string (e.g. \code{"8u/v/w/ts/h2o/co2"}) starts with a prefix
 (\code{"8"}) that is followed by variable names (\code{"u", "v", "w", "ts",
 "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
 of \code{x} thus consist of either seven components (prefix and six flags for
-each variable) or one \code{NA} value. Flags can have three values: \itemize{
-\item Flag 0: measured variable passed the test. \item Flag 1: measured
-variable failed the test. \item Flag 9: flag could not be obtained for the
-given variable (\code{NA}).}
+each variable) or one \code{NA} value. Flags of coded variables can have
+three values: \itemize{ \item flag 0: measured variable passed the test.
+\item flag 1: measured variable failed the test. \item flag 9: flag could not
+be obtained for the given variable (\code{NA}).}
+
+The original flags are then interpreted within the QC scheme using QC flag
+range 0 - 2. Coded variable can represent either \itemize{\item hard flag
+(suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as flag 2.
+\item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1
+interpreted as flag 1.}
 
 \code{x} is interpreted in respect to instruments required to measure given
 fluxes. SA is required for measurements of all fluxes and solely provides
@@ -58,8 +68,7 @@ prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
 the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
 have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
 0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
-must have flag 0. Results are reported according to the QC scheme using QC
-flag range 0 - 2.
+must have flag 0.
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item SA: Sonic

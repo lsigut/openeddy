@@ -2,13 +2,12 @@
 % Please edit documentation in R/Quality_checking.R
 \name{separate}
 \alias{separate}
-\title{Helper function utilized in extract_coded() for abslim and spikesHF
-- controls column splitting}
+\title{Separate columns}
 \usage{
 separate(x, ...)
 }
 \description{
-Helper function utilized in extract_coded() for abslim and spikesHF
-- controls column splitting
+Helper function utilized in \code{\link{extract_coded}} for coded variables
+that controls column splitting.
 }
 \keyword{internal}

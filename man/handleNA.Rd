@@ -2,11 +2,7 @@
 % Please edit documentation in R/Quality_checking.R
 \name{handleNA}
 \alias{handleNA}
-\title{Helper function utilized in extract_coded() for abslim and spikesHF
-- controls NAs in splitted columns
-- 9 is EddyPro code for NA
-- in case of missing half hour inserts NAs according to number of variables
-  in 'units'}
+\title{Handle NA values}
 \usage{
 handleNA(x, variables)
 }
