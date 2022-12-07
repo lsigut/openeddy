@@ -14,7 +14,10 @@ apply_thr(
 \arguments{
 \item{x}{A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.}
 
-\item{thr}{A numeric vector with 2 non-missing values.}
+\item{thr}{A numeric vector of length two or list with two numeric vectors of
+length two. If vector, first (second) element provides lower (upper)
+boundary threshold for flag 2. If list, first (second) element provides
+lower (upper) boundary thresholds for flag 1 and 2.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
@@ -28,7 +31,7 @@ An integer vector with the same length as \code{x}. Its
   \code{"-"} values, respectively.
 }
 \description{
-Values of \code{x} are checked against two specified thresholds to obtain
+Values of \code{x} are checked against the specified thresholds to obtain
 their quality control (QC) flags.
 }
 \details{
@@ -41,12 +44,23 @@ For \code{flag = "higher"} \itemize{ \item If \code{x <= thr[1]}, QC flag =
 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
 thr[2]}, QC flag = 2.}
 
-For \code{flag = "outside"} \itemize{ \item If \code{x >= thr[1] & x <=
-thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+For \code{flag = "outside"} (\code{thr} supplied as vector) \itemize{ \item
+If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0. \item If \code{x < thr[1] |
+x > thr[2]}, QC flag = 2.}
 
-For \code{flag = "between"} \itemize{ \item If \code{x <= thr[1] | x >=
-thr[2]}, QC flag = 0. \item If \code{x > thr[1] & x < thr[2]}, QC flag = 2.
-}
+For \code{flag = "outside"} (\code{thr} supplied as list) \itemize{ \item If
+\code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0. \item If \code{x <
+thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1. \item If \code{x < thr[[1]][1] |
+x > thr[[2]][2]}, QC flag = 2.}
+
+For \code{flag = "between"} (\code{thr} supplied as vector) \itemize{ \item
+If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0. \item If \code{x > thr[1] &
+x < thr[2]}, QC flag = 2. }
+
+For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
+\code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
+thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
+x < thr[[2]][1]}, QC flag = 1.}
 
 For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
@@ -57,8 +71,12 @@ apply_thr(1:10, c(3, 6), "example")
 set.seed(1)
 xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
 xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
-xx$outside <- apply_thr(xx$var, c(-1, 1), "outside", flag = "outside")
-xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
+xx$outside_c <- apply_thr(xx$var, c(-2, 2), "outside_c", flag = "outside")
+xx$outside_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "outside_l",
+                          flag = "outside")
+xx$between_c <- apply_thr(xx$var, c(-1, 1), "between_c", flag = "between")
+xx$between_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "between_l",
+flag = "between")
 xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 xx
 str(xx)

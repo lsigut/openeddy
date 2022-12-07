@@ -1,6 +1,6 @@
 #' Apply Thresholds
 #'
-#' Values of \code{x} are checked against two specified thresholds to obtain
+#' Values of \code{x} are checked against the specified thresholds to obtain
 #' their quality control (QC) flags.
 #'
 #' This function is called by \code{\link{extract_QC}} but can be useful on its
@@ -12,12 +12,23 @@
 #' 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
 #' thr[2]}, QC flag = 2.}
 #'
-#' For \code{flag = "outside"} \itemize{ \item If \code{x >= thr[1] & x <=
-#' thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+#' For \code{flag = "outside"} (\code{thr} supplied as vector) \itemize{ \item
+#' If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0. \item If \code{x < thr[1] |
+#' x > thr[2]}, QC flag = 2.}
 #'
-#' For \code{flag = "between"} \itemize{ \item If \code{x <= thr[1] | x >=
-#' thr[2]}, QC flag = 0. \item If \code{x > thr[1] & x < thr[2]}, QC flag = 2.
-#' }
+#' For \code{flag = "outside"} (\code{thr} supplied as list) \itemize{ \item If
+#' \code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0. \item If \code{x <
+#' thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1. \item If \code{x < thr[[1]][1] |
+#' x > thr[[2]][2]}, QC flag = 2.}
+#'
+#' For \code{flag = "between"} (\code{thr} supplied as vector) \itemize{ \item
+#' If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0. \item If \code{x > thr[1] &
+#' x < thr[2]}, QC flag = 2. }
+#'
+#' For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
+#' \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
+#' thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
+#' x < thr[[2]][1]}, QC flag = 1.}
 #'
 #' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 #' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
@@ -28,7 +39,10 @@
 #'   \code{"-"} values, respectively.
 #'
 #' @param x A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.
-#' @param thr A numeric vector with 2 non-missing values.
+#' @param thr A numeric vector of length two or list with two numeric vectors of
+#'   length two. If vector, first (second) element provides lower (upper)
+#'   boundary threshold for flag 2. If list, first (second) element provides
+#'   lower (upper) boundary thresholds for flag 1 and 2.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
 #' @param flag A character string. Selects one of the available flagging
@@ -41,8 +55,12 @@
 #' set.seed(1)
 #' xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
 #' xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
-#' xx$outside <- apply_thr(xx$var, c(-1, 1), "outside", flag = "outside")
-#' xx$between <- apply_thr(xx$var, c(-1, 1), "between", flag = "between")
+#' xx$outside_c <- apply_thr(xx$var, c(-2, 2), "outside_c", flag = "outside")
+#' xx$outside_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "outside_l",
+#'                           flag = "outside")
+#' xx$between_c <- apply_thr(xx$var, c(-1, 1), "between_c", flag = "between")
+#' xx$between_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "between_l",
+#' flag = "between")
 #' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
 #' xx
 #' str(xx)
@@ -50,17 +68,29 @@
 #' @export
 apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower")) {
+  flag <- match.arg(flag)
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
-  if (!is.numeric(thr) || length(thr) != 2 || anyNA(thr)) {
-    stop("'thr' must be numeric vector with 2 non-missing values")
+  # if flag is "higher" or "lower": thr only as vector
+  if (flag %in% c("higher", "lower")) {
+    if (!is.numeric(thr) || length(thr) != 2 || anyNA(thr)) {
+      stop("'thr' supplied incorrectly")
+    }
+  } else {
+    # if flag is "outside" and "between": thr as vector or list
+    if (!is.list(thr) && (!is.numeric(thr) || length(thr) != 2 || anyNA(thr))) {
+      stop("'thr' supplied incorrectly")
+    }
+    if (is.list(thr) && (length(thr) != 2 || !is.numeric(unlist(thr)) ||
+        length(unlist(thr)) != 4 || anyNA(unlist(thr)))) {
+      stop("'thr' supplied incorrectly")
+    }
   }
   if (!is.atomic(name_out) || length(name_out) != 1) {
     stop("atomic type 'name_out' must have length 1")
   }
   name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
-  flag <- match.arg(flag)
   out <- rep(NA, length(x))
   if (flag == "higher") {
     if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
@@ -69,14 +99,34 @@ apply_thr <- function(x, thr, name_out = "-",
     out[x >  thr[2]] <- 2L
   }
   if (flag == "outside") {
-    if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-    out[x >= thr[1] & x <= thr[2]] <- 0L
-    out[x < thr[1] | x > thr[2]] <- 2L
+    if (is.list(thr)) {
+      if (thr[[1]][1] > thr[[1]][2])
+        stop("'thr[[1]][1]' cannot be higher than 'thr[[1]][2]'")
+      if (thr[[2]][1] > thr[[2]][2])
+        stop("'thr[[2]][1]' cannot be higher than 'thr[[2]][2]'")
+      out[x >= thr[[1]][2] & x <= thr[[2]][1]] <- 0L
+      out[x < thr[[1]][2] | x > thr[[2]][1]] <- 1L
+      out[x < thr[[1]][1] | x > thr[[2]][2]] <- 2L
+    } else {
+      if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
+      out[x >= thr[1] & x <= thr[2]] <- 0L
+      out[x < thr[1] | x > thr[2]] <- 2L
+    }
   }
   if (flag == "between") {
-    if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-    out[x <= thr[1] | x >= thr[2]] <- 0L
-    out[x > thr[1] & x < thr[2]] <- 2L
+    if (is.list(thr)) {
+      if (thr[[1]][1] > thr[[1]][2])
+        stop("'thr[[1]][1]' cannot be higher than 'thr[[1]][2]'")
+      if (thr[[2]][1] > thr[[2]][2])
+        stop("'thr[[2]][1]' cannot be higher than 'thr[[2]][2]'")
+      out[x <= thr[[1]][1] | x >= thr[[2]][2]] <- 0L
+      out[x > thr[[1]][1] & x < thr[[2]][2]] <- 1L
+      out[x > thr[[1]][2] & x < thr[[2]][1]] <- 2L
+    } else {
+      if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
+      out[x <= thr[1] | x >= thr[2]] <- 0L
+      out[x > thr[1] & x < thr[2]] <- 2L
+    }
   }
   if (flag == "lower") {
     if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
