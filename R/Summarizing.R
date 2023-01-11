@@ -6,6 +6,11 @@
 #' \code{agg_mean} and \code{agg_sum} compute mean and sum over intervals
 #' defined by \code{format} and/or \code{breaks} for all columns.
 #'
+#' \code{agg_fun} allows to apply any function over defined time intervals
+#' (e.g. min, max, median). No unit conversions are attempted. Notice that
+#' \code{agg_mean(x, format)} and \code{agg_fun(x, format, mean)} are
+#' identical.
+#'
 #' \code{agg_fsd} and \code{agg_DT_SD} estimate aggregated mean and summed
 #' uncertainties over defined time periods for \code{REddyProc} package
 #' gap-filling and daytime-based flux partitioning outputs, respectively. The
@@ -111,6 +116,8 @@
 #'   some platforms with a warning.
 #' @param ... Further arguments to be passed to the internal
 #'   \code{\link{aggregate}} function.
+#' @param fun Either a function or a non-empty character string naming the
+#'   function to be called.
 #' @param agg_per A character string providing the time interval of aggregation
 #'   that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
 #'   \code{"month-1"}).
@@ -127,8 +134,9 @@
 #'   Designed for evapotranspiration (ET) typically reported in mm hour-1 for
 #'   half-hourly measurements.
 #'
-#' @return \code{agg_mean} and \code{agg_sum} produce a data frame with
-#'   attributes varnames and units assigned to each respective column.
+#' @return \code{agg_mean}, \code{agg_fun} and \code{agg_sum} produce a data
+#'   frame with attributes varnames and units assigned to each respective
+#'   column.
 #'
 #'   \code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
 #'   \code{mean} and \code{sum} with attributes varnames and units assigned to
@@ -171,6 +179,11 @@
 #' # - sign and unit conversions are demonstrated
 #' (zz <- agg_sum(DETha98, "%b-%y", agg_per = "month-1"))
 #' openeddy::units(zz, names = TRUE)
+#'
+#' # Extract minimum and maximum within the intervals
+#' # - two notations possible: a function (min) or function name ("max")
+#' agg_fun(DETha98, "%b-%y", min, na.rm = TRUE)
+#' agg_fun(DETha98, "%b-%y", "max", na.rm = TRUE)
 #'
 #' # Gap-fill NEE using approximate fixed uStar threshold
 #' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
@@ -267,6 +280,68 @@ agg_mean <- function(x, format, breaks = NULL, interval = NULL,
   varnames(out) <- c("Intervals", "days", varnames(x[names(x) != "timestamp"]))
   units(out) <- c("-", "-", units(x[names(x) != "timestamp"]))
   names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_mean"))
+  return(out)
+}
+
+#' @rdname agg_mean
+#'
+#' @export
+agg_fun <- function(x, format, fun, breaks = NULL, interval = NULL,
+                     tz = "GMT", ...) {
+  x_names <- names(x)
+  if (!is.data.frame(x) || is.null(x_names)) {
+    stop("'x' must be of class data.frame with colnames")
+  }
+  if (!"timestamp" %in% x_names) stop("missing 'x$timestamp'")
+  if (!inherits(x$timestamp, "POSIXt")) {
+    stop("'x$timestamp' must be of class 'POSIXt'")
+  }
+  if (any(is.na(x$timestamp))) stop("NAs in 'x$timestamp' not allowed")
+  if (any(diff(as.numeric(x$timestamp)) !=
+          mean(diff(as.numeric(x$timestamp))))) {
+    stop("x$timestamp does not form regular sequence")
+  }
+
+  # automatic recognition of interval (allow manual setting?)
+  # - must be on original timestamp
+  range <- range(x$timestamp)
+  if (is.null(interval)) {
+    # automated estimation of interval
+    interval <- median(diff(x$timestamp))
+    if (!length(interval)) {
+      stop("not possible to automatically extract 'interval' from 'x'")
+    } else {
+      message("'interval' set to '", format(interval),
+              "' - specify manually if incorrect")
+    }
+  } else {
+    # convert 'interval' to class 'difftime'
+    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+  }
+  if (diff(range) < interval)
+    stop("'interval' is larger than 'timestamp' range")
+  # interval in fraction or multiple of 1 day
+  d <- as.numeric(interval, units = "days")
+
+  if (!is.null(breaks)) {
+    x$timestamp <- as.POSIXct(cut(x$timestamp, breaks = breaks), tz = tz)
+  }
+  x$timestamp <- strftime(x$timestamp, format = format, tz = tz)
+  x$timestamp <- factor(x$timestamp, levels = unique(x$timestamp))
+
+  # How many records with given interval per day?
+  # - must be computed on the grouped timestamp
+  zz <- aggregate(x[, "timestamp"], list(Intervals = x$timestamp), length)
+  zz$days <- zz$x*d # conversion to number of days per period (also fractional)
+  zz$x <- NULL
+
+  out <- aggregate(x[names(x) != "timestamp"],
+                   list(Intervals = x$timestamp), fun, ...)
+  out <- merge(zz, out, sort = FALSE)
+  varnames(out) <- c("Intervals", "days", varnames(x[names(x) != "timestamp"]))
+  units(out) <- c("-", "-", units(x[names(x) != "timestamp"]))
+  names(out) <- c("Intervals", "days", paste0(names(out[-(1:2)]), "_",
+                                              as.character(substitute(fun))))
   return(out)
 }
 

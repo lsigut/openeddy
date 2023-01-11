@@ -2,12 +2,15 @@
 % Please edit documentation in R/Summarizing.R
 \name{agg_mean}
 \alias{agg_mean}
+\alias{agg_fun}
 \alias{agg_sum}
 \alias{agg_fsd}
 \alias{agg_DT_SD}
 \title{Time series summarization}
 \usage{
 agg_mean(x, format, breaks = NULL, interval = NULL, tz = "GMT", ...)
+
+agg_fun(x, format, fun, breaks = NULL, interval = NULL, tz = "GMT", ...)
 
 agg_sum(
   x,
@@ -75,6 +78,9 @@ some platforms with a warning.}
 \item{...}{Further arguments to be passed to the internal
 \code{\link{aggregate}} function.}
 
+\item{fun}{Either a function or a non-empty character string naming the
+function to be called.}
+
 \item{agg_per}{A character string providing the time interval of aggregation
 that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
 \code{"month-1"}).}
@@ -97,8 +103,9 @@ Designed for evapotranspiration (ET) typically reported in mm hour-1 for
 half-hourly measurements.}
 }
 \value{
-\code{agg_mean} and \code{agg_sum} produce a data frame with
-  attributes varnames and units assigned to each respective column.
+\code{agg_mean}, \code{agg_fun} and \code{agg_sum} produce a data
+  frame with attributes varnames and units assigned to each respective
+  column.
 
   \code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
   \code{mean} and \code{sum} with attributes varnames and units assigned to
@@ -117,6 +124,11 @@ defined time intervals.
 \details{
 \code{agg_mean} and \code{agg_sum} compute mean and sum over intervals
 defined by \code{format} and/or \code{breaks} for all columns.
+
+\code{agg_fun} allows to apply any function over defined time intervals
+(e.g. min, max, median). No unit conversions are attempted. Notice that
+\code{agg_mean(x, format)} and \code{agg_fun(x, format, mean)} are
+identical.
 
 \code{agg_fsd} and \code{agg_DT_SD} estimate aggregated mean and summed
 uncertainties over defined time periods for \code{REddyProc} package
@@ -235,6 +247,11 @@ agg_mean(DETha98, "\%b-\%y", na.rm = TRUE)
 # - sign and unit conversions are demonstrated
 (zz <- agg_sum(DETha98, "\%b-\%y", agg_per = "month-1"))
 openeddy::units(zz, names = TRUE)
+
+# Extract minimum and maximum within the intervals
+# - two notations possible: a function (min) or function name ("max")
+agg_fun(DETha98, "\%b-\%y", min, na.rm = TRUE)
+agg_fun(DETha98, "\%b-\%y", "max", na.rm = TRUE)
 
 # Gap-fill NEE using approximate fixed uStar threshold
 EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
