@@ -8,7 +8,8 @@ apply_thr(
   x,
   thr,
   name_out = "-",
-  flag = c("higher", "outside", "between", "lower")
+  flag = c("higher", "outside", "between", "lower"),
+  angles = FALSE
 )
 }
 \arguments{
@@ -16,14 +17,17 @@ apply_thr(
 
 \item{thr}{A numeric vector of length two or list with two numeric vectors of
 length two. If vector, first (second) element provides lower (upper)
-boundary threshold for flag 2. If list, first (second) element provides
-lower (upper) boundary thresholds for flag 1 and 2.}
+boundary threshold for quality control flag 2. If list, first (second)
+element provides lower (upper) boundary threshold for quality control flag
+1 and 2. This is reversed for \code{flag = "lower"}. See examples.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
 
 \item{flag}{A character string. Selects one of the available flagging
 approaches. Can be abbreviated. See 'Details'.}
+
+\item{angles}{A logical value. Choose if \code{x} represents angles.}
 }
 \value{
 An integer vector with the same length as \code{x}. Its
@@ -60,27 +64,72 @@ x < thr[2]}, QC flag = 2. }
 For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
 \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
 thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
-x < thr[[2]][1]}, QC flag = 1.}
+x < thr[[2]][1]}, QC flag = 2.}
 
 For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
 thr[2]}, QC flag = 2.}
+
+In case of \code{angles = TRUE}, conditions are appropriately implemented on
+the circular scale. Angles are expected to be within the range [0, 360)
+degrees and corrected otherwise. Notice that using \code{flag = "higher"} or
+\code{flag = "lower"} might not be very useful on the circular scale.
 }
 \examples{
+# flag defaults to "higher"
 apply_thr(1:10, c(3, 6), "example")
-set.seed(1)
-xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
-xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
-xx$outside_c <- apply_thr(xx$var, c(-2, 2), "outside_c", flag = "outside")
-xx$outside_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "outside_l",
+
+# comparison of flag types
+xx <- data.frame(var = 1:10)
+xx$higher <- apply_thr(xx$var, c(3, 6), "higher", flag = "higher")
+xx$outside_c <- apply_thr(xx$var, c(4, 6), "outside_c", flag = "outside")
+xx$outside_l <- apply_thr(xx$var, list(c(2, 4), c(6, 8)), "outside_l",
                           flag = "outside")
-xx$between_c <- apply_thr(xx$var, c(-1, 1), "between_c", flag = "between")
-xx$between_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "between_l",
-flag = "between")
-xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
+xx$between_c <- apply_thr(xx$var, c(4, 6), "between_c", flag = "between")
+xx$between_l <- apply_thr(xx$var, list(c(2, 4), c(6, 8)), "between_l",
+                          flag = "between")
+xx$lower <- apply_thr(xx$var, c(6, 3), "lower", flag = "lower")
 xx
 str(xx)
 
+# flagging for angles
+# - 'higher' and 'lower' flags are problematic on a circular scale
+yy <- data.frame(var = 170:180)
+# expected results because thresholds are not crossing zero (360 deg)
+yy$higher <- apply_thr(yy$var, c(172, 176), "higher", flag = "higher",
+                       angle = TRUE)
+yy$outside_c <- apply_thr(yy$var, c(174, 176), "outside_c", flag = "outside",
+                          angle = TRUE)
+yy$outside_l <- apply_thr(yy$var, list(c(172, 174), c(176, 178)), "outside_l",
+                          flag = "outside", angle = TRUE)
+yy$between_c <- apply_thr(yy$var, c(174, 176), "between_c", flag = "between",
+                          angle = TRUE)
+yy$between_l <- apply_thr(yy$var, list(c(172, 174), c(176, 178)), "between_l",
+                          flag = "between", angle = TRUE)
+# expected results because thresholds are not crossing zero (360 deg)
+yy$lower <- apply_thr(yy$var, c(176, 172), "lower", flag = "lower",
+                      angle = TRUE)
+yy
+str(yy)
+
+# flagging for angles with thresholds crossing zero (360 deg)
+zz <- data.frame(var = c(355:359, 0:5))
+# thresholds crossing zero (360 deg) - not useful (but valid) results
+zz$higher <- apply_thr(zz$var, c(357, 1), "higher", flag = "higher",
+                       angle = TRUE)
+zz$outside_c <- apply_thr(zz$var, c(359, 1), "outside_c", flag = "outside",
+                          angle = TRUE)
+zz$outside_l <- apply_thr(zz$var, list(c(357, 359), c(1, 3)), "outside_l",
+                          flag = "outside", angle = TRUE)
+zz$between_c <- apply_thr(zz$var, c(359, 1), "between_c", flag = "between",
+                          angle = TRUE)
+zz$between_l <- apply_thr(zz$var, list(c(357, 359), c(1, 3)), "between_l",
+                          flag = "between", angle = TRUE)
+# thresholds crossing zero (360 deg) - not useful (but valid) results
+zz$lower <- apply_thr(zz$var, c(1, 357), "lower", flag = "lower",
+                      angle = TRUE)
+zz
+str(zz)
 }
 \seealso{
 \code{\link{extract_QC}}.

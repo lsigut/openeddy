@@ -28,11 +28,16 @@
 #' For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
 #' \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
 #' thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
-#' x < thr[[2]][1]}, QC flag = 1.}
+#' x < thr[[2]][1]}, QC flag = 2.}
 #'
 #' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
 #' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
 #' thr[2]}, QC flag = 2.}
+#'
+#' In case of \code{angles = TRUE}, conditions are appropriately implemented on
+#' the circular scale. Angles are expected to be within the range [0, 360)
+#' degrees and corrected otherwise. Notice that using \code{flag = "higher"} or
+#' \code{flag = "lower"} might not be very useful on the circular scale.
 #'
 #' @return An integer vector with the same length as \code{x}. Its
 #'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
@@ -41,33 +46,76 @@
 #' @param x A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.
 #' @param thr A numeric vector of length two or list with two numeric vectors of
 #'   length two. If vector, first (second) element provides lower (upper)
-#'   boundary threshold for flag 2. If list, first (second) element provides
-#'   lower (upper) boundary thresholds for flag 1 and 2.
+#'   boundary threshold for quality control flag 2. If list, first (second)
+#'   element provides lower (upper) boundary threshold for quality control flag
+#'   1 and 2. This is reversed for \code{flag = "lower"}. See examples.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
 #' @param flag A character string. Selects one of the available flagging
 #'   approaches. Can be abbreviated. See 'Details'.
+#' @param angles A logical value. Choose if \code{x} represents angles.
 #'
 #' @seealso \code{\link{extract_QC}}.
 #'
 #' @examples
+#' # flag defaults to "higher"
 #' apply_thr(1:10, c(3, 6), "example")
-#' set.seed(1)
-#' xx <- data.frame(var = rnorm(20, mean = 1, sd = 2))
-#' xx$higher <- apply_thr(xx$var, c(0, 1), "higher", flag = "higher")
-#' xx$outside_c <- apply_thr(xx$var, c(-2, 2), "outside_c", flag = "outside")
-#' xx$outside_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "outside_l",
+#'
+#' # comparison of flag types
+#' xx <- data.frame(var = 1:10)
+#' xx$higher <- apply_thr(xx$var, c(3, 6), "higher", flag = "higher")
+#' xx$outside_c <- apply_thr(xx$var, c(4, 6), "outside_c", flag = "outside")
+#' xx$outside_l <- apply_thr(xx$var, list(c(2, 4), c(6, 8)), "outside_l",
 #'                           flag = "outside")
-#' xx$between_c <- apply_thr(xx$var, c(-1, 1), "between_c", flag = "between")
-#' xx$between_l <- apply_thr(xx$var, list(c(-2, -1), c(1, 2)), "between_l",
-#' flag = "between")
-#' xx$lower <- apply_thr(xx$var, c(0, -1), "lower", flag = "lower")
+#' xx$between_c <- apply_thr(xx$var, c(4, 6), "between_c", flag = "between")
+#' xx$between_l <- apply_thr(xx$var, list(c(2, 4), c(6, 8)), "between_l",
+#'                           flag = "between")
+#' xx$lower <- apply_thr(xx$var, c(6, 3), "lower", flag = "lower")
 #' xx
 #' str(xx)
 #'
+#' # flagging for angles
+#' # - 'higher' and 'lower' flags are problematic on a circular scale
+#' yy <- data.frame(var = 170:180)
+#' # expected results because thresholds are not crossing zero (360 deg)
+#' yy$higher <- apply_thr(yy$var, c(172, 176), "higher", flag = "higher",
+#'                        angle = TRUE)
+#' yy$outside_c <- apply_thr(yy$var, c(174, 176), "outside_c", flag = "outside",
+#'                           angle = TRUE)
+#' yy$outside_l <- apply_thr(yy$var, list(c(172, 174), c(176, 178)), "outside_l",
+#'                           flag = "outside", angle = TRUE)
+#' yy$between_c <- apply_thr(yy$var, c(174, 176), "between_c", flag = "between",
+#'                           angle = TRUE)
+#' yy$between_l <- apply_thr(yy$var, list(c(172, 174), c(176, 178)), "between_l",
+#'                           flag = "between", angle = TRUE)
+#' # expected results because thresholds are not crossing zero (360 deg)
+#' yy$lower <- apply_thr(yy$var, c(176, 172), "lower", flag = "lower",
+#'                       angle = TRUE)
+#' yy
+#' str(yy)
+#'
+#' # flagging for angles with thresholds crossing zero (360 deg)
+#' zz <- data.frame(var = c(355:359, 0:5))
+#' # thresholds crossing zero (360 deg) - not useful (but valid) results
+#' zz$higher <- apply_thr(zz$var, c(357, 1), "higher", flag = "higher",
+#'                        angle = TRUE)
+#' zz$outside_c <- apply_thr(zz$var, c(359, 1), "outside_c", flag = "outside",
+#'                           angle = TRUE)
+#' zz$outside_l <- apply_thr(zz$var, list(c(357, 359), c(1, 3)), "outside_l",
+#'                           flag = "outside", angle = TRUE)
+#' zz$between_c <- apply_thr(zz$var, c(359, 1), "between_c", flag = "between",
+#'                           angle = TRUE)
+#' zz$between_l <- apply_thr(zz$var, list(c(357, 359), c(1, 3)), "between_l",
+#'                           flag = "between", angle = TRUE)
+#' # thresholds crossing zero (360 deg) - not useful (but valid) results
+#' zz$lower <- apply_thr(zz$var, c(1, 357), "lower", flag = "lower",
+#'                       angle = TRUE)
+#' zz
+#' str(zz)
 #' @export
 apply_thr <- function(x, thr, name_out = "-",
-                      flag = c("higher", "outside", "between", "lower")) {
+                      flag = c("higher", "outside", "between", "lower"),
+                      angles = FALSE) {
   flag <- match.arg(flag)
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
@@ -91,46 +139,104 @@ apply_thr <- function(x, thr, name_out = "-",
     stop("atomic type 'name_out' must have length 1")
   }
   name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
-  out <- rep(NA, length(x))
+  # initiate with flag 0
+  out <- vector("integer", length(x))
+  # thr cannot contain NAs, thus NA flags only if x NA
+  is.na(out) <- is.na(x)
+  if (!is.list(thr) && (!angles)) {
+    if (flag == "lower") {
+      if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
+    } else {
+      if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
+    }
+  }
+  if (flag %in% c("outside", "between") && is.list(thr) && (!angles)) {
+    if (thr[[1]][1] > thr[[1]][2])
+      stop("'thr[[1]][1]' cannot be higher than 'thr[[1]][2]'")
+    if (thr[[2]][1] > thr[[2]][2])
+      stop("'thr[[2]][1]' cannot be higher than 'thr[[2]][2]'")
+    if (thr[[1]][2] > thr[[2]][1])
+      stop("'thr[[1]][2]' cannot be higher than 'thr[[2]][1]'")
+  }
+  if (angles) {
+    # assure that x and thr are provided in 0-360 deg range
+    # - set range to 0-360 deg (in case of too negative x, e.g. -1000 deg)
+    x <- x %% 360
+    # - get rid of negative angles and set range back to 0-360 deg
+    x <- (360 + x) %% 360
+    if (is.list(thr)) {
+      thr <- lapply(thr, function(x) (360 + x) %% 360)
+      cross <- diff(unlist(thr)) < 0
+      if (sum(ifelse(cross, diff(unlist(thr)) + 360, diff(unlist(thr)))) > 360)
+        stop("circular sector provided as 'thr' larger than 360 deg")
+    } else {
+      thr <- (360 + thr) %% 360
+    }
+  }
   if (flag == "higher") {
-    if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-    out[x <= thr[1]] <- 0L
     out[x >  thr[1]] <- 1L
     out[x >  thr[2]] <- 2L
   }
   if (flag == "outside") {
     if (is.list(thr)) {
-      if (thr[[1]][1] > thr[[1]][2])
-        stop("'thr[[1]][1]' cannot be higher than 'thr[[1]][2]'")
-      if (thr[[2]][1] > thr[[2]][2])
-        stop("'thr[[2]][1]' cannot be higher than 'thr[[2]][2]'")
-      out[x >= thr[[1]][2] & x <= thr[[2]][1]] <- 0L
-      out[x < thr[[1]][2] | x > thr[[2]][1]] <- 1L
-      out[x < thr[[1]][1] | x > thr[[2]][2]] <- 2L
+      if (thr[[2]][1] < thr[[1]][2]) {
+        # condition can be met only for angles
+        # with zero crossing mark the unaffected sector and negate it
+        out[!(x >= thr[[1]][2] | x <= thr[[2]][1])] <- 1L
+      } else {
+        # without zero crossing flagging is the same with or without angles
+        out[x < thr[[1]][2] | x > thr[[2]][1]] <- 1L
+      }
+      if (thr[[2]][2] < thr[[1]][1]) {
+        # condition can be met only for angles
+        # with zero crossing mark the unaffected sector and negate it
+        out[!(x >= thr[[1]][1] | x <= thr[[2]][2])] <- 2L
+      } else {
+        # without zero crossing flagging is the same with or without angles
+        out[x < thr[[1]][1] | x > thr[[2]][2]] <- 2L
+      }
     } else {
-      if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-      out[x >= thr[1] & x <= thr[2]] <- 0L
-      out[x < thr[1] | x > thr[2]] <- 2L
+        if (thr[2] < thr[1]) {
+          # condition can be met only for angles
+          # with zero crossing mark the unaffected sector and negate it
+          out[!(x >= thr[1] | x <= thr[2])] <- 2L
+        } else {
+          # without zero crossing the same as without angles
+          out[x < thr[1] | x > thr[2]] <- 2L
+        }
     }
   }
   if (flag == "between") {
     if (is.list(thr)) {
-      if (thr[[1]][1] > thr[[1]][2])
-        stop("'thr[[1]][1]' cannot be higher than 'thr[[1]][2]'")
-      if (thr[[2]][1] > thr[[2]][2])
-        stop("'thr[[2]][1]' cannot be higher than 'thr[[2]][2]'")
-      out[x <= thr[[1]][1] | x >= thr[[2]][2]] <- 0L
-      out[x > thr[[1]][1] & x < thr[[2]][2]] <- 1L
-      out[x > thr[[1]][2] & x < thr[[2]][1]] <- 2L
+      if (thr[[2]][2] < thr[[1]][1]) {
+        # condition can be met only for angles
+        # with zero crossing change & to |
+        out[x > thr[[1]][1] | x < thr[[2]][2]] <- 1L
+      } else {
+        # without zero crossing flagging is the same with or without angles
+        out[x > thr[[1]][1] & x < thr[[2]][2]] <- 1L
+      }
+      if (thr[[2]][1] < thr[[1]][2]) {
+        # condition can be met only for angles
+        # with zero crossing change & to |
+        out[x > thr[[1]][2] | x < thr[[2]][1]] <- 2L
+      } else {
+        # without zero crossing flagging is the same with or without angles
+        out[x > thr[[1]][2] & x < thr[[2]][1]] <- 2L
+      }
+
     } else {
-      if (thr[1] > thr[2]) stop("'thr[1]' cannot be higher than 'thr[2]'")
-      out[x <= thr[1] | x >= thr[2]] <- 0L
-      out[x > thr[1] & x < thr[2]] <- 2L
+      if (thr[2] < thr[1]) {
+        # condition can be met only for angles
+        # with zero crossing change & to |
+        out[x > thr[1] | x < thr[2]] <- 2L
+      } else {
+        # without zero crossing the same as without angles
+        out[x > thr[1] & x < thr[2]] <- 2L
+      }
     }
   }
   if (flag == "lower") {
-    if (thr[1] < thr[2]) stop("'thr[1]' cannot be lower than 'thr[2]'")
-    out[x >= thr[1]] <- 0L
     out[x <  thr[1]] <- 1L
     out[x <  thr[2]] <- 2L
   }
