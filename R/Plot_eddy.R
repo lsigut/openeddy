@@ -755,7 +755,10 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
   if (!inherits(x$timestamp, "POSIXt")) {
     stop("'x$timestamp' must be of class 'POSIXt'")
   }
+  # assure plotting will be successful even without any value in var
+  ylim <- setRange(x[, var])
   plot(x$timestamp, x[, var], pch = pch, cex = cex, xaxt = "n",
+       ylim = ylim,
        col = adjustcolor('black', alpha.f),
        xlab = "timestamp",
        ylab = paste0(var, " [", units(x[var]), "]"),
@@ -803,6 +806,8 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
 #' @export
 barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
                         names.arg = x$Intervals) {
+  # assure plotting will be successful even without any value in var
+  ylim <- setRange(x[, var])
   p <- barplot(as.numeric(x[, var]),
                space = 0,
                width = days,
@@ -810,7 +815,7 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
                border = "grey35",
                ylim = if (var %in% c("evaporative_fraction",
                                      "closure_fraction"))
-                 c(0, 1) else NULL,
+                 c(0, 1) else ylim,
                xlab = if (!is.null(interval)) paste(interval, "timescale"),
                ylab = paste0(var, " [", units(x[var]), "]"),
                main = var,
