@@ -27,6 +27,14 @@
 #' @return A named list with paths to folder structure directories.
 #'   Corresponding directories are created as a function side effect if
 #'   \code{create_dirs = TRUE}.
+#'
+#' @seealso \code{\link{file.path}}
+#'
+#' @examples
+#' xx <- structure_eddy()
+#' xx
+#' xx$Input_for_GF
+#'
 #' @export
 structure_eddy <- function(root = ".", create_dirs = FALSE,
                            fsep = .Platform$file.sep, ...) {

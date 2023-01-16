@@ -41,3 +41,12 @@ inputs for Level 3 data. \item Level 3: gap-filling output and its
 documentation, summary of the computed fluxes and meteorological data
 including their aggregation.}
 }
+\examples{
+xx <- structure_eddy()
+xx
+xx$Input_for_GF
+
+}
+\seealso{
+\code{\link{file.path}}
+}
