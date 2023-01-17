@@ -416,6 +416,7 @@ extract_coded <- function(x,
     # list carries only 1 extracted variable so can be simplified
     out <- data.frame(ALL = as.integer(unlist(l)))
     out$ALL[out$ALL == 1] <- if (sf) 1L else 2L
+    out$ALL[out$ALL == 9] <- NA
     names(out) <- varnames(out) <- name_out_ALL
     units(out) <- "-"
     return(out)
