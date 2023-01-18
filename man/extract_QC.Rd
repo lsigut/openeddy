@@ -8,7 +8,7 @@ extract_QC(
   x,
   filters = c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf", "skewkurt_sf",
     "discont_hf", "discont_sf", "timelag_hf", "timelag_sf", "attangle", "nonsteady",
-    "missfrac", "scf", "wresid", "runs", "lowcov", "var", "LI7200"),
+    "missfrac", "scf", "wresid", "runs", "lowcov", "var", "humid", "LI7200"),
   rotation = c("double", "planar fit"),
   prefix = "[8]",
   split = "[/]",
@@ -18,6 +18,7 @@ extract_QC(
   w_rot_thr = c(0.1, 0.15),
   lowcov_thr = c(-0.005, 0.005),
   ts_var_thr = c(2, 2),
+  RH_thr = c(95, 95),
   LI7200_signal_thr = c(90, 80),
   simplify = TRUE
 )
@@ -67,6 +68,10 @@ thresholds.}
 thresholds for sonic temperature variance if \code{filters} include
 \code{"var"}. \code{\link{apply_thr}} flags the records higher than the
 given thresholds.}
+
+\item{RH_thr}{A numeric vector with 2 non-missing values. Represents
+thresholds for relative humidity if \code{filters} include \code{"humid"}.
+\code{\link{apply_thr}} flags the records higher than the given thresholds.}
 
 \item{LI7200_signal_thr}{A numeric vector with 2 non-missing values.
 Represents thresholds for CO2 and H2O signal strength provided by LI-COR
@@ -146,7 +151,8 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   rotation) or \emph{w} residual (planar fit) against thresholds. \item runs:
   check of runs with repeating values. \item lowcov: check of fluxes too
   close to zero (assuming issues during covariance computation) \item var:
-  check of variances against thresholds. \item LI7200: check of CO2 and H2O
+  check of variances against thresholds. \item humid: check of relative
+  humidity against thresholds. \item LI7200: check of CO2 and H2O
   signal strength against thresholds.}
 }
 
@@ -187,7 +193,8 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
   speed component [m s-1] \item w: Vertical wind speed component [m s-1]
   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
-  mol-1] \item co2: CO2 concentration [umol mol-1]}.
+  mol-1] \item co2: CO2 concentration [umol mol-1] \item RH: relative
+  humidity}.
 }
 
 \section{References}{
