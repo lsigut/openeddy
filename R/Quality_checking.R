@@ -915,7 +915,8 @@ extract_QC <- function(x,
               paste0(LI_vars[!LI7200_avail], collapse = ", "))
     }
     if (all(LI7200_avail)) {
-      signal <- rowMeans(x[LI_vars])
+      signal <- apply(x[LI_vars], 1, function(x) if (all(is.na(x))) NA else
+        min(x, na.rm = TRUE))
       out[, nout] <- apply_thr(signal, LI7200_signal_thr, nout, flag = "lower")
       message("-> success")
     } else message("-> skipped")
