@@ -2058,11 +2058,16 @@ check_manually <- function(x,
       # find columns with only zeros, remove, save
       all_0 <- apply(qc, 2, function(c) all(c %in% 0L))
       qc <- qc[!all_0]
-      # remove manual QC file if only timestamp present (no manual QC)
+      # remove saved manual QC file if only timestamp present (no manual QC)
       # and return NULL
       if (ncol(qc) == 1 && names(qc) == "timestamp") {
-        message("No manual QC detected: removing '", lf, "'")
-        unlink(lf)
+        if (length(lf) == 0) {
+          # case when no saved QC file exists
+          message("No manual QC performed")
+        } else {
+          message("No manual QC performed: removing '", lf, "'")
+          unlink(lf)
+        }
         return(NULL)
       }
     }
