@@ -3,7 +3,7 @@
 \docType{data}
 \name{coded_vars}
 \alias{coded_vars}
-\title{Coded variables}
+\title{Coded Variables}
 \format{
 An object of class \code{data.frame} with 12 rows and 6 columns.
 }

@@ -1,4 +1,4 @@
-#' Coded variables
+#' Coded Variables
 #'
 #' Used within \code{\link{extract_QC}} to link names of filters (QC_suffices)
 #' with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
@@ -27,7 +27,7 @@ coded_vars <- data.frame(
     c(rep(NA, 10), "qc_ALL_attangle", "qc_ALL_nonsteady")
 )
 
-#' Precheck variables
+#' Precheck Variables
 #'
 #' A set of variables typically available in EddyPro full output that can be
 #' useful for preliminary check before quality control procedure.
@@ -49,3 +49,18 @@ precheck_vars <-
     "x_peak", "x_70perc",
     "mean_value_RSSI_LI_7200", "co2_signal_strength_7200_mean",
     "h2o_signal_strength_7200_mean", "flowrate_mean")
+
+#' Quality Control Essential Variables
+#'
+#' A minimal set of variables useful when working with quality controlled data.
+#'
+#' @export
+essential_vars_QC <- c(
+  "timestamp", "GR", "qc_GR", "PAR", "qc_PAR", "Rn", "qc_Rn", "Tair",
+  "qc_Tair", "Tsoil", "qc_Tsoil", "RH", "qc_RH", "VPD", "qc_VPD", "SWC",
+  "qc_SWC", "P", "qc_P", "G", "qc_G", "Tau", "Tau_orig", "qc_Tau_forGF",
+  "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig", "qc_H_forGF", "qc_H_SSITC",
+  "rand_err_H", "LE", "LE_orig", "qc_LE_forGF", "qc_LE_SSITC", "rand_err_LE",
+  "NEE", "NEE_orig", "qc_NEE_forGF", "qc_NEE_SSITC", "rand_err_NEE", "H_strg",
+  "LE_strg", "co2_strg", "wind_speed",
+  "wind_dir", "ustar", "L", "zeta", "model", "x_peak", "x_70perc")

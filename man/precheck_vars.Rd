@@ -3,7 +3,7 @@
 \docType{data}
 \name{precheck_vars}
 \alias{precheck_vars}
-\title{Precheck variables}
+\title{Precheck Variables}
 \format{
 An object of class \code{character} of length 46.
 }
