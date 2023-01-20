@@ -21,7 +21,12 @@ Available variable names are checked against the full set of expected
 variables and missing cases are reported.
 }
 \examples{
+# all available names to choose from
 all_names <- c("TA", "TS", "VPD", "LE", "H", "NEE")
+
+# names to choose if present in all_names
+# - "PM10" wanted but not available - thus reported as not available
+# - c("TA", "TS", "VPD", "NEE") available but not wanted, thus ignored
 names <- c("H", "LE", "PM10")
 choose_avail(names, all_names)
 

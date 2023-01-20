@@ -2088,7 +2088,12 @@ strip_suffix <- function(x, warn = FALSE) {
 #' @return A character vector with subset of expected variable names.
 #'
 #' @examples
+#' # all available names to choose from
 #' all_names <- c("TA", "TS", "VPD", "LE", "H", "NEE")
+#'
+#' # names to choose if present in all_names
+#' # - "PM10" wanted but not available - thus reported as not available
+#' # - c("TA", "TS", "VPD", "NEE") available but not wanted, thus ignored
 #' names <- c("H", "LE", "PM10")
 #' choose_avail(names, all_names)
 #'
@@ -2096,8 +2101,8 @@ strip_suffix <- function(x, warn = FALSE) {
 choose_avail <- function(names, all_names, show_ignored = FALSE) {
   names <- na.omit(names)
   chosen <- names[names %in% all_names]
-  not_avail <- setdiff(all_names, chosen)
-  ignored <- setdiff(names, chosen)
+  not_avail <- setdiff(names, chosen)
+  ignored <- setdiff(all_names, chosen)
   if (length(not_avail))
     message("Following names are not available:\n",
             paste(not_avail, collapse = ", "))
