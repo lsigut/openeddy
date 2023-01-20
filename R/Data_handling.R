@@ -2084,6 +2084,8 @@ strip_suffix <- function(x, warn = FALSE) {
 #' @param names A character vector with available names.
 #' @param all_names A character vector with all expected variable names.
 #' @param show_ignored A logical value. Should ignored names be shown?
+#' @warn A logical value. Should you be warned if \code{names} or
+#'   \code{all_names} contain duplicates?
 #'
 #' @return A character vector with subset of expected variable names.
 #'
@@ -2098,11 +2100,19 @@ strip_suffix <- function(x, warn = FALSE) {
 #' choose_avail(names, all_names)
 #'
 #' @export
-choose_avail <- function(names, all_names, show_ignored = FALSE) {
+choose_avail <- function(names, all_names, show_ignored = FALSE, warn = TRUE) {
   names <- na.omit(names)
   chosen <- names[names %in% all_names]
   not_avail <- setdiff(names, chosen)
   ignored <- setdiff(all_names, chosen)
+  if (warn) {
+    if (any(duplicated(names))) {
+      warning("duplicated names in 'names'", call. = FALSE)
+    }
+    if (any(duplicated(all_names))) {
+      warning("duplicated names in 'all_names'", call. = FALSE)
+    }
+  }
   if (length(not_avail))
     message("Following names are not available:\n",
             paste(not_avail, collapse = ", "))

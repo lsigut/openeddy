@@ -4,7 +4,7 @@
 \alias{choose_avail}
 \title{Choose Available Names from Set}
 \usage{
-choose_avail(names, all_names, show_ignored = FALSE)
+choose_avail(names, all_names, show_ignored = FALSE, warn = TRUE)
 }
 \arguments{
 \item{names}{A character vector with available names.}
