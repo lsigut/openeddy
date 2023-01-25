@@ -1508,6 +1508,8 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @return An integer vector with attributes \code{"varnames"} and
 #'   \code{"units"}.
 #'
+#' @seealso \code{\link{check_manually}}
+#'
 #' @examples
 #' \dontrun{
 #' # prepare mock data
@@ -2045,6 +2047,7 @@ check_manually <- function(x,
             if (is.null(siteyear)) "manual_QC.csv" else
               paste0(siteyear, "_manual_QC.csv"))
         }
+        message("saving file to ", lf)
         if (with_units) write_eddy(qc, lf) else
           write.csv(qc, lf, row.names = FALSE)
       }
@@ -2083,6 +2086,7 @@ check_manually <- function(x,
           if (is.null(siteyear)) "manual_QC.csv" else
             paste0(siteyear, "_manual_QC.csv"))
       }
+      message("saving file to ", lf)
       if (with_units) write_eddy(qc, lf) else
         write.csv(qc, lf, row.names = FALSE)
     }

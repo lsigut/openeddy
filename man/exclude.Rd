@@ -70,3 +70,6 @@ exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
 }
 
 }
+\seealso{
+\code{\link{check_manually}}
+}
