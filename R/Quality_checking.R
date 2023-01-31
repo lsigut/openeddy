@@ -2109,7 +2109,8 @@ check_manually <- function(x,
 #' @param qc_thr An integer value.
 #' @param na.as An integer value or \code{NA}.
 #'
-#' @return A numeric vector of length \code{x}.
+#' @return A numeric vector of length \code{x} with attributes \code{"varnames"}
+#'   and \code{"units"}.
 #'
 #' @examples
 #' set.seed(215)
@@ -2131,5 +2132,8 @@ apply_QC <- function(x, qc, qc_thr = 2, na.as = NA) {
   if (length(x) != length(qc)) stop("'qc' length not matching 'x' length")
   qc[is.na(qc)] <- na.as
   test <- (qc >= qc_thr) | is.na(qc)
-  ifelse(test, NA, x)
+  res <- ifelse(test, NA, x)
+  varnames(res) <- varnames(x)
+  units(res) <- units(x)
+  return(res)
 }

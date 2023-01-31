@@ -616,6 +616,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
                           ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
   out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
+  # Force storage mode of timestamp to integer to simplify data frame rounding
   storage.mode(out) <- "integer"
   if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
   tdiff <- diff(as.integer(out))
@@ -1074,12 +1075,24 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #'
 #' Creates input for gap-filling and flux partitioning tools implemented either
 #' offline in R (\code{REddyProc} package) or accessible online
-#' (\href{http://www.bgc-jena.mpg.de/~MDIwork/eddyproc/upload.php}{Online Tool})
-#' from the data frame \code{x}. Columns of data frame \code{x} ideally have
-#' assigned attributes \code{varnames} and \code{units}.
+#' (\href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
+#' Tool}) from the data frame \code{x}.
 #'
-#' The typical variables (column names; i.e. \code{names_out}) required by the
-#' tools (name; unit) are quality control of net ecosystem exchange
+#' The data frame \code{x} is expected to have certain properties. It is
+#' required that it has column names and contains column named
+#' \code{"timestamp"} of class \code{"POSIXt"} with regular sequence of
+#' date-time values with (half-)hourly time interval. Any missing values in
+#' \code{"timestamp"} are not allowed. Thus, if no records exist for given
+#' date-time value, it still has to be included. It also has to contain column
+#' names specified by \code{names_in} (respective to \code{names_out}). Default
+#' vector of \code{names_out} represents a typical set of variables used in the
+#' processing tools but can be modified. Minimum requirement is for the data
+#' frame \code{x} to include timestamp and global radiation. Columns of data
+#' frame \code{x} ideally have assigned attributes \code{varnames} and
+#' \code{units}.
+#'
+#' The typical variables (column names; i.e. \code{names_out}) expected by the
+#' processing tools (name; unit) are quality control of net ecosystem exchange
 #' (\code{"qcNEE"}; \code{"-"}), net ecosystem exchange (\code{"NEE"};
 #' \code{"umol m-2 s-1"}), quality control of latent heat (\code{"qcLE"};
 #' \code{"-"}), latent heat (\code{"LE"}; \code{"W m-2"}), quality control of
@@ -1090,8 +1103,10 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #' deficit(\code{"VPD"}; \code{"hPa"}), quality control of momentum flux
 #' (\code{"qcTau"}; \code{"-"}) and friction velocity (\code{"Ustar"}; \code{"m
 #' s-1"}). The unicode character for a greek letter micro (e.g. in NEE units) is
-#' not accepted by the tools, thus it is substituted by simple \code{"u"}. Check
-#' the gap-filling tool documentation for more details.
+#' not accepted by the processing tools, thus it is substituted by simple
+#' \code{"u"}. Check the processing tools
+#' \href{https://bgc.iwww.mpg.de/5622399/REddyProc}{documentation} for more
+#' details.
 #'
 #' \code{time_format} has two available options. \code{"YDH"} (default) extracts
 #' columns Year, DoY (Day of year) and Hour (decimal number) from the timestamp
@@ -1102,57 +1117,39 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #' \href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
 #' Tool}.
 #'
-#' Arguments \code{qcTau}, \code{qcH}, \code{qcLE} and \code{qcNEE} determine
-#' whether the quality control will be applied to the respective fluxes. In case
-#' of \code{qcTau}, quality control is applied to friction velocity (Ustar). If
-#' \code{TRUE}, values of fluxes or friction velocity are set to \code{NA} when
-#' respective quality control flag is \code{NA} or higher than \code{1}. In case
-#' of \code{qcNEE}, NEE is also set to \code{NA} if respective values of Ustar
-#' are \code{NA} (after application \code{qcTau} argument). This conservative
-#' approach will assure that NEE values that cannot be compared against friction
-#' velocity threshold (Ustar filtering) will be excluded.
-#'
-#' \code{check_time} checks the timestamp minutes that should be in format
-#' specifying the end of measurement interval, i.e. [0, 30] instead of [15, 45].
-#' Otherwise it produces warning. This check is designed only for data reported
-#' in half-hourly intervals.
-#'
-#' \code{check_VPD} checks that the range of vapor pressure deficit (VPD) values
-#' complies with assumption VPD <= 100. This is to check that VPD units are hPa,
-#' not Pa.
+#' Fluxes are always filtered with respective quality control flags if provided.
+#' In case of \code{"qcTau"}, quality control is applied to friction velocity
+#' (\code{"Ustar"}). In case of \code{"NEE"}, it is filtered according to
+#' \code{"qcNEE"} flags and if \code{qcTau_filter = TRUE} also according to
+#' \code{"qcTau"} flags. This conservative approach will assure that NEE values
+#' that cannot be compared against friction velocity threshold (Ustar filtering)
+#' will be excluded.
 #'
 #' @param x A data frame with column names and \code{"timestamp"} column in
 #'   POSIXt format.
-#' @param names_in Column names (variables) present in \code{x} that will be
-#'   used as input.
-#' @param names_out Column names required by the tools for respective
-#'   \code{names_in}.
+#' @param names_in A character vector. Column names (variables) present in
+#'   \code{x} that will be used as input.
+#' @param names_out A character vector. Column names required by the tools for
+#'   respective \code{names_in}.
 #' @param time_format A character string identifying supported time format of
 #'   the output. Can be abbreviated.
-#' @param qcTau A logical value indicating whether quality control of momentum
-#'   flux should be considered.
-#' @param qcH A logical value indicating whether quality control of sensible
-#'   heat flux should be considered.
-#' @param qcLE A logical value indicating whether quality control of latent heat
-#'   flux should be considered.
-#' @param qcNEE A logical value indicating whether quality control of net
-#'   ecosystem exchange should be considered.
-#' @param check_time A logical value indicating whether timestamp should be
-#'   checked.
-#' @param check_VPD A logical value indicating whether range of vapor pressure
-#'   deficit values should be checked.
+#' @param hourly A logical value indicating temporal resolution of timestamp. If
+#'   \code{FALSE} (default), half-hourly resolution is expected.
+#' @param qcTau_filter A logical value indicating whether NEE should be filtered
+#'   using qcTau flags. See details.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
 #'
 #' @encoding UTF-8
 #' @export
-set_OT_input <- function(x, names_in,
+set_OT_input <- function(x,
+                         names_in,
                          names_out = c("qcNEE", "NEE", "qcLE", "LE", "qcH",
                                        "H", "Rg", "Tair", "Tsoil", "rH", "VPD",
                                        "qcTau", "Ustar"),
                          time_format = c("YDH", "YMDHM"),
-                         qcTau = TRUE, qcH = TRUE, qcLE = TRUE, qcNEE = TRUE,
-                         check_time = TRUE, check_VPD = TRUE) {
+                         hourly = FALSE,
+                         qcTau_filter = TRUE) {
   x_names <- names(x)
   time_format <- match.arg(time_format)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -1168,6 +1165,20 @@ set_OT_input <- function(x, names_in,
   if (length(names_in) != length(names_out)) {
     stop("length(names_in) and length(names_out) have to be equal")
   }
+  if (!inherits(x$timestamp, "POSIXt")) {
+    stop("'x$timestamp' must be of class 'POSIXt'")
+  }
+  if (anyNA(x$timestamp)) stop("NAs in 'x$timestamp' not allowed")
+  tdiff <- unique(diff(as.integer(x$timestamp)))
+  if (length(tdiff) > 1) {
+    stop("'x$timestamp' does not form regular sequence")
+  }
+  interval <- ifelse(hourly, 3600L, 1800L)
+  # make it work also for one row of data (tdiff of 0 length)
+  if (length(tdiff) && tdiff != interval) {
+    stop("timestamp expected in ", ifelse(hourly, "hourly", "half-hourly"),
+         " interval")
+  }
   ts <- as.POSIXlt(x$timestamp)
   x <- x[names_in]
   units <- gsub("\u00B5", "u", units(x))
@@ -1176,12 +1187,16 @@ set_OT_input <- function(x, names_in,
     units(x[, i]) <- units[i]
   }
   names(x) <- names_out
-  # Check works for half-hours but for hourly data both 9:00 and 9:30 format
-  # will not throw warning (though 9:30 should)
-  if (check_time && !all(ts$min %in% c(0, 30))) {
-    warning("Timestamp minutes are not in required format [0, 30]",
-            call. = FALSE)
+  if (hourly) {
+    if (!all(ts$min %in% 0)) {
+      stop("Timestamp minutes are not in required format 'XX:00'")
+    }
+  } else {
+    if (!all(ts$min %in% c(0, 30))) {
+      stop("Timestamp minutes are not in required format 'XX:00' or 'XX:30'")
+    }
   }
+  if (!("Rg" %in% names_out)) stop("Global radiation not provided")
   out <- if (time_format == "YDH") {
     data.frame(Year = ts$year + 1900L, DoY = ts$yday + 1L,
                Hour = ts$hour + ts$min / 60)
@@ -1194,30 +1209,46 @@ set_OT_input <- function(x, names_in,
     units(out[, i]) <- "-"
   }
   out <- cbind(out, x)
-  if (check_VPD && "VPD" %in% names_out) {
+  if (anyNA(out$Rg)) {
+    message("NAs in Rg - consider gap-filling global radiation")
+  }
+  if ("VPD" %in% names_out) {
     if (!all(is.na(out$VPD)) && any(out$VPD[!is.na(out$VPD)] > 100)) {
-      warning("VPD input units are probably not in hPa", call. = FALSE)
+      message("VPD input units are probably not in hPa")
     }
   }
-  if (qcTau) {
-    if (all(c("Ustar", "qcTau") %in% names_out)) {
-      out$Ustar[out$qcTau > 1 | is.na(out$qcTau)] <- NA
-    } else warning("qcTau skipped: missing 'Ustar' or 'qcTau'")
+  if (!("Ustar" %in% names_out)) {
+    message("Ustar not provided")
+  } else {
+    if ("qcTau" %in% names_out) {
+      out$Ustar <- apply_QC(out$Ustar, out$qcTau)
+    } else message("qcTau not provided: Ustar used without QC")
   }
-  if (qcH) {
-    if (all(c("H", "qcH") %in% names_out)) {
-      out$H[out$qcH > 1 | is.na(out$qcH)] <- NA
-    } else warning("qcH skipped: missing 'H' or 'qcH'")
+  if (!("H" %in% names_out)) {
+    message("H not provided")
+  } else {
+    if ("qcH" %in% names_out) {
+      out$H <- apply_QC(out$H, out$qcH)
+    } else message("qcH not provided: H used without QC")
   }
-  if (qcLE) {
-    if (all(c("LE", "qcLE") %in% names_out)) {
-      out$LE[out$qcLE > 1 | is.na(out$qcLE)] <- NA
-    } else warning("qcLE skipped: missing 'LE' or 'qcLE'")
+  if (!("LE" %in% names_out)) {
+    message("LE not provided")
+  } else {
+    if ("qcLE" %in% names_out) {
+      out$LE <- apply_QC(out$LE, out$qcLE)
+    } else message("qcLE not provided: LE used without QC")
   }
-  if (qcNEE) {
-    if (all(c("Ustar", "NEE", "qcNEE") %in% names_out)) {
-      out$NEE[out$qcNEE > 1 | is.na(out$qcNEE) | is.na(out$Ustar)] <- NA
-    } else warning("qcNEE skipped: missing 'Ustar', 'NEE' or 'qcNEE'")
+  if (!("NEE" %in% names_out)) {
+    message("NEE not provided")
+  } else {
+    if ("qcNEE" %in% names_out) {
+      out$NEE <- apply_QC(out$NEE, out$qcNEE)
+    } else message("qcNEE not provided: NEE used without QC")
+    if (qcTau_filter && "qcTau" %in% names_out) {
+      # filtering using qcTau is expected to have same effect as with
+      # is.na(out$Ustar) in earlier implementation
+      out$NEE <- apply_QC(out$NEE, out$qcTau)
+    } else message("qcTau filtering not applied to NEE")
   }
   return(out)
 }
@@ -2084,7 +2115,7 @@ strip_suffix <- function(x, warn = FALSE) {
 #' @param names A character vector with available names.
 #' @param all_names A character vector with all expected variable names.
 #' @param show_ignored A logical value. Should ignored names be shown?
-#' @warn A logical value. Should you be warned if \code{names} or
+#' @param warn A logical value. Should you be warned if \code{names} or
 #'   \code{all_names} contain duplicates?
 #'
 #' @return A character vector with subset of expected variable names.

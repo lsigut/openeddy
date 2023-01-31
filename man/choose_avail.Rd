@@ -12,6 +12,9 @@ choose_avail(names, all_names, show_ignored = FALSE, warn = TRUE)
 \item{all_names}{A character vector with all expected variable names.}
 
 \item{show_ignored}{A logical value. Should ignored names be shown?}
+
+\item{warn}{A logical value. Should you be warned if \code{names} or
+\code{all_names} contain duplicates?}
 }
 \value{
 A character vector with subset of expected variable names.
