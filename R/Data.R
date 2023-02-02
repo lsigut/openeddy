@@ -1,6 +1,6 @@
 #' Coded Variables
 #'
-#' Used within \code{\link{extract_QC}} to link names of filters (QC_suffices)
+#' Used within \code{\link{extract_QC}} to link names of filters (QC suffixes)
 #' with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
 #' @keywords internal
 coded_vars <- data.frame(

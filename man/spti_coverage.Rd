@@ -63,12 +63,19 @@ Arguments specifying \code{df} column names represent FLUXNET standard. To
 process \code{REddyProc} outputs, timestamp must be corrected to represent
 middle of averaging period and appropriate columns selected (see
 \code{Examples}).
+
+Sampling coverage (SC) ranges from 0 (unilateral sampling) to 1 (fully
+balanced sampling when all bins contribute evenly), i.e. SC close to 1 is the
+most ideal. Note that \eqn{SC = 1 - Gini}, where \eqn{Gini} is Gini index
+used as a measure of statistical dispersion. The dotted line showing
+cumulative contribution of ranked observations in SC plots is also known as
+Lorenz curve.
 }
 \section{References}{
   Griebel, A., Metzen, D., Pendall, E., Burba, G., &
   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
   tower observations. Geophysical Research Letters, 47, e2019GL085942.
-  https://doi.org/10.1029/2019GL085942
+  \url{https://doi.org/10.1029/2019GL085942}
 }
 
 \examples{

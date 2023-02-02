@@ -1522,9 +1522,9 @@ spti_boot <- function(df,
   return(results)
 }
 
-# function to calculate spatio-temporal sampling coverage
-# must be applied to cleaned data frame
-# year argument accepts value "all" (applied across all years)
+# Function to calculate spatio-temporal sampling coverage
+# - must be applied to cleaned data frame
+# - year argument accepts value "all" (applied across all years)
 #' @importFrom ggplot2 ggplot aes geom_area geom_line geom_point
 #'   scale_fill_identity scale_colour_manual theme_classic theme margin
 #'   element_text labs xlab ylab guides guide_legend
@@ -1540,14 +1540,25 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
                       function(x) sapply(split(x[, targetCol], x$time_int),
                                          length))
   dfsub_perc <- dfsub_len / nrow(subsetted)
-  space_sums <- colSums(dfsub_perc, na.rm=TRUE)
-  time_sums <- rowSums(dfsub_perc, na.rm=TRUE)
+  space_sums <- colSums(dfsub_perc, na.rm = TRUE)
+  time_sums <- rowSums(dfsub_perc, na.rm = TRUE)
   space_cumul <- cumsum(c(0, sort(space_sums)))
   time_cumul <- cumsum(c(0, sort(time_sums)))
+  uniform_cumul <- seq(0, 1, by = 1 / nInt)
 
-  uniform_cumul <- (0:nInt)/nInt
-  SSC <- round(sum(space_cumul) / sum(uniform_cumul), 3)
-  TSC <- round(sum(time_cumul) / sum(uniform_cumul), 3)
+  # Area estimation
+  # - see Numerical integration - Trapezoidal Rule at shorturl.at/frQ35
+  # - see computation of area of trapezoid: (a + b) / 2 * h
+  # - you can verify the integration for uniform variant (half of 1x1 square):
+  #   sum(uniform_cumul[-(nInt + 1)], uniform_cumul[-1]) / 2 * (1 / nInt) == 0.5
+  # - A_space and A_time verified with Griebel et al. (2020) SI with their data
+  A_uni <- 0.5
+  A_space <- sum(space_cumul[-(nInt + 1)], space_cumul[-1]) / 2 * (1 / nInt)
+  A_time <- sum(time_cumul[-(nInt + 1)], time_cumul[-1]) / 2 * (1 / nInt)
+
+  # Spatial, temporal and spatio-temporal sampling coverage
+  SSC <- round(A_space / A_uni, 3)
+  TSC <- round(A_time / A_uni, 3)
   STSC <- round(mean(c(SSC, TSC)), 3)
 
   if (plot == FALSE) {
@@ -1615,10 +1626,17 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' middle of averaging period and appropriate columns selected (see
 #' \code{Examples}).
 #'
+#' Sampling coverage (SC) ranges from 0 (unilateral sampling) to 1 (fully
+#' balanced sampling when all bins contribute evenly), i.e. SC close to 1 is the
+#' most ideal. Note that \eqn{SC = 1 - Gini}, where \eqn{Gini} is Gini index
+#' used as a measure of statistical dispersion. The dotted line showing
+#' cumulative contribution of ranked observations in SC plots is also known as
+#' Lorenz curve.
+#'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
 #'   tower observations. Geophysical Research Letters, 47, e2019GL085942.
-#'   https://doi.org/10.1029/2019GL085942
+#'   \url{https://doi.org/10.1029/2019GL085942}
 #'
 #' @param df A data frame.
 #' @param TimestampCol A character string. Specifies a column name in \code{df}

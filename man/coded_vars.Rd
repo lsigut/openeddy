@@ -11,7 +11,7 @@ An object of class \code{data.frame} with 12 rows and 6 columns.
 coded_vars
 }
 \description{
-Used within \code{\link{extract_QC}} to link names of filters (QC_suffices)
+Used within \code{\link{extract_QC}} to link names of filters (QC suffixes)
 with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
 }
 \keyword{internal}
