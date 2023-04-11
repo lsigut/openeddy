@@ -255,7 +255,8 @@ apply_thr <- function(x, thr, name_out = "-",
 #' @param x A numeric atomic type with NULL dimensions.
 #' @param name_out A character string providing \code{varnames} attribute value
 #'   of the output.
-#' @param length A numeric value.
+#' @param length A numeric value. The minimum number of repeating values to
+#'   trigger flagging.
 #'
 #' @return An integer vector with the same length as \code{x}. Its
 #'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
@@ -529,14 +530,16 @@ mf <- function(x, ur, mfr) {
 #'
 #'   Additional filters extracted from EddyPro output. The only additive test is
 #'   "wresid". \itemize{ \item missfrac: check of missing data in averaging
-#'   period against thresholds. \item scf: check of spectral correction factor
-#'   against thresholds. \item wresid: check of mean unrotated \emph{w} (double
-#'   rotation) or \emph{w} residual (planar fit) against thresholds. \item runs:
-#'   check of runs with repeating values. \item lowcov: check of fluxes too
-#'   close to zero (assuming issues during covariance computation) \item var:
-#'   check of variances against thresholds. \item humid: check of relative
-#'   humidity against thresholds. \item LI7200: check of CO2 and H2O
-#'   signal strength against thresholds.}
+#'   period against thresholds (default is 10\%). \item scf: check of spectral
+#'   correction factor against thresholds. \item wresid: check of mean unrotated
+#'   \emph{w} (double rotation) or \emph{w} residual (planar fit) against
+#'   thresholds. \item runs: check of runs with repeating values
+#'   (see \code{\link{flag_runs}}). The fluxes are rounded to 2 digits prior
+#'   checking runs. \item lowcov:
+#'   check of fluxes too close to zero (assuming issues during covariance
+#'   computation) \item var: check of variances against thresholds. \item humid:
+#'   check of relative humidity against thresholds. \item LI7200: check of CO2
+#'   and H2O signal strength against thresholds.}
 #'
 #' @section Content and Format of Columns: \itemize{ \item For details
 #'   concerning coded variables see \code{\link{extract_coded}}. \item
@@ -806,6 +809,7 @@ extract_QC <- function(x,
   ### Extract runs filters =====================================================
 
   # runs flag repeated flux measurements (statistically unlikely)
+  # - fluxes rounded to 2 digits prior checking runs
   # - results depend on the flux rounding precision
   if ("runs" %in% filters) {
     message("Extracting 'runs' filters")
@@ -821,7 +825,7 @@ extract_QC <- function(x,
     }
     if (all(runs_avail)) {
       for (i in seq_along(nout)) {
-        out[, nout[i]] <- flag_runs(x[, fluxes[i]], nout[i])
+        out[, nout[i]] <- flag_runs(round(x[, fluxes[i]], 2), nout[i])
       }
       message("-> success")
     } else message("-> skipped")

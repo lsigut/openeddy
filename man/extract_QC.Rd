@@ -146,14 +146,16 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
 
   Additional filters extracted from EddyPro output. The only additive test is
   "wresid". \itemize{ \item missfrac: check of missing data in averaging
-  period against thresholds. \item scf: check of spectral correction factor
-  against thresholds. \item wresid: check of mean unrotated \emph{w} (double
-  rotation) or \emph{w} residual (planar fit) against thresholds. \item runs:
-  check of runs with repeating values. \item lowcov: check of fluxes too
-  close to zero (assuming issues during covariance computation) \item var:
-  check of variances against thresholds. \item humid: check of relative
-  humidity against thresholds. \item LI7200: check of CO2 and H2O
-  signal strength against thresholds.}
+  period against thresholds (default is 10\%). \item scf: check of spectral
+  correction factor against thresholds. \item wresid: check of mean unrotated
+  \emph{w} (double rotation) or \emph{w} residual (planar fit) against
+  thresholds. \item runs: check of runs with repeating values
+  (see \code{\link{flag_runs}}). The fluxes are rounded to 2 digits prior
+  checking runs. \item lowcov:
+  check of fluxes too close to zero (assuming issues during covariance
+  computation) \item var: check of variances against thresholds. \item humid:
+  check of relative humidity against thresholds. \item LI7200: check of CO2
+  and H2O signal strength against thresholds.}
 }
 
 \section{Content and Format of Columns}{

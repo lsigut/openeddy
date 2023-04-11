@@ -12,7 +12,8 @@ flag_runs(x, name_out = "-", length = 2)
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
 
-\item{length}{A numeric value.}
+\item{length}{A numeric value. The minimum number of repeating values to
+trigger flagging.}
 }
 \value{
 An integer vector with the same length as \code{x}. Its
