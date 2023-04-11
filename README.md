@@ -227,8 +227,7 @@ despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 Publication describing `openeddy` is not yet available. When describing
 the proposed quality control scheme, please refer to it as similar to:
 
-Mauder, M., Cuntz, M., Drüe, C., Graf, A., Rebmann, C., Schmid, H.P.,
-Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and
-uncertainty assessment of long-term eddy-covariance measurements. Agric.
-For. Meteorol. 169, 122-135,
-<https://doi.org/10.1016/j.agrformet.2012.09.006>
+McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak,
+P., 2018. Energy balance closure at a variety of ecosystems in Central
+Europe with contrasting topographies. Agric. For. Meteorol. 248,
+418-431. <https://doi.org/10.1016/j.agrformet.2017.10.003>
