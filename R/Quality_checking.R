@@ -295,6 +295,55 @@ flag_runs <- function(x, name_out = "-", length = 2) {
   return(out)
 }
 
+#' Flag Affected Periods
+#'
+#' Identify and flag values obtained during periods when measurements were not
+#' reliable (e.g. instrument maintenance based on field notes).
+#'
+#' Flagging is done according to the 0 - 2 quality control flag scheme.
+#'
+#' @param x A POSIXt vector providing timestamp of measurements.
+#' @param start,end A POSIXt vector marking the start and end of the periods to
+#'   be flagged. They must be of the same length.
+#' @param name_out A character string providing \code{varnames} attribute value
+#'   of the output.
+#'
+#' @return An integer vector with the same length as \code{x}. Its
+#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
+#'   \code{"-"} values, respectively.
+#'
+#' @examples
+#' # alternative style: as.POSIXct("2000-01-01 12:15:00", tz = "GMT")
+#' timestamp <- seq(ISOdatetime(2000, 1, 1, 12, 15, 0, tz = "GMT"),
+#'                  ISOdatetime(2000, 1, 1, 18, 15, 0, tz = "GMT"),
+#'                  by = "30 mins")
+#' periods <- data.frame(
+#' start = c(ISOdatetime(2000, 1, 1, 13, 15, 0, tz = "GMT"),
+#'           ISOdatetime(2000, 1, 1, 16, 15, 0, tz = "GMT")),
+#' end = c(ISOdatetime(2000, 1, 1, 14, 15, 0, tz = "GMT"),
+#'         ISOdatetime(2000, 1, 1, 17, 15, 0, tz = "GMT"))
+#' )
+#' (flags <- flag_periods(x, periods$start, periods$end, "qc_ALL_periods"))
+#' data.frame(x, qc_ALL_periods = flags)
+#'
+#' @export
+flag_periods <- function(x, start, end, name_out = "-") {
+  if (!inherits(x, "POSIXt") | !inherits(start, "POSIXt") |
+      !inherits(end, "POSIXt")) {
+    stop("'x', 'start' and 'end' must be of class 'POSIXt'")
+  }
+  if (length(start) != length(end)) {
+    stop("lengths of 'start' and 'end' must be equal")
+  }
+  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
+  out <- vector("integer", length(x))
+  for (i in seq_along(start)) {
+    out[x >= start[i] & x <= end[i]] <- 2L
+  }
+  attributes(out) <- list(varnames = name_out, units = "-")
+  return(out)
+}
+
 #' Separate columns
 #'
 #' Helper function utilized in \code{\link{extract_coded}} for coded variables
