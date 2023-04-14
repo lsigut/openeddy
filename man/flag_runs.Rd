@@ -4,7 +4,7 @@
 \alias{flag_runs}
 \title{Flag Runs of Equal Values}
 \usage{
-flag_runs(x, name_out = "-", length = 2)
+flag_runs(x, name_out = "-", length = 4)
 }
 \arguments{
 \item{x}{A numeric atomic type with NULL dimensions.}

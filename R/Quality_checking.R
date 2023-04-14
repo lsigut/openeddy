@@ -269,7 +269,7 @@ apply_thr <- function(x, thr, name_out = "-",
 #' flag_runs(yy, "qc_yy_runs")
 #'
 #' @export
-flag_runs <- function(x, name_out = "-", length = 2) {
+flag_runs <- function(x, name_out = "-", length = 4) {
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
