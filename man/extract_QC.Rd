@@ -150,8 +150,8 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   correction factor against thresholds. \item wresid: check of mean unrotated
   \emph{w} (double rotation) or \emph{w} residual (planar fit) against
   thresholds. \item runs: check of runs with repeating values
-  (see \code{\link{flag_runs}}). The fluxes are rounded to 2 digits prior
-  checking runs. \item lowcov:
+  (see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
+  checking runs, except for Tau. \item lowcov:
   check of fluxes too close to zero (assuming issues during covariance
   computation) \item var: check of variances against thresholds. \item humid:
   check of relative humidity against thresholds. \item LI7200: check of CO2
