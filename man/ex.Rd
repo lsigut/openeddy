@@ -29,6 +29,24 @@ Extraction from atomic types is done as \code{x[i]} ignoring \code{j} and
 \code{drop} (applies also to matrices and arrays). Extraction from data
 frames is done as \code{x[i, j, drop]}.
 }
+\examples{
+xx <- data.frame(lengths = 1:3, areas = 4:6)
+varnames(xx) <- c("lengths", "areas")
+units(xx) <- c("m", "m2")
+str(xx)
+
+# extract specified rows and columns
+str(ex(xx, 1:2, 1:2))
+# extract specified rows
+str(ex(xx, 1))
+# extract specified columns
+str(ex(xx, , 1))
+# extract without dropping current class
+ex(xx, , 1, drop = FALSE)
+# extract elements of a vector
+ex(xx$lengths, 2:3)
+
+}
 \seealso{
 \code{\link{Extract}}, \code{\link{drop}} and
   \code{\link{varnames}}.

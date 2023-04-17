@@ -337,6 +337,23 @@ units <- function(x, names = FALSE) {
 #' @seealso \code{\link{Extract}}, \code{\link{drop}} and
 #'   \code{\link{varnames}}.
 #'
+#' @examples
+#' xx <- data.frame(lengths = 1:3, areas = 4:6)
+#' varnames(xx) <- c("lengths", "areas")
+#' units(xx) <- c("m", "m2")
+#' str(xx)
+#'
+#' # extract specified rows and columns
+#' str(ex(xx, 1:2, 1:2))
+#' # extract specified rows
+#' str(ex(xx, 1))
+#' # extract specified columns
+#' str(ex(xx, , 1))
+#' # extract without dropping current class
+#' ex(xx, , 1, drop = FALSE)
+#' # extract elements of a vector
+#' ex(xx$lengths, 2:3)
+#'
 #' @export
 ex <- function(x, i, j, drop = TRUE) {
   v <- varnames(x, names = TRUE)
@@ -346,6 +363,9 @@ ex <- function(x, i, j, drop = TRUE) {
     out <- x[i]
   } else if (is.data.frame(x)) {
     out <- x[i, j, drop = drop]
+    # extracting single row with drop = TRUE results in a list
+    # assignment of varnames and units to list is not defined
+    if (is.list(out)) out <- as.data.frame(out)
     v <- v[j]
     u <- u[j]
   } else stop("'x' must be either atomic type or data frame")
