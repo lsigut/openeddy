@@ -905,6 +905,9 @@ ggplot_stats <- function(data, x, y, breaks = 20, circular = FALSE, ylim = NULL,
   data <- na.omit(data[c("timestamp", x, y)])
   # including also mid points in sequence
   sq <- quantile(data[, x], seq(0, 1, len = breaks*2-1), na.rm = TRUE)
+  if (any(duplicated(sq)))
+    stop("too many identical values in 'x' or 'y'\n",
+         "- hint: try reducing 'breaks' or reduce repeated values in the input")
   l <- split(data[, y], cut(data[, x], sq[c(TRUE, FALSE)]))
   df <- data.frame(wind_dir = c(sq[1], sq[c(FALSE, TRUE)], sq[length(sq)]),
                    cen = c(center(l[[1]], na.rm = TRUE),
