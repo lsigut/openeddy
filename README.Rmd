@@ -25,18 +25,27 @@ the results. It is aligned with
 [REddyProc](https://github.com/bgctw/REddyProc) package that provides
 methods for uStar-filtering, gap-filling, and flux-partitioning. Thus
 the combined use of `openeddy` and `REddyProc` allows to run the whole
-eddy covariance post-processing chain. Learn more at
-<https://github.com/lsigut/EC_workflow>.
+eddy covariance post-processing chain.
+
+All `openeddy` functions are extensively documented. The help file of
+the given function with the arguments description, details section, and
+examples can be viewed using `?function_name`. To see the most common
+`openeddy` use-cases, you can explore the commented interactive
+[openeddy tutorials](https://github.com/lsigut/openeddy_tutorials). The
+applications are also summarized in the form of a poster:
+<https://zenodo.org/record/8159040>. For the example of the whole eddy
+covariance post-processing chain see
+[EC_workflow](https://github.com/lsigut/EC_workflow).
 
 ## Installation
 
-1. Install devtools package if not available yet.
+1.  Install devtools package if not available yet.
 
     ``` r
     install.packages("devtools")
     ```
 
-1. Install openeddy
+2.  Install openeddy
 
     ``` r
     devtools::install_github("lsigut/openeddy")
@@ -47,7 +56,7 @@ eddy covariance post-processing chain. Learn more at
 An extended example of applied `openeddy` software infrastructure is
 available at:
 
-https://github.com/lsigut/EC_workflow
+<https://github.com/lsigut/EC_workflow>
 
 ## Short Example
 
@@ -88,9 +97,9 @@ Application of three general filters is presented.
     concentration ((CO~2~)) can be caused by frozen ultrasonic
     anemometer or problems with (CO~2~) measurements. Such cases are
     flagged and saved to qc_NEE_lowcov.
-1.  Runs with repeating values are a sign of malfunctioning equipment
+2.  Runs with repeating values are a sign of malfunctioning equipment
     (qc_NEE_runs).
-1.  Spikes in low frequency data cause problems during gap-filling and
+3.  Spikes in low frequency data cause problems during gap-filling and
     should be excluded. Since DETha98 was already quality checked, the
     amount of detected spikes is limited. In order to correctly evaluate
     spikes, preliminary QC (qc_NEE_prelim) that combines available QC
@@ -166,12 +175,18 @@ despikeLF_plots <-
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
 
+## Contact
+
+Ladislav Šigut: [sigut.l\@czechglobe.cz](mailto:sigut.l@czechglobe.cz)
+
+Global Change Research Institute CAS, Bělidla 4a, 603 00 Brno, CZ
+
 ## References
 
 Publication describing `openeddy` is not yet available. When describing
 the proposed quality control scheme, please refer to it as similar to:
 
-McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
-2018. Energy balance closure at a variety of ecosystems in Central Europe
-with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-https://doi.org/10.1016/j.agrformet.2017.10.003
+McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak,
+P., 2018. Energy balance closure at a variety of ecosystems in Central
+Europe with contrasting topographies. Agric. For. Meteorol. 248,
+418-431. <https://doi.org/10.1016/j.agrformet.2017.10.003>

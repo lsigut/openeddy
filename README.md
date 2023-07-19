@@ -11,8 +11,17 @@ the results. It is aligned with
 [REddyProc](https://github.com/bgctw/REddyProc) package that provides
 methods for uStar-filtering, gap-filling, and flux-partitioning. Thus
 the combined use of `openeddy` and `REddyProc` allows to run the whole
-eddy covariance post-processing chain. Learn more at
-<https://github.com/lsigut/EC_workflow>.
+eddy covariance post-processing chain.
+
+All `openeddy` functions are extensively documented. The help file of
+the given function with the arguments description, details section, and
+examples can be viewed using `?function_name`. To see the most common
+`openeddy` use-cases, you can explore the commented interactive
+[openeddy tutorials](https://github.com/lsigut/openeddy_tutorials). The
+applications are also summarized in the form of a poster:
+<https://zenodo.org/record/8159040>. For the example of the whole eddy
+covariance post-processing chain see
+[EC_workflow](https://github.com/lsigut/EC_workflow).
 
 ## Installation
 
@@ -48,6 +57,7 @@ library(openeddy)
 #>     units, units<-
 library(REddyProc)
 library(ggplot2)
+#> Warning: package 'ggplot2' was built under R version 4.2.3
 ```
 
 Example data from `REddyProc` package do not include statistics
@@ -114,7 +124,7 @@ summary_QC(DETha98, "qc_NEE_runs")
 #> no columns with 'na.as = 0' detected
 #>              QC_flag
 #> QC_filter     flag_0 flag_2 flag_NA
-#>   qc_NEE_runs   63.2    1.1    35.7
+#>   qc_NEE_runs   63.9    0.3    35.7
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
@@ -124,15 +134,15 @@ DETha98$qc_NEE_prelim <-
 DETha98$qc_NEE_spikesLF <- 
   despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
-#> iter 1: 25
-#> iter 2: 1
+#> iter 1: 30
+#> iter 2: 2
 #> iter 3: 0
 #> Further iterations omitted
 summary_QC(DETha98, "qc_NEE_spikesLF")
 #> detected columns with 'na.as = 0': qc_NEE_spikesLF
 #>                  QC_flag
 #> QC_filter         flag_0 flag_2
-#>   qc_NEE_spikesLF   99.9    0.1
+#>   qc_NEE_spikesLF   99.8    0.2
 ```
 
 The QC results can be summarized in tabular or graphical form using
@@ -149,8 +159,8 @@ summary_QC(DETha98,
 #> QC_filter         flag_0 flag_2 flag_NA
 #>   qc_NEE            64.3    0.0    35.7
 #>   qc_NEE_lowcov     64.2    0.1    35.7
-#>   qc_NEE_runs       63.2    1.1    35.7
-#>   qc_NEE_spikesLF   99.9    0.1     0.0
+#>   qc_NEE_runs       63.9    0.3    35.7
+#>   qc_NEE_spikesLF   99.8    0.2     0.0
 summary_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
            cumul = TRUE, plot = TRUE, flux = "NEE")
@@ -213,14 +223,20 @@ in order to inspect selected 13 days blocks. See section Plotting in
 despikeLF_plots <- 
   despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL, plot = TRUE)$plots
-#> iter 1: 25
-#> iter 2: 1
+#> iter 1: 30
+#> iter 2: 2
 #> iter 3: 0
 #> Further iterations omitted
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
 
 ![](README-unnamed-chunk-9-1.png)
+
+## Contact
+
+Ladislav Šigut: <sigut.l@czechglobe.cz>
+
+Global Change Research Institute CAS, Bělidla 4a, 603 00 Brno, CZ
 
 ## References
 
