@@ -16,7 +16,7 @@ If \code{regexp = TRUE}, character vector containing
 \code{\link[=regexp]{regular expression}}s.}
 
 \item{regexp}{A logical value. If \code{FALSE} (the default), \code{source}
-will be interpreted literary. If \code{TRUE}, \code{source} elements will
+will be interpreted literally. If \code{TRUE}, \code{source} elements will
 be used as \code{\link{grep}} \code{pattern}s.}
 
 \item{qc}{A character string. A \code{\link{regular expression}}
@@ -41,8 +41,18 @@ initializes one if missing.
 New data frame is created based on \code{x} and specified \code{source}.
 Original \code{x} names are changed according to respective \code{new}
 elements and kept as \code{varnames} attributes for traceability.
-Accordingly, if \code{qc} is specified, quality control columns are marked by
-\code{"qc_"} prefix.
+Accordingly, if \code{qc} is specified, quality control (QC) columns are
+marked by \code{"qc_"} prefix.
+
+\code{qc} is specified as the character string pattern that distinguishes QC
+columns from the actual respective variables. Ideally, prefix should be used
+for QC columns. E.g. in the case of \code{"var"} and \code{"qcode_var"},
+\code{qc = "qcode_"}. QC column can be also marked by suffix. E.g. in the
+case of \code{"var_qcode"}, \code{qc = "_qcode"}. The atypical case of QC
+marked by both prefix and suffix can be handled too. E.g. in the case of
+\code{"prefix_var_suffix"}, \code{qc = "prefix_|_suffix"}. In case of other
+exceptions, \code{new} and \code{source} can be used to define the QC
+remapping explicitly.
 
 If \code{regexp = FALSE} (the default), strictly one variable (column) will
 be remapped to new name. The \code{source} elements must exactly match
@@ -56,12 +66,63 @@ are produced and names of averaged columns kept as \code{varnames} attributes
 for traceability. Similarly, also quality control flags are averaged over
 available columns if \code{qc} is specified. Note that variable names need to
 have unique patterns in order to achieve expected results. E.g. precipitation
-abbreviated as P will have overlap with PAR; instead, sumP can be used.
+abbreviated as \emph{P} will have overlap with PAR; instead, Precip or sumP
+can be used.
 
 \code{varnames} attribute is expected. If not automatically assigned to
 \code{x} through \code{\link{read_eddy}} when read from a file, they should
 be assigned before remapping to keep documentation (especially if multiple
 columns are combined to a single one).
+}
+\examples{
+# Simulate soil temperature profile at different depths/positions
+Ts_profile <- data.frame(
+  timestamp = seq(c(ISOdate(2023,1,1,0,30)), by = "30 mins", length.out = 5)
+  )
+head(Ts_profile)
+set.seed(42) # makes random numbers reproducible
+cm_0 <- paste0("Ts_0.00_", c("N", "E", "S", "W"))
+Ts_profile[cm_0] <- data.frame(replicate(4, rnorm(5)))
+head(Ts_profile)
+cm_10 <- paste0("Ts_0.10_", c("N", "E", "S", "W"))
+Ts_profile[cm_10] <- data.frame(replicate(4, rnorm(5, 5)))
+head(Ts_profile)
+Ts_profile$Ts_0.20_E <- rnorm(5, 10)
+head(Ts_profile)
+Ts_profile[paste0("qc_", c(cm_0, cm_10, "Ts_0.20_E"))] <- 0
+varnames(Ts_profile) <- names(Ts_profile)
+str(Ts_profile)
+Ts_profile <- Ts_profile[sample(varnames(Ts_profile))]
+head(Ts_profile)
+
+# Literal remapping with regexp = FALSE
+literal_remapping <- data.frame(
+  orig_varname = c("timestamp", "Ts_0.00_N", "Ts_0.10_N", "Ts_0.20_E"),
+  renamed_varname = c("TIMESTAMP", "TS_1_1_1", "TS_1_2_1", "TS_2_3_1")
+  )
+literal_remapping
+
+rmap1 <- remap_vars(Ts_profile,
+                    literal_remapping$renamed_varname,
+                    literal_remapping$orig_varname,
+                    qc = "qc_")
+str(rmap1)
+
+# Remapping based on string patterns with regexp = TRUE
+regexp_remapping <- data.frame(
+  orig_varname = c("timestamp", "Ts_0.00", "Ts_0.10", "Ts_0.20"),
+  renamed_varname = c("TIMESTAMP", "Tsoil_0cm", "Tsoil_10cm", "Tsoil_20cm")
+  )
+regexp_remapping
+
+rmap2 <- remap_vars(Ts_profile,
+                    regexp_remapping$renamed_varname,
+                    regexp_remapping$orig_varname,
+                    regexp = TRUE,
+                    qc = "qc_")
+# Notice that if pattern matches multiple columns, they are averaged
+str(rmap2)
+
 }
 \seealso{
 \code{\link{varnames}}.
