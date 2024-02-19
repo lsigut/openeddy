@@ -27,6 +27,33 @@ coded_vars <- data.frame(
     c(rep(NA, 10), "qc_ALL_attangle", "qc_ALL_nonsteady")
 )
 
+#' Quality Control Essential Variables
+#'
+#' A minimal set of variables useful when working with quality controlled data.
+#'
+#' @export
+essential_vars_QC <- c(
+  "timestamp", "GR", "qc_GR", "PAR", "qc_PAR", "Rn", "qc_Rn", "Tair",
+  "qc_Tair", "Tsoil", "qc_Tsoil", "RH", "qc_RH", "VPD", "qc_VPD", "SWC",
+  "qc_SWC", "P", "qc_P", "G", "qc_G", "Tau", "Tau_orig", "qc_Tau_forGF",
+  "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig", "qc_H_forGF", "qc_H_SSITC",
+  "rand_err_H", "LE", "LE_orig", "qc_LE_forGF", "qc_LE_SSITC", "rand_err_LE",
+  "NEE", "NEE_orig", "qc_NEE_forGF", "qc_NEE_SSITC", "rand_err_NEE", "H_strg",
+  "LE_strg", "co2_strg", "wind_speed",
+  "wind_dir", "ustar", "L", "zeta", "model", "x_peak", "x_70perc")
+
+#' Supported Fluxes
+#'
+#' A complete set of supported fluxes in eddy covariance workflow.
+#'
+#' While users can utilize \code{\link[openeddy]{openeddy}} to create their own
+#' processing workflow for any set of fluxes or variables, the original intent
+#' was to process specified fluxes. The processing workflow is available here:
+#' \url{https://github.com/lsigut/EC_workflow}.
+#'
+#' @export
+fluxes <- c("Tau", "H", "LE", "NEE")
+
 #' Precheck Variables
 #'
 #' A set of variables typically available in EddyPro full output that can be
@@ -50,17 +77,3 @@ precheck_vars <-
     "mean_value_RSSI_LI_7200", "co2_signal_strength_7200_mean",
     "h2o_signal_strength_7200_mean", "flowrate_mean")
 
-#' Quality Control Essential Variables
-#'
-#' A minimal set of variables useful when working with quality controlled data.
-#'
-#' @export
-essential_vars_QC <- c(
-  "timestamp", "GR", "qc_GR", "PAR", "qc_PAR", "Rn", "qc_Rn", "Tair",
-  "qc_Tair", "Tsoil", "qc_Tsoil", "RH", "qc_RH", "VPD", "qc_VPD", "SWC",
-  "qc_SWC", "P", "qc_P", "G", "qc_G", "Tau", "Tau_orig", "qc_Tau_forGF",
-  "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig", "qc_H_forGF", "qc_H_SSITC",
-  "rand_err_H", "LE", "LE_orig", "qc_LE_forGF", "qc_LE_SSITC", "rand_err_LE",
-  "NEE", "NEE_orig", "qc_NEE_forGF", "qc_NEE_SSITC", "rand_err_NEE", "H_strg",
-  "LE_strg", "co2_strg", "wind_speed",
-  "wind_dir", "ustar", "L", "zeta", "model", "x_peak", "x_70perc")
