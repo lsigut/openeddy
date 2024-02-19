@@ -3,20 +3,19 @@
 #' Folder structure recommended for eddy covariance data processing and
 #' archivation.
 #'
-#' The purpose is to standardize the locations for metadata and post-processing
-#' inputs required to run the proposed workflow
-#' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
-#' metadata in levels corresponding to processing stage. The folder structure is
-#' not required to successfully apply the workflow but simplifies its use.
+#' The purpose is to standardize the locations for data and metadata used in the
+#' proposed workflow (\url{https://github.com/lsigut/EC_workflow}) and separate
+#' them into levels corresponding to the processing stage. The folder structure
+#' is not required to successfully apply the workflow but simplifies its use.
 #'
-#' Data processing stages \itemize{\item Level 0: Raw files with measured high
-#' frequency eddy covariance data and relevant metadata or instrument setup
-#' files. \item Level 1: Processing software setup and output files and a
-#' logbook. \item Level 2: Quality checking results and documentation,
-#' definition of ecosystem boundary, storage flux processing and files used as
-#' inputs for Level 3 data. \item Level 3: gap-filling output and its
-#' documentation, summary of the computed fluxes and meteorological data
-#' including their aggregation.}
+#' Data processing stages \itemize{
+#' \item level_1: EddyPro full output files, meteo data and their merged product
+#' as an input for quality checking.
+#' \item level_2: quality checking results and documentation, and files used as
+#' inputs for gap-filling.
+#' \item level_3: gap-filling output and its documentation, summary of the
+#' computed fluxes and meteorological data including their aggregation and
+#' plotting.}
 #'
 #' @param root A character string defining the root of created folder structure.
 #' @param create_dirs A logical value. Indicates whether directories should be
@@ -41,55 +40,46 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
   # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
   # but needed in order to make the dir accessible with path in the list
   l <- list(
-    Processing_setup = file.path(
-      root, "Level 0", "EddyPro setup", fsep = fsep
+    qc_input_eddypro = file.path(
+      root, "level_1", "qc_input_eddypro", fsep = fsep
     ),
-    IRGA_setup = file.path(
-      root, "Level 0", "IRGA setup", fsep = fsep
+    qc_input_meteo = file.path(
+      root, "level_1", "qc_input_meteo", fsep = fsep
     ),
-    Raw_data = file.path(
-      root, "Level 0", "Raw data", fsep = fsep
+    input_for_qc = file.path(
+      root, "level_1", "input_for_qc", fsep = fsep
     ),
-    Logbook = file.path(
-      root, "Level 1", "Logbook", fsep = fsep
+    quality_checking = file.path(
+      root, "level_2", "quality_checking", fsep = fsep
     ),
-    Processing = file.path(
-      root, "Level 1", "Post-processing", "EddyProOutput", fsep = fsep
+    precheck = file.path(
+      root, "level_2", "quality_checking", "precheck", fsep = fsep
     ),
-    Quality_checking = file.path(
-      root, "Level 2", "Quality checking", fsep = fsep
-    ),
-    Precheck = file.path(
-      root, "Level 2", "Quality checking", "Precheck", fsep = fsep
-    ),
-    WD_dependency = file.path(
-      root, "Level 2", "Quality checking", "Precheck", "WD_dependency",
+    wd_dependency = file.path(
+      root, "level_2", "quality_checking", "precheck", "wd_dependency",
       fsep = fsep
     ),
-    QC_summary = file.path(
-      root, "Level 2", "Quality checking", "QC_summary", fsep = fsep
+    qc_summary = file.path(
+      root, "level_2", "quality_checking", "qc_summary", fsep = fsep
     ),
-    Storage_flux = file.path(
-      root, "Level 2", "Storage flux", fsep = fsep
+    input_for_gf = file.path(
+      root, "level_2", "input_for_gf", fsep = fsep
     ),
-    Input_for_GF = file.path(
-      root, "Level 2", "Input for gap-filling", fsep = fsep
+    gap_filling = file.path(
+      root, "level_3", "gap_filling", fsep = fsep
     ),
-    Gap_filling = file.path(
-      root, "Level 3", "Gap-filling", "REddyProc", fsep = fsep
+    plots = file.path(
+      root, "level_3", "gap_filling", "plots", fsep = fsep
     ),
-    Plots = file.path(
-      root, "Level 3", "Gap-filling", "REddyProc", "Plots", fsep = fsep
-    ),
-    Ustar_filtering = file.path(
-      root, "Level 3", "Gap-filling", "REddyProc", "Ustar filtering",
+    ustar_filtering = file.path(
+      root, "level_3", "gap_filling", "ustar_filtering",
       fsep = fsep
     ),
-    Summary = file.path(
-      root, "Level 3", "Summary", "REddyProc", fsep = fsep
+    summary = file.path(
+      root, "level_3", "summary", fsep = fsep
     ),
     png = file.path(
-      root, "Level 3", "Summary", "REddyProc", "png", fsep = fsep
+      root, "level_3", "summary", "png", fsep = fsep
     ))
   if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
   return(l)

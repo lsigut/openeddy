@@ -26,20 +26,19 @@ Folder structure recommended for eddy covariance data processing and
 archivation.
 }
 \details{
-The purpose is to standardize the locations for metadata and post-processing
-inputs required to run the proposed workflow
-(\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
-metadata in levels corresponding to processing stage. The folder structure is
-not required to successfully apply the workflow but simplifies its use.
+The purpose is to standardize the locations for data and metadata used in the
+proposed workflow (\url{https://github.com/lsigut/EC_workflow}) and separate
+them into levels corresponding to the processing stage. The folder structure
+is not required to successfully apply the workflow but simplifies its use.
 
-Data processing stages \itemize{\item Level 0: Raw files with measured high
-frequency eddy covariance data and relevant metadata or instrument setup
-files. \item Level 1: Processing software setup and output files and a
-logbook. \item Level 2: Quality checking results and documentation,
-definition of ecosystem boundary, storage flux processing and files used as
-inputs for Level 3 data. \item Level 3: gap-filling output and its
-documentation, summary of the computed fluxes and meteorological data
-including their aggregation.}
+Data processing stages \itemize{
+\item level_1: EddyPro full output files, meteo data and their merged product
+as an input for quality checking.
+\item level_2: quality checking results and documentation, and files used as
+inputs for gap-filling.
+\item level_3: gap-filling output and its documentation, summary of the
+computed fluxes and meteorological data including their aggregation and
+plotting.}
 }
 \examples{
 xx <- structure_eddy()
