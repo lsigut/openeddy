@@ -588,7 +588,9 @@ mf <- function(x, ur, mfr) {
 #'   check of fluxes too close to zero (assuming issues during covariance
 #'   computation) \item var: check of variances against thresholds. \item humid:
 #'   check of relative humidity against thresholds. \item LI7200: check of CO2
-#'   and H2O signal strength against thresholds.}
+#'   and H2O signal strength against thresholds. \item LI7500: check of CO2
+#'   signal strength against thresholds (H2O signal not provided by the
+#'   instrument).}
 #'
 #' @section Content and Format of Columns: \itemize{ \item For details
 #'   concerning coded variables see \code{\link{extract_coded}}. \item
@@ -684,16 +686,98 @@ mf <- function(x, ur, mfr) {
 #' @param RH_thr A numeric vector with 2 non-missing values. Represents
 #'   thresholds for relative humidity if \code{filters} include \code{"humid"}.
 #'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
-#' @param LI7200_signal_thr A numeric vector with 2 non-missing values.
-#'   Represents thresholds for CO2 and H2O signal strength provided by LI-COR
-#'   7200 if \code{filters} include \code{"LI7200"}. \code{\link{apply_thr}}
-#'   flags the records lower than the given thresholds.
+#' @param LI7200_signal_thr,LI7500_signal_thr A numeric vector with 2
+#'   non-missing values. Represents thresholds for signal strength provided by
+#'   LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
+#'   \code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
+#'   given thresholds.
 #' @param simplify A logical value. Should be soft (suffix \code{"_sf"} in
 #'   EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
 #'   flags extracted from EddyPro coded variables combined? See
 #'   \code{\link{extract_coded}}.
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
+#'
+#' @examples
+#' # filters are obtained by comparing thresholds directly with EddyPro column(s)
+#' simple <- data.frame(co2_signal_strength_7500_mean = 100)
+#' extract_QC(simple, LI7500_signal_thr = c(90, 80), filters = "LI7500")
+#'
+#' # or columns need to be extracted from a coded column before comparison
+#' # - this requires presence of units specifying the pattern for decoding
+#' coded <- data.frame(attack_angle_hf = 81)
+#' units(coded) <- "8aa"
+#' extract_QC(coded, filters = "attangle")
+#'
+#' # complete list of supported coded EddyPro columns with their data format
+#' x <- data.frame(
+#'   spikes_hf = 800000099,
+#'   amplitude_resolution_hf = 800000099,
+#'   drop_out_hf = 800000099,
+#'   absolute_limits_hf = 800000099,
+#'   skewness_kurtosis_hf = 800000099,
+#'   skewness_kurtosis_sf = 800000099,
+#'   discontinuities_hf = 800001199,
+#'   discontinuities_sf = 800011199,
+#'   timelag_hf = 80000,
+#'   timelag_sf = 80100,
+#'   attack_angle_hf = 81,
+#'   non_steady_wind_hf = 80
+#' )
+#'
+#' # units specifying the pattern for decoding (provided by EddyPro)
+#' units(x) <- c(
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8co2/h2o/ch4/none",
+#'   "8co2/h2o/ch4/none",
+#'   "8aa",
+#'   "8U"
+#' )
+#'
+#' # run all filters based on coded EddyPro columns
+#' extract_QC(
+#'   x,
+#'   filters = c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf",
+#'               "skewkurt_sf", "discont_hf", "discont_sf", "timelag_hf",
+#'               "timelag_sf", "attangle", "nonsteady"))
+#'
+#' # list of columns required by remaining filters
+#' y <- data.frame(
+#'   # columns needed for 'missfrac' filter
+#'   file_records = 36000,
+#'   used_records = 36000,
+#'   w_spikes = 0,
+#'   u_spikes = 0,
+#'   ts_spikes = 0,
+#'   h2o_spikes = 0,
+#'   co2_spikes = 0,
+#'   # columns needed for 'scf' filter
+#'   Tau_scf = 0, H_scf = 0, LE_scf = 0, co2_scf = 0,
+#'   # columns needed for 'wresid' filter (rotation = 'double')
+#'   w_unrot = 0.001,
+#'   # columns needed for 'runs' and 'lowcov' filters
+#'   Tau = 0.2, H = 50, LE = 50, NEE = -5,
+#'   # columns needed for 'var' filter
+#'   ts_var = 6,
+#'   # columns needed for 'humid' filter
+#'   RH = 99,
+#'   # columns needed for 'LI7200' filter
+#'   # - columns for either LI7200 or LI7500 expected (the other filter skipped)
+#'   co2_signal_strength_7200_mean = 85, h2o_signal_strength_7200_mean = 86,
+#'   # columns needed for 'LI7500' filter
+#'   co2_signal_strength_7500_mean = 95
+#' )
+#'
+#' # function extracts only available filters (coded columns are missing)
+#' # - user is informed about skipped filters but no error or warning is issued
+#' extract_QC(y)
 #'
 #' @export
 extract_QC <- function(x,
@@ -702,13 +786,15 @@ extract_QC <- function(x,
                                    "discont_hf", "discont_sf", "timelag_hf",
                                    "timelag_sf", "attangle", "nonsteady",
                                    "missfrac", "scf", "wresid", "runs",
-                                   "lowcov", "var", "humid", "LI7200"),
+                                   "lowcov", "var", "humid", "LI7200",
+                                   "LI7500"),
                        rotation = c("double", "planar fit"),
                        prefix = "[8]", split = "[/]",
                        missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3),
                        w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15),
                        lowcov_thr = c(-0.005, 0.005), ts_var_thr = c(2, 2),
                        RH_thr = c(95, 95), LI7200_signal_thr = c(90, 80),
+                       LI7500_signal_thr = c(90, 80),
                        simplify = TRUE) {
   # Basic check of input =======================================================
   x_names <- colnames(x)
@@ -773,7 +859,9 @@ extract_QC <- function(x,
           out[sfhf[i, ][sfhf_av]] <- NULL
         }
       }
-      message("-> soft and hard flags were combined (simplify = TRUE)")
+      if (sum(EP_avail)) {
+        message("-> soft and hard flags were combined (simplify = TRUE)")
+      }
     }
   }
 
@@ -973,6 +1061,28 @@ extract_QC <- function(x,
       signal <- apply(x[LI_vars], 1, function(x) if (all(is.na(x))) NA else
         min(x, na.rm = TRUE))
       out[, nout] <- apply_thr(signal, LI7200_signal_thr, nout, flag = "lower")
+      message("-> success")
+    } else message("-> skipped")
+  }
+
+  ### Extract LI7500 filter =======================================================
+
+  # LE and NEE fluxes are not reliable if signal strength is too low
+  # - h2o signal strength is not measured in the LI7500
+  # - co2 SS is preferred to RSSI (measured vs calculated from diagnostic value)
+  # - <90 flag 1, <80 flag 2
+  if ("LI7500" %in% filters) {
+    message("Extracting 'LI7500' filter")
+    LI_vars <- "co2_signal_strength_7500_mean"
+    nout <- "qc_GA_LI7500"
+    LI7500_avail <- LI_vars %in% x_names
+    if (any(!LI7500_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(LI_vars[!LI7500_avail], collapse = ", "))
+    }
+    if (all(LI7500_avail)) {
+      signal <- x[, LI_vars]
+      out[, nout] <- apply_thr(signal, LI7500_signal_thr, nout, flag = "lower")
       message("-> success")
     } else message("-> skipped")
   }
