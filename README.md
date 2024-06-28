@@ -1,6 +1,10 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # openeddy
+
+<!-- badges: start -->
+<!-- badges: end -->
 
 ## Overview
 
@@ -55,9 +59,11 @@ library(openeddy)
 #> The following objects are masked from 'package:base':
 #> 
 #>     units, units<-
+```
+
+``` r
 library(REddyProc)
 library(ggplot2)
-#> Warning: package 'ggplot2' was built under R version 4.2.3
 ```
 
 Example data from `REddyProc` package do not include statistics
@@ -80,6 +86,9 @@ str(Example_DETha98[1:4])
 #>  $ NEE : num  -1.21 1.72 NA NA 2.55 NA NA NA 4.11 NA ...
 #>   ..- attr(*, "varnames")= chr "NEE"
 #>   ..- attr(*, "units")= chr "umolm-2s-1"
+```
+
+``` r
 DETha98 <- fConvertTimeToPosix(Example_DETha98, 'YDH', 
                                Year = 'Year', Day = 'DoY', Hour = 'Hour')
 #> Converted time format 'YDH' to POSIX with column name 'DateTime'.
@@ -119,18 +128,27 @@ summary_QC(DETha98, "qc_NEE_lowcov")
 #>                QC_flag
 #> QC_filter       flag_0 flag_2 flag_NA
 #>   qc_NEE_lowcov   64.2    0.1    35.7
+```
+
+``` r
 DETha98$qc_NEE_runs <- flag_runs(DETha98$NEE, "qc_NEE_runs")
 summary_QC(DETha98, "qc_NEE_runs")
 #> no columns with 'na.as = 0' detected
 #>              QC_flag
 #> QC_filter     flag_0 flag_2 flag_NA
 #>   qc_NEE_runs   63.9    0.3    35.7
+```
+
+``` r
 DETha98$qc_NEE_prelim <- 
   combn_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs"), 
            "qc_NEE_prelim")
 #> no columns with additive effect detected
 #> no columns with 'na.as = 0' detected
+```
+
+``` r
 DETha98$qc_NEE_spikesLF <- 
   despikeLF(DETha98, "NEE", "qc_NEE_prelim", "qc_NEE_spikesLF", 
             light = NULL)
@@ -138,6 +156,9 @@ DETha98$qc_NEE_spikesLF <-
 #> iter 2: 2
 #> iter 3: 0
 #> Further iterations omitted
+```
+
+``` r
 summary_QC(DETha98, "qc_NEE_spikesLF")
 #> detected columns with 'na.as = 0': qc_NEE_spikesLF
 #>                  QC_flag
@@ -161,6 +182,9 @@ summary_QC(DETha98,
 #>   qc_NEE_lowcov     64.2    0.1    35.7
 #>   qc_NEE_runs       63.9    0.3    35.7
 #>   qc_NEE_spikesLF   99.8    0.2     0.0
+```
+
+``` r
 summary_QC(DETha98, 
            c("qc_NEE", "qc_NEE_lowcov", "qc_NEE_runs", "qc_NEE_spikesLF"),
            cumul = TRUE, plot = TRUE, flux = "NEE")
@@ -168,7 +192,7 @@ summary_QC(DETha98,
 #> no columns with additive effect detected
 ```
 
-![](README-unnamed-chunk-6-1.png)
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
 Although individual QC columns should be stored as they are useful to
 distinguish the reason why certain records were excluded, only the
@@ -198,6 +222,9 @@ DETha98[, c("P", "PAR", "Rn")] <- NA
 #> [13] "Ustar"            "-"                "qc_NEE_lowcov"    "qc_NEE_runs"     
 #> [17] "qc_NEE_prelim"    "qc_NEE_spikesLF"  "qc_NEE_composite" "-"               
 #> [21] "-"                "-"
+```
+
+``` r
 (units <- openeddy::units(DETha98))
 #>  [1] "POSIXDate Time" "-"              "-"              "-"             
 #>  [5] "umolm-2s-1"     "Wm-2"           "Wm-2"           "Wm-2"          
@@ -205,6 +232,9 @@ DETha98[, c("P", "PAR", "Rn")] <- NA
 #> [13] "ms-1"           "-"              "-"              "-"             
 #> [17] "-"              "-"              "-"              "-"             
 #> [21] "-"              "-"
+```
+
+``` r
 sub <- DETha98$DoY >= 29 & DETha98$DoY < 43
 DETha98_sub <- DETha98[sub, ]
 openeddy::units(DETha98) <- units
@@ -212,7 +242,7 @@ plot_eddy(DETha98_sub, "NEE", "qc_NEE", "qc_NEE_composite", skip = "monthly",
           light = "GR")
 ```
 
-![](README-unnamed-chunk-8-1.png)
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 In addition to actual despiking, `despikeLF` can be used also for
 visualization of the internally computed double-differenced time series
@@ -227,10 +257,13 @@ despikeLF_plots <-
 #> iter 2: 2
 #> iter 3: 0
 #> Further iterations omitted
+```
+
+``` r
 despikeLF_plots$`iter 1`$all$`1998-01-27 - 1998-02-08`
 ```
 
-![](README-unnamed-chunk-9-1.png)
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 ## Contact
 
