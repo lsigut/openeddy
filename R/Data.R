@@ -29,17 +29,17 @@ coded_vars <- data.frame(
 
 #' Quality Control Essential Variables
 #'
-#' A minimal set of variables useful when working with quality controlled data.
+#' A set of variables useful when working with quality controlled data.
 #'
 #' @export
 essential_vars_QC <- c(
   "timestamp", "GR", "qc_GR", "PAR", "qc_PAR", "Rn", "qc_Rn", "Tair",
   "qc_Tair", "Tsoil", "qc_Tsoil", "RH", "qc_RH", "VPD", "qc_VPD", "SWC",
-  "qc_SWC", "P", "qc_P", "G", "qc_G", "Tau", "Tau_orig", "qc_Tau_forGF",
-  "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig", "qc_H_forGF", "qc_H_SSITC",
-  "rand_err_H", "LE", "LE_orig", "qc_LE_forGF", "qc_LE_SSITC", "rand_err_LE",
-  "NEE", "NEE_orig", "qc_NEE_forGF", "qc_NEE_SSITC", "rand_err_NEE", "H_strg",
-  "LE_strg", "co2_strg", "wind_speed",
+  "qc_SWC", "WTD", "qc_WTD", "GWL", "qc_GWL", "P", "qc_P", "G", "qc_G", "Tau",
+  "Tau_orig", "qc_Tau_forGF", "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig",
+  "qc_H_forGF", "qc_H_SSITC", "rand_err_H", "LE", "LE_orig", "qc_LE_forGF",
+  "qc_LE_SSITC", "rand_err_LE", "NEE", "NEE_orig", "qc_NEE_forGF",
+  "qc_NEE_SSITC", "rand_err_NEE", "H_strg", "LE_strg", "co2_strg", "wind_speed",
   "wind_dir", "ustar", "L", "zeta", "model", "x_peak", "x_70perc")
 
 #' Supported Fluxes

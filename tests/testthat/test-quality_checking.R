@@ -1,8 +1,5 @@
 # NAs in x and thr lead to an error and do not have to be checked
 
-library(openeddy)
-context("Quality checking output")
-
 set_attributes <- function(x) {
   attributes(x) <- list(varnames = "test", units = "-")
   return(x)
@@ -48,12 +45,12 @@ test_that("flag_runs Value is integer", {
 })
 
 test_that("flag_runs handles NAs", {
-  expect_equal(flag_runs(c(1, 3, NA, NA, 3), "test"),
-               set_attributes(c(0, 2, NA, NA, 2)))
+  expect_equal(flag_runs(c(1, 3, 3, NA, NA, 3, 3), "test"),
+               set_attributes(c(0, 2, 2, NA, NA, 2, 2)))
 })
 
 test_that("flag_runs catches repeated values", {
-  expect_equal(flag_runs(rep(1:6, rep(c(2, 1), 3)), "test"),
+  expect_equal(flag_runs(rep(1:6, rep(c(2, 1), 3)), "test", length = 2),
                set_attributes(rep(c(2, 2, 0), 3)))
 })
 

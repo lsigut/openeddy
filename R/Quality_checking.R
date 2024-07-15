@@ -323,8 +323,8 @@ flag_runs <- function(x, name_out = "-", length = 4) {
 #' end = c(ISOdatetime(2000, 1, 1, 14, 15, 0, tz = "GMT"),
 #'         ISOdatetime(2000, 1, 1, 17, 15, 0, tz = "GMT"))
 #' )
-#' (flags <- flag_periods(x, periods$start, periods$end, "qc_ALL_periods"))
-#' data.frame(x, qc_ALL_periods = flags)
+#' (flags <- flag_periods(timestamp, periods$start, periods$end, "qc_ALL_periods"))
+#' data.frame(timestamp, qc_ALL_periods = flags)
 #'
 #' @export
 flag_periods <- function(x, start, end, name_out = "-") {
