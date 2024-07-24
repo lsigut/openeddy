@@ -38,6 +38,8 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
   if (is.null(x) || !is.numeric(x) && !all(is.na(x))) {
     stop("'x' must be a vector containing numeric or NA values")
   }
+  # all(logical(0)) == TRUE: catch exception with zero length
+  if (length(x) == 0) return(man)
   if (!is.logical(filter)) {
     stop("'filter' must be a logical vector")
   }
@@ -65,13 +67,9 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' \code{"POSIXt"} with regular sequence of date-time values, typically with
 #' (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
-#' be included. It also has to contain required (depends on the argument values
-#' and applied modules) column names. If required auxiliary variable is not
-#' available (e.g. \code{"Tair"}, \code{"PAR"}), it still has to be included in
-#' \code{x} as a named column with \code{NA} values. The \code{x} column defined
-#' by argument \code{flux} is the only one that has to contain at least one
-#' non-missing value. If present, column \code{"P"} is expected to contain
-#' precipitation.
+#' be included. Any other required columns (depends on the argument values and
+#' applied modules) will be automatically initialized with \code{NA} values. If
+#' present, column \code{"P"} is expected to contain precipitation.
 #'
 #' If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
 #' \code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
@@ -256,10 +254,14 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
 #' plot_eddy(b, "my_var", "my_qc", "my_qc", skip = "monthly")
 #'
-#' # Precipitation is treated specifically and can be missing
+#' # precipitation is treated specifically and can be missing
 #' d <- a
 #' d["P"] <- NULL
 #' plot_eddy(d, "my_var", "my_qc", "my_qc", skip = "monthly")
+#'
+#' # missing variables will be initialized with NAs
+#' # - valid timestamp is still required
+#' plot_eddy(a[1], "my_var", skip = "monthly")
 #'
 #' @importFrom graphics lines points par grid axis.POSIXct axis abline mtext
 #'   legend layout barplot
@@ -313,9 +315,10 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
       } else req_vars <- c(req_vars, panel_top_vars, panel_bottom_vars)
     }
   }
+  req_vars <- unique(req_vars)
   if (!all(req_vars %in% x_names)) {
-    stop(paste("missing", paste0(req_vars[!(req_vars %in% x_names)],
-                                 collapse = ", ")))
+    # make sure all required columns are initialized with NAs
+    x <- remap_vars(x, c(req_vars, "P"), c(req_vars, "P"))
   }
   if (!inherits(x$timestamp, "POSIXt")) {
     stop("'x$timestamp' must be of class 'POSIXt'")
@@ -357,9 +360,6 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     if (GPP_scor) GPP <- -GPP # correct sign if needed
   }
   use <- qc < 2 & !is.na(vals)
-  if (!any(use)) {
-    stop("no non-missing values with accepted quality in 'flux'")
-  }
   # Correcting $year (counting since 1900) and $mon (0-11 range)
   # Selects first day of month in the dataset
   day1 <- as.Date(paste(time$year[1] + 1900, "-", time$mon[1] + 1, "-01",

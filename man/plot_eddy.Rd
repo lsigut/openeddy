@@ -92,13 +92,9 @@ required that it contains column named \code{"timestamp"} of class
 \code{"POSIXt"} with regular sequence of date-time values, typically with
 (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
 allowed. Thus, if no records exist for given date-time value, it still has to
-be included. It also has to contain required (depends on the argument values
-and applied modules) column names. If required auxiliary variable is not
-available (e.g. \code{"Tair"}, \code{"PAR"}), it still has to be included in
-\code{x} as a named column with \code{NA} values. The \code{x} column defined
-by argument \code{flux} is the only one that has to contain at least one
-non-missing value. If present, column \code{"P"} is expected to contain
-precipitation.
+be included. Any other required columns (depends on the argument values and
+applied modules) will be automatically initialized with \code{NA} values. If
+present, column \code{"P"} is expected to contain precipitation.
 
 If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
 \code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
@@ -245,10 +241,14 @@ plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
 b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
 plot_eddy(b, "my_var", "my_qc", "my_qc", skip = "monthly")
 
-# Precipitation is treated specifically and can be missing
+# precipitation is treated specifically and can be missing
 d <- a
 d["P"] <- NULL
 plot_eddy(d, "my_var", "my_qc", "my_qc", skip = "monthly")
+
+# missing variables will be initialized with NAs
+# - valid timestamp is still required
+plot_eddy(a[1], "my_var", skip = "monthly")
 
 }
 \seealso{
