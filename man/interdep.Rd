@@ -19,7 +19,7 @@ are \code{"en_closed"} both for closed and enclosed path systems and
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and
-  \code{"units"}.
+\code{"units"}.
 }
 \description{
 Interdependency of H, LE and NEE QC flags due to corrections/conversions.
@@ -48,16 +48,16 @@ increased by 1.}
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item H: Sensible
-  heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
-  ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
+heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
+ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
 }
 
 \section{References}{
  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
-  Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
-  and uncertainty assessment of long-term eddy-covariance measurements.
-  Agric. For. Meteorol. 169, 122-135.
-  \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
+and uncertainty assessment of long-term eddy-covariance measurements.
+Agric. For. Meteorol. 169, 122-135.
+\url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 }
 
 \seealso{

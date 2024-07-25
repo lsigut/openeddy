@@ -350,19 +350,21 @@ flag_periods <- function(x, start, end, name_out = "-") {
 #' that controls column splitting.
 #'
 #' @keywords internal
+#' @noRd
 separate <- function(x, ...) {
   strsplit(as.character(gsub(...,"", x)), NULL)
 }
 
 #' Handle NA values
 #'
-#' Helper function utilized in extract_coded() for abslim and spikesHF
+#' Helper function utilized in [extract_coded()] for abslim and spikesHF
 #' - controls NAs in splitted columns
 #' - 9 is EddyPro code for NA
 #' - in case of missing half hour inserts NAs according to number of variables
 #'   in 'units'
 #'
 #' @keywords internal
+#' @noRd
 handleNA <- function(x, variables) {
   out <- as.numeric(unlist(x))
   out[out == 9]  <- NA
@@ -405,13 +407,13 @@ handleNA <- function(x, variables) {
 #' must have flag 0.
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-#'   speed component [m s-1] \item v: Cross-wind wind speed component [m s-1]
-#'   \item w: Vertical wind speed component [m s-1] \item ts: Sonic temperature
-#'   [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
-#'   concentration [umol mol-1]}.
+#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux \[kg m-1 s-2\]
+#'   \item H: Sensible heat flux \[W m-2\] \item LE: Latent heat flux \[W m-2\]
+#'   \item NEE: Net ecosystem exchange \[umol m-2 s-1\] \item u: Longitudinal
+#'   wind speed component \[m s-1\] \item v: Cross-wind wind speed component \[m
+#'   s-1\] \item w: Vertical wind speed component \[m s-1\] \item ts: Sonic
+#'   temperature \[degC\] \item h2o: H2O concentration \[mmol mol-1\] \item co2:
+#'   CO2 concentration \[umol mol-1\]}.
 #'
 #' @return A data frame with relevant column names defined by
 #'   \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
@@ -517,6 +519,7 @@ extract_coded <- function(x,
 #'   dataset).
 #'
 #' @keywords internal
+#' @noRd
 mf <- function(x, ur, mfr) {
   1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
 }
@@ -619,13 +622,13 @@ mf <- function(x, ur, mfr) {
 #'   list.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-#'   speed component [m s-1] \item w: Vertical wind speed component [m s-1]
-#'   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
-#'   mol-1] \item co2: CO2 concentration [umol mol-1] \item RH: relative
-#'   humidity}.
+#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux \[kg m-1 s-2\]
+#'   \item H: Sensible heat flux \[W m-2\] \item LE: Latent heat flux \[W m-2\]
+#'   \item NEE: Net ecosystem exchange \[umol m-2 s-1\] \item u: Longitudinal
+#'   wind speed component \[m s-1\] \item w: Vertical wind speed component \[m
+#'   s-1\] \item ts: Sonic temperature \[degC\] \item h2o: H2O concentration
+#'   \[mmol mol-1\] \item co2: CO2 concentration \[umol mol-1\] \item RH:
+#'   relative humidity \[%\]}.
 #'
 #' @section References: Foken, T., Wichura, B., 1996. Tools for quality
 #'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
@@ -1019,7 +1022,7 @@ extract_QC <- function(x,
     } else message("-> skipped")
   }
 
-  ### Extract humid filter =======================================================
+  ### Extract humid filter =====================================================
 
   # CO2 fluxes are not reliable if relative humidity is above 95%
   # https://www.licor.com/env/support/LI-7200RS/topics/specifications.html
@@ -1043,7 +1046,7 @@ extract_QC <- function(x,
     } else message("-> skipped")
   }
 
-  ### Extract LI7200 filter =======================================================
+  ### Extract LI7200 filter ====================================================
 
   # LE and NEE fluxes are not reliable if signal strength is too low
   # - <90 flag 1, <80 flag 2
@@ -1065,7 +1068,7 @@ extract_QC <- function(x,
     } else message("-> skipped")
   }
 
-  ### Extract LI7500 filter =======================================================
+  ### Extract LI7500 filter ====================================================
 
   # LE and NEE fluxes are not reliable if signal strength is too low
   # - h2o signal strength is not measured in the LI7500
@@ -1116,8 +1119,8 @@ extract_QC <- function(x,
 #' increased by 1.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item H: Sensible
-#'   heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
-#'   ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
+#'   heat flux \[W m-2\] \item LE: Latent heat flux \[W m-2\] \item NEE: Net
+#'   ecosystem exchange \[umol m-2 s-1\] \item IRGA: Infrared Gas Analyzer}.
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
@@ -1209,6 +1212,7 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 #'
 #' @importFrom stats mad
 #' @keywords internal
+#' @noRd
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
                  refBlock2 = refBlock1, z, c) {
   med_block <- median(xBlock2, na.rm = TRUE)
@@ -1256,6 +1260,7 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'
 #' @importFrom ggplot2 aes
 #' @keywords internal
+#' @noRd
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
   SD_sub$var_plus <- c(SD_sub$var[-1], NA)
@@ -1402,8 +1407,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   \code{z} (upper panel) and \code{c} (bottom panel).
 #'
 #' @section Abbreviations: \itemize{\item QC: Quality Control \item PAR:
-#'   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-#'   [W m-2]}
+#'   Photosynthetic Active Radiation \[umol m-2 s-1\] \item GR: Global Radiation
+#'   \[W m-2\]}
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality

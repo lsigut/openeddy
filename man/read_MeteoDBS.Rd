@@ -43,7 +43,7 @@ of \code{NA} values in resulting data frame be printed to console?}
 }
 \value{
 A data frame is produced with additional attributes \code{varnames}
-  and \code{units} assigned to each respective column.
+and \code{units} assigned to each respective column.
 }
 \description{
 Read single or multiple CSV meteorological data files at Czechglobe MeteoDBS

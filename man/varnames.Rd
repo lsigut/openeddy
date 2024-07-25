@@ -28,7 +28,7 @@ number of columns in \code{x} if \code{x} is a data frame.}
 \value{
 For \code{varnames} and \code{units}, a character vector.
 
-  For \code{varnames<-} and \code{units<-}, the updated object \code{x}.
+For \code{varnames<-} and \code{units<-}, the updated object \code{x}.
 }
 \description{
 \code{varnames} and \code{units} are useful attributes that can store

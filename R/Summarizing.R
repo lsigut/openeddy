@@ -864,6 +864,7 @@ agg_DT_SD <- function(x, format, agg_per = NULL, breaks = NULL, interval = NULL,
 # clean data frame, assign timestamp, establish columnames for flux,
 # wind direction and year, remove missing values
 #' @keywords internal
+#' @noRd
 clean_df <- function(df, TimestampCol, targetCol, QcCol, wdCol, nInt) {
   #align column names and declare year
   vars <- c(TimestampCol, targetCol, QcCol, wdCol)
@@ -916,6 +917,7 @@ clean_df <- function(df, TimestampCol, targetCol, QcCol, wdCol, nInt) {
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 # interval in seconds
 #' @keywords internal
+#' @noRd
 calc_uncorrected <- function(df, year, targetCol, interval, conv_fac) {
   #subset data frame by year
   subsetted <- df[df$Year == year, ]
@@ -932,6 +934,7 @@ calc_uncorrected <- function(df, year, targetCol, interval, conv_fac) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
+#' @noRd
 calc_standardized <- function(df, year, targetCol, interval, conv_fac) {
   no_years <- length(unique(df$Year))
   df_l <- split(df, df$eight_sec)
@@ -965,6 +968,7 @@ calc_standardized <- function(df, year, targetCol, interval, conv_fac) {
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
+#' @noRd
 calc_space_eq <- function(df, year, targetCol, interval, conv_fac, normalize,
                           nInt) {
   #subset dataframe by year [i]
@@ -999,6 +1003,7 @@ calc_space_eq <- function(df, year, targetCol, interval, conv_fac, normalize,
 # must be applied to cleaned data frame
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #' @keywords internal
+#' @noRd
 calc_spti_eq <- function(df, year, targetCol, interval, conv_fac, normalize) {
   #subset data frame by year
   subsetted <- df[df$Year==year, ]
@@ -1036,6 +1041,7 @@ calc_spti_eq <- function(df, year, targetCol, interval, conv_fac, normalize) {
 # x = fluxes within each bin
 # min_rec = smallest nRec across bins
 #' @keywords internal
+#' @noRd
 boot <- function(x, min_rec) {
   mean(sample(x, size = min_rec, replace = TRUE), na.rm = TRUE)
 }
@@ -1050,6 +1056,7 @@ boot <- function(x, min_rec) {
 # conv_fac from umol/m2/s to grams/m2/s (period treated internally)
 #'
 #' @keywords internal
+#' @noRd
 calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
                            samples, normalize) {
   #subset data frame by year
@@ -1529,6 +1536,7 @@ spti_boot <- function(df,
 #'   scale_fill_identity scale_colour_manual theme_classic theme margin
 #'   element_text labs xlab ylab guides guide_legend
 #' @keywords internal
+#' @noRd
 calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
   if (nInt < 2) stop("spatio-temporal coverage relevant only for nInt > 1")
   #subset data frame by year

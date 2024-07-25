@@ -60,14 +60,14 @@ to obtain robust statistics.}
 }
 \value{
 If \code{plot = FALSE}, an integer vector with attributes
-  \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
-  elements \code{SD} and \code{plots}. \code{SD} contains identical output as
-  produced when \code{plot = FALSE}, \code{plots} contains list of
-  \code{ggplot} objects for respective iteration, \code{light} subset and
-  13-day period.
+\code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
+elements \code{SD} and \code{plots}. \code{SD} contains identical output as
+produced when \code{plot = FALSE}, \code{plots} contains list of
+\code{ggplot} objects for respective iteration, \code{light} subset and
+13-day period.
 
-  Side effect: the counts of spikes detected in each iteration are printed to
-  console.
+Side effect: the counts of spikes detected in each iteration are printed to
+console.
 }
 \description{
 Scaled median absolute deviation from the median is applied to
@@ -139,41 +139,41 @@ detected outliers and new spikes can be identified.
 }
 \section{Plotting}{
  Plots are produced as a list of \code{ggplot} objects.
-  Thus they can be assigned to an object and modified as needed before actual
-  plotting. Each plot consists of two panels. The upper one shows the
-  double-differenced time series, the bottom one the actual \code{var}
-  values. Grey bands mark the respective intervals in which \code{var} value
-  cannot be considered as an outlier. The red points in upper panel show all
-  points that would be marked as spikes if \code{c = 0}. Only the points
-  marked by blue color (bottom panel) will be considered spikes. The spike
-  detection tolerance (width of grey bands) can be modified by scale factors
-  \code{z} (upper panel) and \code{c} (bottom panel).
+Thus they can be assigned to an object and modified as needed before actual
+plotting. Each plot consists of two panels. The upper one shows the
+double-differenced time series, the bottom one the actual \code{var}
+values. Grey bands mark the respective intervals in which \code{var} value
+cannot be considered as an outlier. The red points in upper panel show all
+points that would be marked as spikes if \code{c = 0}. Only the points
+marked by blue color (bottom panel) will be considered spikes. The spike
+detection tolerance (width of grey bands) can be modified by scale factors
+\code{z} (upper panel) and \code{c} (bottom panel).
 }
 
 \section{Abbreviations}{
  \itemize{\item QC: Quality Control \item PAR:
-  Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-  [W m-2]}
+Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
+[W m-2]}
 }
 
 \section{References}{
  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
-  Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
-  and uncertainty assessment of long-term eddy-covariance measurements.
-  Agric. For. Meteorol. 169, 122-135.
-  \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
+and uncertainty assessment of long-term eddy-covariance measurements.
+Agric. For. Meteorol. 169, 122-135.
+\url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 
-  Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
-  Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
-  2006. Towards a more harmonized processing of eddy covariance CO2 fluxes:
-  algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
-  \url{https://doi.org/10.5194/bgd-3-961-2006}
+Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
+Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
+2006. Towards a more harmonized processing of eddy covariance CO2 fluxes:
+algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
+\url{https://doi.org/10.5194/bgd-3-961-2006}
 
-  Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
-  Springer, Berlin.
+Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
+Springer, Berlin.
 }
 
 \seealso{
 \code{\link{combn_QC}}, \code{\link{extract_QC}},
-  \code{\link{median}} and \code{\link{mad}}.
+\code{\link{median}} and \code{\link{mad}}.
 }

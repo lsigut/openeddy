@@ -17,8 +17,8 @@ of the output.}
 }
 \value{
 An integer vector with the same length as \code{x}. Its
-  \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-  \code{"-"} values, respectively.
+\code{varnames} and \code{units} attributes are set to  \code{name_out} and
+\code{"-"} values, respectively.
 }
 \description{
 Identify and flag values obtained during periods when measurements were not

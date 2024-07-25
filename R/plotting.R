@@ -31,6 +31,7 @@
 #' setRange(aa[c(FALSE, TRUE)]) # No finite values in 'x', applies 'man' range
 #' }
 #' @keywords internal
+#' @noRd
 setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
   if (!is.numeric(man) || length(man) != 2 || any(!is.finite(man))) {
     stop("'man' must be numeric vector with 2 finite values")
@@ -141,16 +142,16 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   \code{REddyProc} package is represented by positive GPP, thus, to optimize
 #'   plotting, \code{GPP_scor = TRUE} is taken as default.
 #'
-#' @section Abbreviations: \itemize{ \item H: Sensible heat flux [W m-2] \item
-#'   NEE: Net Ecosystem Exchange [umol m-2 s-1] \item GPP: Gross Primary
-#'   Production [umol m-2 s-1] \item Reco: Ecosystem Respiration [umol m-2 s-1]
-#'   \item QC: Quality Control \item P: Precipitation [mm] \item PAR:
-#'   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-#'   [W m-2] \item T: Temperature [degC] \item Tair: Air Temperature [degC]
-#'   \item Tsoil: Soil Temperature [degC] \item VPD: Vapor Pressure Deficit
-#'   [hPa] \item Rn: Net Radiation [W m-2] \item rand_err_H: random error of H
-#'   [W m-2]; in plots abbreviated as H_re \item ts_var: sonic temperature
-#'   variance [K2]}
+#' @section Abbreviations: \itemize{ \item H: Sensible heat flux \[W m-2\] \item
+#'   NEE: Net Ecosystem Exchange \[umol m-2 s-1\] \item GPP: Gross Primary
+#'   Production \[umol m-2 s-1\] \item Reco: Ecosystem Respiration \[umol m-2
+#'   s-1\] \item QC: Quality Control \item P: Precipitation \[mm\] \item PAR:
+#'   Photosynthetic Active Radiation \[umol m-2 s-1\] \item GR: Global Radiation
+#'   \[W m-2\] \item T: Temperature \[degC\] \item Tair: Air Temperature
+#'   \[degC\] \item Tsoil: Soil Temperature \[degC\] \item VPD: Vapor Pressure
+#'   Deficit \[hPa\] \item Rn: Net Radiation \[W m-2\] \item rand_err_H: random
+#'   error of H \[W m-2\]; in plots abbreviated as H_re \item ts_var: sonic
+#'   temperature variance \[K2\]}
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.

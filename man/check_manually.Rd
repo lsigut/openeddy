@@ -64,10 +64,10 @@ frame with manual flags includes (should include) also units.}
 }
 \value{
 A data frame with flags 0 (marking accepted points) and flags 2
-  (marking excluded points). Results can be written to \code{path}.
+(marking excluded points). Results can be written to \code{path}.
 
-  If \code{interactive = FALSE}, and no file in \code{path} with pattern
-  \code{"manual_QC"}, \code{NULL} is returned.
+If \code{interactive = FALSE}, and no file in \code{path} with pattern
+\code{"manual_QC"}, \code{NULL} is returned.
 }
 \description{
 A wrapper for \code{\link{exclude}} that allows visual inspection of selected
@@ -163,5 +163,5 @@ man <- check_manually(a,
 }
 \seealso{
 \code{\link{exclude}}, \code{\link{locator}},
-  \code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
+\code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
 }

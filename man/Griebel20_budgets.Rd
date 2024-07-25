@@ -61,8 +61,8 @@ records in a year.}
 }
 \value{
 A data frame with columns corresponding to year, different types of
-  budgets and number of observations used for budget computation each year.
-  Each column has assigned attributes varnames and units.
+budgets and number of observations used for budget computation each year.
+Each column has assigned attributes varnames and units.
 }
 \description{
 Yearly budgets with different consideration of space-time equity.
@@ -94,24 +94,24 @@ middle of averaging period and appropriate columns selected (see
 }
 \section{Sign Correction}{
  Although common sign convention for measured NEE
-  (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
-  is typically reported with the opposite sign convention and is assumed to
-  converge to NEP (Net Ecosystem Production), especially over longer
-  aggregation intervals. In case of GPP (Gross Primary Production),
-  \code{REddyProc} package applies sign convention denoting positive fluxes
-  as carbon sink, thus sign correction before summing is not needed.
+(Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
+is typically reported with the opposite sign convention and is assumed to
+converge to NEP (Net Ecosystem Production), especially over longer
+aggregation intervals. In case of GPP (Gross Primary Production),
+\code{REddyProc} package applies sign convention denoting positive fluxes
+as carbon sink, thus sign correction before summing is not needed.
 
-  Since there is no reliable way to guess the sign convention used in the
-  data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
-  default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
-  adapted to sign convention applied in \code{REddyProc} package.
+Since there is no reliable way to guess the sign convention used in the
+data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
+default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
+adapted to sign convention applied in \code{REddyProc} package.
 }
 
 \section{References}{
   Griebel, A., Metzen, D., Pendall, E., Burba, G., &
-  Metzger, S. (2020). Generating spatially robust carbon budgets from flux
-  tower observations. Geophysical Research Letters, 47, e2019GL085942.
-  https://doi.org/10.1029/2019GL085942
+Metzger, S. (2020). Generating spatially robust carbon budgets from flux
+tower observations. Geophysical Research Letters, 47, e2019GL085942.
+https://doi.org/10.1029/2019GL085942
 }
 
 \examples{

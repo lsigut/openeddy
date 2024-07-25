@@ -32,9 +32,9 @@ FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.}
 }
 \value{
 A data frame with relevant column names defined by
-  \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
-  \code{name_out_ALL}. Each column has attributes \code{"varnames"} and
-  \code{"units"} and length equal to that of \code{x}.
+\code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
+\code{name_out_ALL}. Each column has attributes \code{"varnames"} and
+\code{"units"} and length equal to that of \code{x}.
 }
 \description{
 This function is called by \code{\link{extract_QC}} and is not intended to be
@@ -72,13 +72,13 @@ must have flag 0.
 }
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item SA: Sonic
-  Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-  \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-  \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-  speed component [m s-1] \item v: Cross-wind wind speed component [m s-1]
-  \item w: Vertical wind speed component [m s-1] \item ts: Sonic temperature
-  [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
-  concentration [umol mol-1]}.
+Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
+\item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
+\item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
+wind speed component [m s-1] \item v: Cross-wind wind speed component [m
+s-1] \item w: Vertical wind speed component [m s-1] \item ts: Sonic
+temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item co2:
+CO2 concentration [umol mol-1]}.
 }
 
 \examples{

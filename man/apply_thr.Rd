@@ -31,8 +31,8 @@ approaches. Can be abbreviated. See 'Details'.}
 }
 \value{
 An integer vector with the same length as \code{x}. Its
-  \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-  \code{"-"} values, respectively.
+\code{varnames} and \code{units} attributes are set to  \code{name_out} and
+\code{"-"} values, respectively.
 }
 \description{
 Values of \code{x} are checked against the specified thresholds to obtain

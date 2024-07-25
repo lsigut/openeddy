@@ -95,11 +95,11 @@ strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)
 }
 \seealso{
 \code{\link{strptime}} provides the details about conversions
-  between date-time character representation and \code{"POSIXct"} or
-  \code{"POSIXlt"} classes. It also includes information about \code{format}
-  \emph{conversion specification}.
+between date-time character representation and \code{"POSIXct"} or
+\code{"POSIXlt"} classes. It also includes information about \code{format}
+\emph{conversion specification}.
 
-  \code{\link{DateTimeClasses}} further inform about the date-time classes.
+\code{\link{DateTimeClasses}} further inform about the date-time classes.
 
-  See \code{\link{locales}} to query or set a locale.
+See \code{\link{locales}} to query or set a locale.
 }

@@ -87,7 +87,7 @@ flags extracted from EddyPro coded variables combined? See
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and
-  \code{"units"}.
+\code{"units"}.
 }
 \description{
 QC information stored in columns of data frame \code{x} is extracted and
@@ -114,114 +114,114 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
 }
 \section{Extracted QC Checks}{
  Filters from coded EddyPro columns (thresholds
-  are set within EddyPro software). All of the filters extracted from coded
-  variables are not additive. \itemize{ \item spikesHF: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
-   frequency data spike percentage} in averaging period against thresholds.
-  HF in spikesHF means high frequency and distinguishes despiking done on raw
-  data (spikesHF) from despiking done on low frequency data (spikesLF; see
-  \code{\link{despikeLF}}). \item ampres: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
-   resolution} in the recorded data. \item dropout: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
-   i.e. situations when the time series stays for “too long” on a value that
-  is far from the mean. \item abslim: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
-   limits} when raw data are out of plausible range. \item skewkurt_sf and
-  skewkurt_hf: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
-   and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
-  skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
-  discont_hf: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
-   that lead to semi-permanent changes in the time series. If \code{simplify
+are set within EddyPro software). All of the filters extracted from coded
+variables are not additive. \itemize{ \item spikesHF: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
+frequency data spike percentage} in averaging period against thresholds.
+HF in spikesHF means high frequency and distinguishes despiking done on raw
+data (spikesHF) from despiking done on low frequency data (spikesLF; see
+\code{\link{despikeLF}}). \item ampres: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
+resolution} in the recorded data. \item dropout: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
+i.e. situations when the time series stays for “too long” on a value that
+is far from the mean. \item abslim: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
+limits} when raw data are out of plausible range. \item skewkurt_sf and
+skewkurt_hf: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
+and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
+skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
+discont_hf: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
+that lead to semi-permanent changes in the time series. If \code{simplify
   = TRUE}, discont_sf and discont_hf are combined into discont column
-  instead. \item timelag_sf and timelag_hf: check of estimated
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
-   compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
-  and timelag_hf are combined into timelag column instead. \item attangle:
-  check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
-   of attack}. \item nonsteady: check of
-  \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
-   of horizontal wind}.}
+instead. \item timelag_sf and timelag_hf: check of estimated
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
+compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
+and timelag_hf are combined into timelag column instead. \item attangle:
+check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
+of attack}. \item nonsteady: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
+of horizontal wind}.}
 
-  Additional filters extracted from EddyPro output. The only additive test is
-  "wresid". \itemize{ \item missfrac: check of missing data in averaging
-  period against thresholds (default is 10\%). \item scf: check of spectral
-  correction factor against thresholds. \item wresid: check of mean unrotated
-  \emph{w} (double rotation) or \emph{w} residual (planar fit) against
-  thresholds. \item runs: check of runs with repeating values
-  (see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
-  checking runs, except for Tau. \item lowcov:
-  check of fluxes too close to zero (assuming issues during covariance
-  computation) \item var: check of variances against thresholds. \item humid:
-  check of relative humidity against thresholds. \item LI7200: check of CO2
-  and H2O signal strength against thresholds. \item LI7500: check of CO2
-  signal strength against thresholds (H2O signal not provided by the
-  instrument).}
+Additional filters extracted from EddyPro output. The only additive test is
+"wresid". \itemize{ \item missfrac: check of missing data in averaging
+period against thresholds (default is 10\\%). \item scf: check of spectral
+correction factor against thresholds. \item wresid: check of mean unrotated
+\emph{w} (double rotation) or \emph{w} residual (planar fit) against
+thresholds. \item runs: check of runs with repeating values
+(see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
+checking runs, except for Tau. \item lowcov:
+check of fluxes too close to zero (assuming issues during covariance
+computation) \item var: check of variances against thresholds. \item humid:
+check of relative humidity against thresholds. \item LI7200: check of CO2
+and H2O signal strength against thresholds. \item LI7500: check of CO2
+signal strength against thresholds (H2O signal not provided by the
+instrument).}
 }
 
 \section{Content and Format of Columns}{
  \itemize{ \item For details
-  concerning coded variables see \code{\link{extract_coded}}. \item
-  \code{"file_records"}: number of valid records found in the raw file \item
-  \code{"used_records"}: number of valid records used at given averaging
-  period. This number can also contain high frequency spikes that should be
-  excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
+concerning coded variables see \code{\link{extract_coded}}. \item
+\code{"file_records"}: number of valid records found in the raw file \item
+\code{"used_records"}: number of valid records used at given averaging
+period. This number can also contain high frequency spikes that should be
+excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
   "co2_spikes"}: number of high frequency spikes detected at given averaging
-  period in respective variable. Values can be set to 0 if
-  \code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
+period in respective variable. Values can be set to 0 if
+\code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
   "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
-  flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
-  rotated \emph{w} wind component, respectively (should be close to 0 m
-  s-1).}
+flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
+rotated \emph{w} wind component, respectively (should be close to 0 m
+s-1).}
 }
 
 \section{Naming Strategy}{
  \strong{QC prefixes} (specifies which flux is
-  affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
-  relying only on SA (Tau, H) \item qc_GA: applicable to fluxes relying on GA
-  (LE, NEE); only GA issues considered \item qc_SAGA: applicable to fluxes
-  relying both on SA and GA (LE, NEE); SA and GA issues considered \item
-  qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
-  qc_ALL: applicable to all fluxes}
+affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
+relying only on SA (Tau, H) \item qc_GA: applicable to fluxes relying on GA
+(LE, NEE); only GA issues considered \item qc_SAGA: applicable to fluxes
+relying both on SA and GA (LE, NEE); SA and GA issues considered \item
+qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
+qc_ALL: applicable to all fluxes}
 
-  \strong{QC suffixes} (specifies which QC check was performed to get this QC
-  output): \itemize{ \item See 'Extracted QC Checks' above for the complete
-  list.}
+\strong{QC suffixes} (specifies which QC check was performed to get this QC
+output): \itemize{ \item See 'Extracted QC Checks' above for the complete
+list.}
 }
 
 \section{Abbreviations}{
  \itemize{ \item QC: Quality Control \item SA: Sonic
-  Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-  \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-  \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-  speed component [m s-1] \item w: Vertical wind speed component [m s-1]
-  \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
-  mol-1] \item co2: CO2 concentration [umol mol-1] \item RH: relative
-  humidity}.
+Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
+\item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
+\item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
+wind speed component [m s-1] \item w: Vertical wind speed component [m
+s-1] \item ts: Sonic temperature [degC] \item h2o: H2O concentration
+[mmol mol-1] \item co2: CO2 concentration [umol mol-1] \item RH:
+relative humidity [\%]}.
 }
 
 \section{References}{
  Foken, T., Wichura, B., 1996. Tools for quality
-  assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-  83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
+assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
+83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
 
-  Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
-  for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
-  14(3), 512-526.
-  \url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
+Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
+for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
+14(3), 512-526.
+\url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
 
-  Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
-  Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
-  assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-  169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
+Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
+assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
+169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 
-  McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
-  2018. Energy balance closure at a variety of ecosystems in Central Europe
-  with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-  \url{https://doi.org/10.1016/j.agrformet.2017.10.003}
+McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
+2018. Energy balance closure at a variety of ecosystems in Central Europe
+with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
+\url{https://doi.org/10.1016/j.agrformet.2017.10.003}
 }
 
 \examples{

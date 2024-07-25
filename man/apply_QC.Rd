@@ -17,7 +17,7 @@ apply_QC(x, qc, qc_thr = 2, na.as = NA)
 }
 \value{
 A numeric vector of length \code{x} with attributes \code{"varnames"}
-  and \code{"units"}.
+and \code{"units"}.
 }
 \description{
 Apply quality control information to the respective numeric vector.

@@ -124,8 +124,8 @@ unlink("ex.data")}
 }
 \seealso{
 \code{\link{write.table}} for information about full list of allowed
-  arguments and their descriptions.
+arguments and their descriptions.
 
-  \code{\link{read_eddy}} to read data frame with \code{varnames} and
-  \code{units} attributes specified for each column.
+\code{\link{read_eddy}} to read data frame with \code{varnames} and
+\code{units} attributes specified for each column.
 }

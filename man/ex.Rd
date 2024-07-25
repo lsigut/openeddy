@@ -18,7 +18,7 @@ to the lowest possible dimension.}
 }
 \value{
 A vector or data frame with \code{varnames} and \code{units}
-  attributes.
+attributes.
 }
 \description{
 Conserves \code{varnames} and \code{units} attributes of vectors and data
@@ -49,5 +49,5 @@ ex(xx$lengths, 2:3)
 }
 \seealso{
 \code{\link{Extract}}, \code{\link{drop}} and
-  \code{\link{varnames}}.
+\code{\link{varnames}}.
 }

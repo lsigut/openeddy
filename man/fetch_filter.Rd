@@ -23,7 +23,7 @@ of the output.}
 }
 \value{
 An integer vector with attributes \code{"varnames"} and
-  \code{"units"}.
+\code{"units"}.
 }
 \description{
 \code{fetch_filter} flags all halfhours that have longer fetch distance (of

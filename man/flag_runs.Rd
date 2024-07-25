@@ -17,8 +17,8 @@ trigger flagging.}
 }
 \value{
 An integer vector with the same length as \code{x}. Its
-  \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-  \code{"-"} values, respectively.
+\code{varnames} and \code{units} attributes are set to  \code{name_out} and
+\code{"-"} values, respectively.
 }
 \description{
 Identify and flag values of runs with repeating values in a vector.

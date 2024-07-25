@@ -81,7 +81,7 @@ function}
 }
 \value{
 A data frame is produced with additional attributes \code{varnames}
-  and \code{units} assigned to each respective column.
+and \code{units} assigned to each respective column.
 }
 \description{
 Reads tabular data from a file and represents them as data frame. Attributes
@@ -158,8 +158,8 @@ str(bb)
 }
 \seealso{
 \code{\link{read.table}} for information about further arguments
-  passed to \code{read.table}.
+passed to \code{read.table}.
 
-  \code{\link{write_eddy}} to save data frame with \code{units} attributes
-  specified for each column.
+\code{\link{write_eddy}} to save data frame with \code{units} attributes
+specified for each column.
 }

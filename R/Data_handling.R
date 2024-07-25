@@ -167,6 +167,7 @@ round_df <- function(x, digits = 6) {
 #' apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
 #' }
 #' @keywords internal
+#' @noRd
 allNA <- function(x, margin) {
   apply(x, margin, function(x) all(is.na(x)))
 }

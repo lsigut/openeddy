@@ -30,7 +30,7 @@ combined by averaging.}
 }
 \value{
 A data frame with attributes \code{varnames} and \code{units}
-  assigned to each respective column.
+assigned to each respective column.
 }
 \description{
 Extracts and renames specified columns of a data frame, computes mean in case

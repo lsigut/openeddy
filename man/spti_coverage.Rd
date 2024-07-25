@@ -51,7 +51,7 @@ years. Otherwise only specified years are processed.}
 }
 \value{
 If \code{plot = FALSE}, a data frame. If \code{plot = TRUE}, a named
-  list of \code{ggplot} objects.
+list of \code{ggplot} objects.
 }
 \description{
 Yearly estimates of spatial, temporal and spatio-temporal sampling coverage
@@ -73,9 +73,9 @@ Lorenz curve.
 }
 \section{References}{
   Griebel, A., Metzen, D., Pendall, E., Burba, G., &
-  Metzger, S. (2020). Generating spatially robust carbon budgets from flux
-  tower observations. Geophysical Research Letters, 47, e2019GL085942.
-  \url{https://doi.org/10.1029/2019GL085942}
+Metzger, S. (2020). Generating spatially robust carbon budgets from flux
+tower observations. Geophysical Research Letters, 47, e2019GL085942.
+\url{https://doi.org/10.1029/2019GL085942}
 }
 
 \examples{

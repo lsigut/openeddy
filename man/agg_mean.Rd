@@ -104,18 +104,18 @@ half-hourly measurements.}
 }
 \value{
 \code{agg_mean}, \code{agg_fun} and \code{agg_sum} produce a data
-  frame with attributes varnames and units assigned to each respective
-  column.
+frame with attributes varnames and units assigned to each respective
+column.
 
-  \code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
-  \code{mean} and \code{sum} with attributes varnames and units assigned to
-  each respective column or \code{NULL} value if required columns are not
-  recognized.
+\code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
+\code{mean} and \code{sum} with attributes varnames and units assigned to
+each respective column or \code{NULL} value if required columns are not
+recognized.
 
-  Each produced data frame has first column called "Intervals" with vector of
-  labels describing aggregation period provided as factor, and second column
-  "days" providing fraction (or multiple) of days aggregated within each
-  period.
+Each produced data frame has first column called "Intervals" with vector of
+labels describing aggregation period provided as factor, and second column
+"days" providing fraction (or multiple) of days aggregated within each
+period.
 }
 \description{
 Utilities that simplify aggregation of data and their uncertainties over
@@ -138,7 +138,7 @@ performed only for autodetected columns with appropriate suffixes (see
 further). Note that uncertainty products of \code{agg_fsd} and
 \code{agg_DT_SD} are reported as standard deviations (\code{SD}) and require
 further correction to represent uncertainty bounds for given confidence
-interval (e.g. \code{SD * 1.96} for 95\% confidence level).
+interval (e.g. \code{SD * 1.96} for 95\\% confidence level).
 
 The summarizations are done on a data frame \code{x} with required timestamp
 column (\code{x$timestamp}) of class \code{"POSIXt"}. With exception of
@@ -180,45 +180,45 @@ patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
 }
 \section{Unit Conversion}{
  In case of aggregation using \code{sum}, i.e.
-  \code{agg_sum}, \code{agg_fsd} and \code{agg_DT_SD}, appropriate unit
-  conversion can be applied to columns defined by \code{quant}, \code{power},
-  \code{carbon} and \code{ET} arguments. The conversion factor used for
-  approximate PAR conversion from umol m-2 s-1 to W m-2 is 4.57 as proposed
-  by Thimijan and Heins (1983; Tab. 3, Lightsource - Sun and sky, daylight).
+\code{agg_sum}, \code{agg_fsd} and \code{agg_DT_SD}, appropriate unit
+conversion can be applied to columns defined by \code{quant}, \code{power},
+\code{carbon} and \code{ET} arguments. The conversion factor used for
+approximate PAR conversion from umol m-2 s-1 to W m-2 is 4.57 as proposed
+by Thimijan and Heins (1983; Tab. 3, Lightsource - Sun and sky, daylight).
 }
 
 \section{Sign Correction}{
  Although the sign convention used for measured NEE
-  (Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
-  summed NEE is typically reported with the opposite sign convention and is
-  assumed to converge to NEP (Net Ecosystem Production), especially over
-  longer aggregation intervals. Similarly, estimated negative GPP (Gross
-  Primary Production) typically denotes carbon sink but should be corrected
-  to positive values if summed over a time period.
+(Net Ecosystem Exchange) typically denotes negative fluxes as CO2 uptake,
+summed NEE is typically reported with the opposite sign convention and is
+assumed to converge to NEP (Net Ecosystem Production), especially over
+longer aggregation intervals. Similarly, estimated negative GPP (Gross
+Primary Production) typically denotes carbon sink but should be corrected
+to positive values if summed over a time period.
 
-  There is no reliable way to guess the sign convention used in the data set.
-  Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
-  GPP (\code{GPP_scor}) sign correction is required. By default
-  \code{NEE_scor = TRUE} and \code{GPP_scor = FALSE} considering sign
-  conventions used in \code{REddyProc} package. \code{agg_sum} automatically
-  detects all NEE and GPP columns in \code{x} using regular expressions and
-  applies the sign correction settings.
+There is no reliable way to guess the sign convention used in the data set.
+Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
+GPP (\code{GPP_scor}) sign correction is required. By default
+\code{NEE_scor = TRUE} and \code{GPP_scor = FALSE} considering sign
+conventions used in \code{REddyProc} package. \code{agg_sum} automatically
+detects all NEE and GPP columns in \code{x} using regular expressions and
+applies the sign correction settings.
 }
 
 \section{References}{
  Bayley, G. and Hammersley, J., 1946. The "Effective"
-  Number of Independent Observations in an Autocorrelated Time Series.
-  Supplement to the Journal of the Royal Statistical Society, 8(2), 184-197.
-  doi: \url{https://doi.org/10.2307/2983560}
+Number of Independent Observations in an Autocorrelated Time Series.
+Supplement to the Journal of the Royal Statistical Society, 8(2), 184-197.
+doi: \url{https://doi.org/10.2307/2983560}
 
-  Thimijan, R.W. and Heins R.D., 1983. Photometric, Radiometric, and Quantum
-  Light Units of Measure: A Review of Procedures for Interconversion.
-  Horticultural Science, Vol. 18(6), 818-822.
+Thimijan, R.W. and Heins R.D., 1983. Photometric, Radiometric, and Quantum
+Light Units of Measure: A Review of Procedures for Interconversion.
+Horticultural Science, Vol. 18(6), 818-822.
 
-  Zieba, A. and Ramza, P., 2011. Standard Deviation of the Mean of
-  Autocorrelated Observations Estimated with the Use of the Autocorrelation
-  Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
-  529-542. doi: \url{https://doi.org/10.2478/v10178-011-0052-x}
+Zieba, A. and Ramza, P., 2011. Standard Deviation of the Mean of
+Autocorrelated Observations Estimated with the Use of the Autocorrelation
+Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
+529-542. doi: \url{https://doi.org/10.2478/v10178-011-0052-x}
 }
 
 \examples{
@@ -295,7 +295,7 @@ lapply(unc_DT, openeddy::units, names = TRUE)
 }
 \seealso{
 \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
-  \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
-  \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
-  \code{\link{varnames}}
+\code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
+\code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
+\code{\link{varnames}}
 }

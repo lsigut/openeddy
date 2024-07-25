@@ -3,6 +3,7 @@
 #' Used within \code{\link{extract_QC}} to link names of filters (QC suffixes)
 #' with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
 #' @keywords internal
+#' @noRd
 coded_vars <- data.frame(
   QC_suffix =
     c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf",

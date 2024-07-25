@@ -45,7 +45,7 @@ string.}
 }
 \value{
 A data frame with attributes \code{varnames} and \code{units} for
-  each column, containing date-time information in column \code{"timestamp"}.
+each column, containing date-time information in column \code{"timestamp"}.
 }
 \description{
 Merge generated regular date-time sequence with single or multiple data
@@ -111,5 +111,5 @@ z <- merge_eddy(list(y1, z1))
 }
 \seealso{
 \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
-  \code{\link{time zones}}, \code{\link{make.unique}}
+\code{\link{time zones}}, \code{\link{make.unique}}
 }

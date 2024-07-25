@@ -24,7 +24,7 @@ summary_QC(
 \item{qc_names}{A vector of names of data frame \code{x} columns to combine.}
 
 \item{cumul}{A logical value that determines if cumulative (\code{cumul =
-TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
+  TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
 flags should be shown.}
 
 \item{plot}{A logical value. If \code{TRUE}, the results are represented as a
@@ -43,7 +43,7 @@ determining interpretation of missing flags in each respective column of
 used. If only one value is provided, all columns are treated the same way.}
 
 \item{na.as_0_pattern}{A character string. A \code{\link[=regexp]{regular
-expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
 for which \code{NA} flags are interpreted as zeros.}
 
 \item{additive}{\code{NULL} or a vector of logical values (\code{TRUE} or
@@ -55,14 +55,14 @@ only one value is provided, all columns are considered to be of the same
 type.}
 
 \item{additive_pattern}{A character string. A \code{\link[=regexp]{regular
-expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
 of flags with additive effect.}
 
 \item{no_messages}{A logical value.}
 }
 \value{
 A table or a ggplot object depending on the \code{plot} argument
-  value. If \code{length(qc_names) == 0}, \code{NULL} is returned instead.
+value. If \code{length(qc_names) == 0}, \code{NULL} is returned instead.
 }
 \description{
 \code{summary_QC} is a function that summarizes quality checking results in a

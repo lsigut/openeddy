@@ -37,19 +37,19 @@ determining interpretation of missing flags in each respective column of
 used. If only one value is provided, all columns are treated the same way.}
 
 \item{additive_pattern}{A character string. A \code{\link[=regexp]{regular
-expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
 of flags with additive effect.}
 
 \item{na.as_0_pattern}{A character string. A \code{\link[=regexp]{regular
-expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
 for which \code{NA} flags are interpreted as zeros.}
 
 \item{no_messages}{A logical value.}
 }
 \value{
 An integer vector with attributes \code{varnames} and \code{units} is
-  produced. \code{varnames} value is set by \code{name_out} argument. Default
-  value of \code{varnames} and \code{units} is set to \code{"-"}.
+produced. \code{varnames} value is set by \code{name_out} argument. Default
+value of \code{varnames} and \code{units} is set to \code{"-"}.
 }
 \description{
 Combine quality checking results depending on whether they have a fixed or
@@ -76,16 +76,16 @@ half-hour was not checked by the given test/filter (e.g.
 }
 \section{Automated recognition}{
  Default values for \code{additive} and
-  \code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
-  case that \code{additive_pattern} is found within \code{qc_names} (i.e.
-  \code{qc_names} ending with \code{"interdep"} or \code{"wresid"} pattern),
-  respective values of \code{additive} are changed to \code{TRUE}. This is
-  because \code{\link{interdep}} and wresid (see \code{\link{extract_QC}})
-  quality control checks are defined as additive within the current quality
-  control scheme. If \code{na.as_0_pattern} is detected within
-  \code{qc_names} (i.e. \code{qc_names} ending with \code{"spikesLF"},
-  \code{"fetch70"} or \code{"man"} pattern), respective values of
-  \code{na.as} are changed to \code{0} (see \code{\link{despikeLF}}).
+\code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
+case that \code{additive_pattern} is found within \code{qc_names} (i.e.
+\code{qc_names} ending with \code{"interdep"} or \code{"wresid"} pattern),
+respective values of \code{additive} are changed to \code{TRUE}. This is
+because \code{\link{interdep}} and wresid (see \code{\link{extract_QC}})
+quality control checks are defined as additive within the current quality
+control scheme. If \code{na.as_0_pattern} is detected within
+\code{qc_names} (i.e. \code{qc_names} ending with \code{"spikesLF"},
+\code{"fetch70"} or \code{"man"} pattern), respective values of
+\code{na.as} are changed to \code{0} (see \code{\link{despikeLF}}).
 }
 
 \examples{

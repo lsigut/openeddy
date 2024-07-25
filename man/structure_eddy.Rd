@@ -18,8 +18,8 @@ created.}
 }
 \value{
 A named list with paths to folder structure directories.
-  Corresponding directories are created as a function side effect if
-  \code{create_dirs = TRUE}.
+Corresponding directories are created as a function side effect if
+\code{create_dirs = TRUE}.
 }
 \description{
 Folder structure recommended for eddy covariance data processing and

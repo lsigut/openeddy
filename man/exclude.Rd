@@ -22,7 +22,7 @@ of the output.}
 }
 \value{
 An integer vector with attributes \code{"varnames"} and
-  \code{"units"}.
+\code{"units"}.
 }
 \description{
 Interactive plots are used for identification and flagging of data for

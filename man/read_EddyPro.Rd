@@ -48,7 +48,7 @@ automatically detected time interval.}
 }
 \value{
 A data frame is produced with additional attributes \code{varnames}
-  and \code{units} assigned to each respective column.
+and \code{units} assigned to each respective column.
 }
 \description{
 Read single or multiple CSV EddyPro full output files at given path and merge
