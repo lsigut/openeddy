@@ -38,12 +38,8 @@ correction), reliable measurements of H must be available. To perform WPL
 correction of NEE estimated with any kind of IRGA, reliable measurements of
 LE must be available. Thus following set of rules apply:
 
-If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 |
-is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
-\code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) ==
-TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H)
-== TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 |
-is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
+If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
+\code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H) == TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
 increased by 1.}
 }
 \section{Abbreviations}{

@@ -59,8 +59,7 @@ corrected prior using \code{strptime_eddy}. It is expected that time series
 are continuous even if no valid measurements are available for given time
 interval. Therefore \code{interval} value is checked against the lagged
 differences (\code{\link{diff}}) applied to the converted date-time vector
-and returns an error message if mismatch is found. If \code{allow_gaps =
-TRUE}, date-time information does not have to be regular but time differences
+and returns an error message if mismatch is found. If \code{allow_gaps = TRUE}, date-time information does not have to be regular but time differences
 must be multiples of \code{interval}.
 
 The storage mode of returned POSIXct vector is forced to be integer instead

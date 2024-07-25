@@ -46,8 +46,7 @@ visualized. If \code{TRUE}, columns \code{"Reco"} and \code{"GPP"} are
 expected in \code{x}.}
 
 \item{skip}{A character string. Determines whether plotting should be done in
-monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
-  "monthly"}) or both (\code{skip = "none"}).}
+monthly (\code{skip = "weekly"}), weekly intervals (\code{skip = "monthly"}) or both (\code{skip = "none"}).}
 
 \item{ylim}{A numeric vector of length two or \code{NULL}. If \code{NULL}
 (default), the treatment of y-axis limits in the figures with \code{flux}
@@ -59,16 +58,14 @@ plotting additional variables. This module is displayed above the panel
 with fluxes in weekly plots. Can be abbreviated. See 'Modules'.}
 
 \item{panel_top_vars}{A character vector of length two or \code{NULL}.
-Specifies two variables expected in \code{x} if \code{panel_top =
-  "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
+Specifies two variables expected in \code{x} if \code{panel_top = "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
 
 \item{panel_bottom}{A character string. Selects one of the available modules
 for plotting additional variables. This module is displayed below the panel
 with fluxes in weekly plots. Can be abbreviated. See 'Modules'.}
 
 \item{panel_bottom_vars}{A character vector of length two or \code{NULL}.
-Specifies two variables expected in \code{x} if \code{panel_bottom =
-  "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
+Specifies two variables expected in \code{x} if \code{panel_bottom = "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.}
 
 \item{light}{A character string. Required only for the \code{"T_light"}
 module. Selects preferred variable for incoming light intensity.

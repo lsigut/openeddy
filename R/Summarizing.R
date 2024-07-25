@@ -3,66 +3,66 @@
 #' Utilities that simplify aggregation of data and their uncertainties over
 #' defined time intervals.
 #'
-#' \code{agg_mean} and \code{agg_sum} compute mean and sum over intervals
-#' defined by \code{format} and/or \code{breaks} for all columns.
+#' `agg_mean` and `agg_sum` compute mean and sum over intervals
+#' defined by `format` and/or `breaks` for all columns.
 #'
-#' \code{agg_fun} allows to apply any function over defined time intervals
+#' `agg_fun` allows to apply any function over defined time intervals
 #' (e.g. min, max, median). No unit conversions are attempted. Notice that
-#' \code{agg_mean(x, format)} and \code{agg_fun(x, format, mean)} are
+#' `agg_mean(x, format)` and `agg_fun(x, format, mean)` are
 #' identical.
 #'
-#' \code{agg_fsd} and \code{agg_DT_SD} estimate aggregated mean and summed
-#' uncertainties over defined time periods for \code{REddyProc} package
+#' `agg_fsd` and `agg_DT_SD` estimate aggregated mean and summed
+#' uncertainties over defined time periods for `REddyProc` package
 #' gap-filling and daytime-based flux partitioning outputs, respectively. The
 #' uncertainty aggregation accounts for autocorrelation among records. It is
 #' performed only for autodetected columns with appropriate suffixes (see
-#' further). Note that uncertainty products of \code{agg_fsd} and
-#' \code{agg_DT_SD} are reported as standard deviations (\code{SD}) and require
+#' further). Note that uncertainty products of `agg_fsd` and
+#' `agg_DT_SD` are reported as standard deviations (`SD`) and require
 #' further correction to represent uncertainty bounds for given confidence
-#' interval (e.g. \code{SD * 1.96} for 95\% confidence level).
+#' interval (e.g. `SD * 1.96` for 95% confidence level).
 #'
-#' The summarizations are done on a data frame \code{x} with required timestamp
-#' column (\code{x$timestamp}) of class \code{"POSIXt"}. With exception of
-#' \code{agg_mean}, the timestamp must form regular sequence without \code{NA}s
+#' The summarizations are done on a data frame `x` with required timestamp
+#' column (`x$timestamp`) of class `"POSIXt"`. With exception of
+#' `agg_mean`, the timestamp must form regular sequence without `NA`s
 #' due to time resolution estimation.
 #'
-#' Change of aggregation interval can be achieved through \code{breaks} and
-#' \code{format} arguments.
+#' Change of aggregation interval can be achieved through `breaks` and
+#' `format` arguments.
 #'
-#' The data frame \code{x} can be \link[=cut.POSIXt]{cut} to custom intervals
-#' using argument \code{breaks}. Note that labels are constructed from the
-#' left-hand end of the intervals and converted to \code{"POSIXct"} class. This
+#' The data frame `x` can be \link[=cut.POSIXt]{cut} to custom intervals
+#' using argument `breaks`. Note that labels are constructed from the
+#' left-hand end of the intervals and converted to `"POSIXct"` class. This
 #' can be useful when aggregating e.g. half-hourly data over hourly
-#' (\code{breaks = "60 mins"}) or three-day (\code{breaks = "3 days"})
+#' (`breaks = "60 mins"`) or three-day (`breaks = "3 days"`)
 #' intervals.
 #'
 #' The formatting of the timestamp (original or after cutting) using
-#' \code{format} is another (preferable) way to change aggregation intervals.
-#' For example changing original \code{"POSIXt"} time format (\code{"\%Y-\%m-\%d
-#' \%H:\%M:\%S"}) to \code{"\%Y-\%m-\%d"}, \code{"\%W_\%y"}, \code{"\%m-\%y"} or
-#' \code{"\%Y"} will result in daily, weekly, monthly or yearly aggregation
-#' intervals, respectively. Note that improper \code{format} can repress
-#' expected effect of \code{breaks}.
+#' `format` is another (preferable) way to change aggregation intervals.
+#' For example changing original `"POSIXt"` time format (`"%Y-%m-%d
+#' %H:%M:%S"`) to `"%Y-%m-%d"`, `"%W_%y"`, `"%m-%y"` or
+#' `"%Y"` will result in daily, weekly, monthly or yearly aggregation
+#' intervals, respectively. Note that improper `format` can repress
+#' expected effect of `breaks`.
 #'
-#' \code{agg_fsd} and \code{agg_DT_SD} require certain columns with defined
+#' `agg_fsd` and `agg_DT_SD` require certain columns with defined
 #' suffixes in order to evaluate uncertainty correctly. These columns are a
-#' product of \code{REddyProc} package gap-filling and flux partitioning methods
+#' product of `REddyProc` package gap-filling and flux partitioning methods
 #' and are documented here:
-#' \url{https://www.bgc-jena.mpg.de/bgi/index.php/Services/REddyProcWebOutput}.
+#' <https://bgc.iwww.mpg.de/5624929/Output-Format>.
 #' Detailed description of uncertainty aggregation is available here:
-#' \url{https://github.com/bgctw/REddyProc/blob/master/vignettes/aggUncertainty.md}.
+#' <https://github.com/bgctw/REddyProc/blob/master/vignettes/aggUncertainty.md>.
 #'
-#' \code{agg_fsd} requires columns with suffixes \code{_fall}, \code{_orig},
-#' \code{_fqc} and \code{_fsd} for each variable.
+#' `agg_fsd` requires columns with suffixes `_fall`, `_orig`,
+#' `_fqc` and `_fsd` for each variable.
 #'
-#' \code{agg_DT_SD} requires corresponding columns with \code{\link{regexp}}
-#' patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
-#' \code{"^GPP_DT_"}, \code{"^Reco_DT_.*_SD$"} and \code{"^GPP_DT_.*_SD$"}.
+#' `agg_DT_SD` requires corresponding columns with \code{\link{regexp}}
+#' patterns `"^NEE_.*_orig$"`, `"^NEE_.*_fqc$"`, `"^Reco_DT_"`,
+#' `"^GPP_DT_"`, `"^Reco_DT_.*_SD$"` and `"^GPP_DT_.*_SD$"`.
 #'
-#' @section Unit Conversion: In case of aggregation using \code{sum}, i.e.
-#'   \code{agg_sum}, \code{agg_fsd} and \code{agg_DT_SD}, appropriate unit
-#'   conversion can be applied to columns defined by \code{quant}, \code{power},
-#'   \code{carbon} and \code{ET} arguments. The conversion factor used for
+#' @section Unit Conversion: In case of aggregation using `sum`, i.e.
+#'   `agg_sum`, `agg_fsd` and `agg_DT_SD`, appropriate unit
+#'   conversion can be applied to columns defined by `quant`, `power`,
+#'   `carbon` and `ET` arguments. The conversion factor used for
 #'   approximate PAR conversion from umol m-2 s-1 to W m-2 is 4.57 as proposed
 #'   by Thimijan and Heins (1983; Tab. 3, Lightsource - Sun and sky, daylight).
 #'
@@ -75,17 +75,17 @@
 #'   to positive values if summed over a time period.
 #'
 #'   There is no reliable way to guess the sign convention used in the data set.
-#'   Thus \code{agg_sum} allows to specify whether NEE (\code{NEE_scor}) and/or
-#'   GPP (\code{GPP_scor}) sign correction is required. By default
-#'   \code{NEE_scor = TRUE} and \code{GPP_scor = FALSE} considering sign
-#'   conventions used in \code{REddyProc} package. \code{agg_sum} automatically
-#'   detects all NEE and GPP columns in \code{x} using regular expressions and
+#'   Thus `agg_sum` allows to specify whether NEE (`NEE_scor`) and/or
+#'   GPP (`GPP_scor`) sign correction is required. By default
+#'   `NEE_scor = TRUE` and `GPP_scor = FALSE` considering sign
+#'   conventions used in `REddyProc` package. `agg_sum` automatically
+#'   detects all NEE and GPP columns in `x` using regular expressions and
 #'   applies the sign correction settings.
 #'
 #' @section References: Bayley, G. and Hammersley, J., 1946. The "Effective"
 #'   Number of Independent Observations in an Autocorrelated Time Series.
 #'   Supplement to the Journal of the Royal Statistical Society, 8(2), 184-197.
-#'   doi: \url{https://doi.org/10.2307/2983560}
+#'   doi: <https://doi.org/10.2307/2983560>
 #'
 #'   Thimijan, R.W. and Heins R.D., 1983. Photometric, Radiometric, and Quantum
 #'   Light Units of Measure: A Review of Procedures for Interconversion.
@@ -94,33 +94,33 @@
 #'   Zieba, A. and Ramza, P., 2011. Standard Deviation of the Mean of
 #'   Autocorrelated Observations Estimated with the Use of the Autocorrelation
 #'   Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
-#'   529-542. doi: \url{https://doi.org/10.2478/v10178-011-0052-x}
+#'   529-542. doi: <https://doi.org/10.2478/v10178-011-0052-x>
 #'
-#' @param x A data frame with required timestamp column (\code{x$timestamp}) of
-#'   class \code{"POSIXt"}.
-#' @param format A character string specifying \code{x$timestamp} formatting for
+#' @param x A data frame with required timestamp column (`x$timestamp`) of
+#'   class `"POSIXt"`.
+#' @param format A character string specifying `x$timestamp` formatting for
 #'   aggregation through internal \code{\link{strftime}} function.
 #' @param breaks A vector of cut points or number giving the number of intervals
-#'   which \code{x$timestamp} is to be cut into or an interval specification,
-#'   one of \code{"sec"}, \code{"min"}, \code{"hour"}, \code{"day"},
-#'   \code{"DSTday"}, \code{"week"}, \code{"month"}, \code{"quarter"} or
-#'   \code{"year"}, optionally preceded by an integer and a space, or followed
-#'   by \code{"s"}.
+#'   which `x$timestamp` is to be cut into or an interval specification,
+#'   one of `"sec"`, `"min"`, `"hour"`, `"day"`,
+#'   `"DSTday"`, `"week"`, `"month"`, `"quarter"` or
+#'   `"year"`, optionally preceded by an integer and a space, or followed
+#'   by `"s"`.
 #' @param interval A numeric value specifying the time interval (in seconds) of
-#'   the generated date-time sequence. If \code{NULL}, \code{interval}
+#'   the generated date-time sequence. If `NULL`, `interval`
 #'   autodetection is attempted.
 #' @param tz A character string specifying the time zone to be used for the
 #'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
-#'   \code{\link{timezones}}), but \code{""} is the current time zone, and
-#'   \code{"GMT"} is UTC. Invalid values are most commonly treated as UTC, on
+#'   \code{\link{timezones}}), but `""` is the current time zone, and
+#'   `"GMT"` is UTC. Invalid values are most commonly treated as UTC, on
 #'   some platforms with a warning.
 #' @param ... Further arguments to be passed to the internal
 #'   \code{\link{aggregate}} function.
 #' @param fun Either a function or a non-empty character string naming the
 #'   function to be called.
 #' @param agg_per A character string providing the time interval of aggregation
-#'   that will be appended to units (e.g. \code{"hh-1"}, \code{"week-1"} or
-#'   \code{"month-1"}).
+#'   that will be appended to units (e.g. `"hh-1"`, `"week-1"` or
+#'   `"month-1"`).
 #' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
 #'   be performed? See Sign Correction in Details.
 #' @param quant A character vector listing variable names that require
@@ -134,13 +134,13 @@
 #'   Designed for evapotranspiration (ET) typically reported in mm hour-1 for
 #'   half-hourly measurements.
 #'
-#' @return \code{agg_mean}, \code{agg_fun} and \code{agg_sum} produce a data
+#' @return `agg_mean`, `agg_fun` and `agg_sum` produce a data
 #'   frame with attributes varnames and units assigned to each respective
 #'   column.
 #'
-#'   \code{agg_fsd} and \code{agg_DT_SD} produce a list with two data frames
-#'   \code{mean} and \code{sum} with attributes varnames and units assigned to
-#'   each respective column or \code{NULL} value if required columns are not
+#'   `agg_fsd` and `agg_DT_SD` produce a list with two data frames
+#'   `mean` and `sum` with attributes varnames and units assigned to
+#'   each respective column or `NULL` value if required columns are not
 #'   recognized.
 #'
 #'   Each produced data frame has first column called "Intervals" with vector of
@@ -1129,10 +1129,10 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' The function produces several variants of budgets that represent annual sums
 #' of measured and quality checked flux with different consideration of
 #' space-time equity. In order to obtain budgets in sensible units after
-#' summation, appropriate \code{flux} type must be specified. E.g. conversion
+#' summation, appropriate `flux` type must be specified. E.g. conversion
 #' factor for carbon fluxes (umol(CO2) m-2 s-1 -> g(C) m-2 s-1) is 12.0107e-6,
 #' conversion factor for energy fluxes (W m-2 -> MJ m-2 s-1) is 1e-6. Temporal
-#' aspect of the conversion is handled based on \code{interval} extent.
+#' aspect of the conversion is handled based on `interval` extent.
 #'
 #' Available variants of budgets include Traditional budget (uncorrected sum of
 #' measured fluxes), Standardized budget (corrected according to wind sector
@@ -1140,28 +1140,28 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' sector contributes the exact same amount to budget) and Space-time-equitable
 #' budget (each sector contributes equally to budget and sector contributions
 #' are made time-uniform). Computation is generalized for any number of
-#' \code{nInt} and any extent of \code{interval}. Please notice that Traditional
+#' `nInt` and any extent of `interval`. Please notice that Traditional
 #' budget and Standardized budget differ only if multiple years are used for
 #' computation. The reliability of the results depends on the data availability
-#' within each year. For details see \code{References}.
+#' within each year. For details see `References`.
 #'
-#' Arguments specifying \code{df} column names represent FLUXNET standard. To
-#' process \code{REddyProc} outputs, timestamp must be corrected to represent
+#' Arguments specifying `df` column names represent FLUXNET standard. To
+#' process `REddyProc` outputs, timestamp must be corrected to represent
 #' middle of averaging period and appropriate columns selected (see
-#' \code{Examples}).
+#' `Examples`).
 #'
 #' @section Sign Correction: Although common sign convention for measured NEE
 #'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
 #'   is typically reported with the opposite sign convention and is assumed to
 #'   converge to NEP (Net Ecosystem Production), especially over longer
 #'   aggregation intervals. In case of GPP (Gross Primary Production),
-#'   \code{REddyProc} package applies sign convention denoting positive fluxes
+#'   `REddyProc` package applies sign convention denoting positive fluxes
 #'   as carbon sink, thus sign correction before summing is not needed.
 #'
 #'   Since there is no reliable way to guess the sign convention used in the
-#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
-#'   default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
-#'   adapted to sign convention applied in \code{REddyProc} package.
+#'   data set, `NEE_scor` and `GPP_scor` must be specified. The
+#'   default values (`NEE_scor = TRUE`; `GPP_scor = FALSE`) are
+#'   adapted to sign convention applied in `REddyProc` package.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
@@ -1169,31 +1169,31 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #'   https://doi.org/10.1029/2019GL085942
 #'
 #' @param df A data frame.
-#' @param TimestampCol A character string. Specifies a column name in \code{df}
-#'   that carries date-time information either in \code{POSIXt} or text strings
-#'   of format \code{"\%Y\%m\%d\%H\%M"}. Date-time information is expected to
+#' @param TimestampCol A character string. Specifies a column name in `df`
+#'   that carries date-time information either in `POSIXt` or text strings
+#'   of format `"%Y%m%d%H%M"`. Date-time information is expected to
 #'   represent either start or middle of the averaging period.
-#' @param wdCol A character string. Specifies a column name in \code{df} that
+#' @param wdCol A character string. Specifies a column name in `df` that
 #'   carries the wind direction in degrees.
-#' @param targetCol A character string. Specifies a column name in \code{df}
+#' @param targetCol A character string. Specifies a column name in `df`
 #'   that carries the flux values for budget computations.
-#' @param QcCol A character string or \code{NULL}. Specifies a column name in
-#'   \code{df} that carries gap-filling quality flags of \code{targetCol}
-#'   variable. It is assumed that \code{df[, QcCol] == 0} identifies the
-#'   measured (not gap-filled) records of \code{targetCol} variable. If
-#'   \code{NULL}, all non-missing values of \code{targetCol} are used for
+#' @param QcCol A character string or `NULL`. Specifies a column name in
+#'   `df` that carries gap-filling quality flags of `targetCol`
+#'   variable. It is assumed that `df[, QcCol] == 0` identifies the
+#'   measured (not gap-filled) records of `targetCol` variable. If
+#'   `NULL`, all non-missing values of `targetCol` are used for
 #'   budgeting.
 #' @param interval An integer value. Represents an extent of eddy covariance
 #'   averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).
-#' @param flux A character string. What type of flux does \code{targetCol}
+#' @param flux A character string. What type of flux does `targetCol`
 #'   represent? Can be abbreviated.
 #' @param nInt An integer value. A number of wind sectors and time intervals for
 #'   binning.
-#' @param year An integer vector. If \code{NULL}, budgets are produced for all
-#'   years available in \code{df}. Otherwise only specified years are processed.
+#' @param year An integer vector. If `NULL`, budgets are produced for all
+#'   years available in `df`. Otherwise only specified years are processed.
 #' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
 #'   be performed?
-#' @param normalize A logical value. If \code{TRUE} (default), space and
+#' @param normalize A logical value. If `TRUE` (default), space and
 #'   space-time equitable budgets are corrected for the missing number of
 #'   records in a year.
 #'
@@ -1329,82 +1329,82 @@ Griebel20_budgets <- function(df,
 #'
 #' Yearly space-time-equitable budgets with uncertainty estimation.
 #'
-#' Data from individual years are separated to \code{nInt} number of bins (e.g.
-#' for \code{nInt = 8} that is \code{8x8 = 64} bins) as in the original Griebel
-#' et al. (2020) method. Each bin is then resampled \code{samples} amount of
-#' times with \code{\link{sample}} \code{size} according to the smallest amount
+#' Data from individual years are separated to `nInt` number of bins (e.g.
+#' for `nInt = 8` that is `8x8 = 64` bins) as in the original Griebel
+#' et al. (2020) method. Each bin is then resampled `samples` amount of
+#' times with \code{\link{sample}} `size` according to the smallest amount
 #' of records across all bins. In addition to space-time-equitable budget of
-#' original dataset (space_time_eq_orig), 5\%, 50\% and 95\% quantiles of
+#' original dataset (space_time_eq_orig), 5%, 50% and 95% quantiles of
 #' resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
 #' are provided for uncertainty assessment.
 #'
 #' In order to obtain budgets in sensible units after summation, appropriate
-#' \code{flux} type must be specified. E.g. conversion factor for carbon fluxes
+#' `flux` type must be specified. E.g. conversion factor for carbon fluxes
 #' (umol(CO2) m-2 s-1 -> g(C) m-2 s-1) is 12.0107e-6, conversion factor for
 #' energy fluxes (W m-2 -> MJ m-2 s-1) is 1e-6. Temporal aspect of the
-#' conversion is handled based on \code{interval} extent.
+#' conversion is handled based on `interval` extent.
 #'
 #' Space-time-equitable budgeting assures that each sector contributes equally
 #' to budget and sector contributions are made time-uniform. Computation is
-#' generalized for any number of \code{nInt} and any extent of \code{interval}.
+#' generalized for any number of `nInt` and any extent of `interval`.
 #' Please notice that the reliability of the results depends on the data
-#' availability within each year. For details see \code{References}.
+#' availability within each year. For details see `References`.
 #'
-#' Arguments specifying \code{df} column names represent FLUXNET standard. To
-#' process \code{REddyProc} outputs, timestamp must be corrected to represent
+#' Arguments specifying `df` column names represent FLUXNET standard. To
+#' process `REddyProc` outputs, timestamp must be corrected to represent
 #' middle of averaging period and appropriate columns selected (see
-#' \code{Examples}).
+#' `Examples`).
 #'
 #' @section Sign Correction: Although common sign convention for measured NEE
 #'   (Net Ecosystem Exchange) denotes negative fluxes as CO2 uptake, summed NEE
 #'   is typically reported with the opposite sign convention and is assumed to
 #'   converge to NEP (Net Ecosystem Production), especially over longer
 #'   aggregation intervals. In case of GPP (Gross Primary Production),
-#'   \code{REddyProc} package applies sign convention denoting positive fluxes
+#'   `REddyProc` package applies sign convention denoting positive fluxes
 #'   as carbon sink, thus sign correction before summing is not needed.
 #'
 #'   Since there is no reliable way to guess the sign convention used in the
-#'   data set, \code{NEE_scor} and \code{GPP_scor} must be specified. The
-#'   default values (\code{NEE_scor = TRUE}; \code{GPP_scor = FALSE}) are
-#'   adapted to sign convention applied in \code{REddyProc} package.
+#'   data set, `NEE_scor` and `GPP_scor` must be specified. The
+#'   default values (`NEE_scor = TRUE`; `GPP_scor = FALSE`) are
+#'   adapted to sign convention applied in `REddyProc` package.
 #'
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
 #'   tower observations. Geophysical Research Letters, 47, e2019GL085942.
-#'   https://doi.org/10.1029/2019GL085942
+#'   <https://doi.org/10.1029/2019GL085942>
 #'
 #' @param df A data frame.
-#' @param TimestampCol A character string. Specifies a column name in \code{df}
-#'   that carries date-time information either in \code{POSIXt} or text strings
-#'   of format \code{"\%Y\%m\%d\%H\%M"}. Date-time information is expected to
+#' @param TimestampCol A character string. Specifies a column name in `df`
+#'   that carries date-time information either in `POSIXt` or text strings
+#'   of format `"%Y%m%d%H%M"`. Date-time information is expected to
 #'   represent either start or middle of the averaging period.
-#' @param wdCol A character string. Specifies a column name in \code{df} that
+#' @param wdCol A character string. Specifies a column name in `df` that
 #'   carries the wind direction in degrees.
-#' @param targetCol A character string. Specifies a column name in \code{df}
+#' @param targetCol A character string. Specifies a column name in `df`
 #'   that carries the flux values for budget computations.
-#' @param QcCol A character string or \code{NULL}. Specifies a column name in
-#'   \code{df} that carries gap-filling quality flags of \code{targetCol}
-#'   variable. It is assumed that \code{df[, QcCol] == 0} identifies the
-#'   measured (not gap-filled) records of \code{targetCol} variable. If
-#'   \code{NULL}, all non-missing values of \code{targetCol} are used for
+#' @param QcCol A character string or `NULL`. Specifies a column name in
+#'   `df` that carries gap-filling quality flags of `targetCol`
+#'   variable. It is assumed that `df[, QcCol] == 0` identifies the
+#'   measured (not gap-filled) records of `targetCol` variable. If
+#'   `NULL`, all non-missing values of `targetCol` are used for
 #'   budgeting.
 #' @param interval An integer value. Represents an extent of eddy covariance
 #'   averaging period in seconds (e.g. 1800 for 30 mins, 3600 for 60 mins).
-#' @param flux A character string. What type of flux does \code{targetCol}
+#' @param flux A character string. What type of flux does `targetCol`
 #'   represent? Can be abbreviated.
 #' @param nInt An integer value. A number of wind sectors and time intervals for
 #'   binning.
-#' @param year An integer vector. If \code{NULL}, budgets are produced for all
-#'   years available in \code{df}. Otherwise only specified years are processed.
+#' @param year An integer vector. If `NULL`, budgets are produced for all
+#'   years available in `df`. Otherwise only specified years are processed.
 #' @param samples An integer value. Amount of bootstraps to produce.
 #' @param NEE_scor,GPP_scor A logical value. Should sign correction of NEE (GPP)
 #'   be performed?
-#' @param normalize A logical value. If \code{TRUE} (default), space and
+#' @param normalize A logical value. If `TRUE` (default), space and
 #'   space-time equitable budgets are corrected for the missing number of
 #'   records in a year.
 #'
 #' @return A data frame with columns corresponding to year, space-time-equitable
-#'   budget of original dataset (space_time_eq_orig), 5\%, 50\% and 95\%
+#'   budget of original dataset (space_time_eq_orig), 5%, 50% and 95%
 #'   quantiles of resampled datasets (space_time_eq_q05, space_time_eq_q50,
 #'   space_time_eq_q95) and number of observations used for budget computation
 #'   each year.
@@ -1629,10 +1629,10 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' based on comparison of ideal vs observed number of samples in spatial and/or
 #' temporal bins.
 #'
-#' Arguments specifying \code{df} column names represent FLUXNET standard. To
-#' process \code{REddyProc} outputs, timestamp must be corrected to represent
+#' Arguments specifying `df` column names represent FLUXNET standard. To
+#' process `REddyProc` outputs, timestamp must be corrected to represent
 #' middle of averaging period and appropriate columns selected (see
-#' \code{Examples}).
+#' `Examples`).
 #'
 #' Sampling coverage (SC) ranges from 0 (unilateral sampling) to 1 (fully
 #' balanced sampling when all bins contribute evenly), i.e. SC close to 1 is the
@@ -1644,36 +1644,36 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' @section References:  Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 #'   Metzger, S. (2020). Generating spatially robust carbon budgets from flux
 #'   tower observations. Geophysical Research Letters, 47, e2019GL085942.
-#'   \url{https://doi.org/10.1029/2019GL085942}
+#'   <https://doi.org/10.1029/2019GL085942>
 #'
 #' @param df A data frame.
-#' @param TimestampCol A character string. Specifies a column name in \code{df}
-#'   that carries date-time information either in \code{POSIXt} or text strings
-#'   of format \code{"\%Y\%m\%d\%H\%M"}. Date-time information is expected to
+#' @param TimestampCol A character string. Specifies a column name in `df`
+#'   that carries date-time information either in `POSIXt` or text strings
+#'   of format `"%Y%m%d%H%M"`. Date-time information is expected to
 #'   represent either start or middle of the averaging period.
-#' @param wdCol A character string. Specifies a column name in \code{df} that
+#' @param wdCol A character string. Specifies a column name in `df` that
 #'   carries the wind direction in degrees.
-#' @param targetCol A character string. Specifies a column name in \code{df}
+#' @param targetCol A character string. Specifies a column name in `df`
 #'   that carries the flux values for sampling coverage assessment.
-#' @param QcCol A character string or \code{NULL}. Specifies a column name in
-#'   \code{df} that carries gap-filling quality flags of \code{targetCol}
-#'   variable. It is assumed that \code{df[, QcCol] == 0} identifies the
-#'   measured (not gap-filled) records of \code{targetCol} variable. If
-#'   \code{NULL}, all non-missing values of \code{targetCol} are used for
+#' @param QcCol A character string or `NULL`. Specifies a column name in
+#'   `df` that carries gap-filling quality flags of `targetCol`
+#'   variable. It is assumed that `df[, QcCol] == 0` identifies the
+#'   measured (not gap-filled) records of `targetCol` variable. If
+#'   `NULL`, all non-missing values of `targetCol` are used for
 #'   budgeting.
-#' @param plot A logical value. If \code{FALSE} (default), a data frame with
+#' @param plot A logical value. If `FALSE` (default), a data frame with
 #'   sampling coverage values for each year is returned. Otherwise a list of
-#'   \code{ggplot}s showing spatial and temporal sampling coverage for each year
+#'   `ggplot`s showing spatial and temporal sampling coverage for each year
 #'   is returned.
 #' @param nInt An integer value. A number of wind sectors and time intervals for
 #'   binning.
-#' @param year Either integer vector, character string \code{"all"} or
-#'   \code{NULL}. If \code{NULL} (default), estimates are produced for each year
-#'   available in \code{df}. If \code{"all"}, estimates are produced across all
+#' @param year Either integer vector, character string `"all"` or
+#'   `NULL`. If `NULL` (default), estimates are produced for each year
+#'   available in `df`. If `"all"`, estimates are produced across all
 #'   years. Otherwise only specified years are processed.
 #'
-#' @return If \code{plot = FALSE}, a data frame. If \code{plot = TRUE}, a named
-#'   list of \code{ggplot} objects.
+#' @return If `plot = FALSE`, a data frame. If `plot = TRUE`, a named
+#'   list of `ggplot` objects.
 #'
 #' @seealso \code{\link{Griebel20_budgets}} and \code{\link{spti_boot}}.
 #'

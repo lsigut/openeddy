@@ -46,10 +46,9 @@ symbols should be magnified relative to the default. See \code{\link{par}}
 for details.}
 
 \item{alpha.f}{A numeric value. Factor modifying the color opacity alpha for
-plotted points; typically in \code{[0,1]}.}
+plotted points; typically in \verb{[0,1]}.}
 
-\item{units}{A character string. One of the units listed: \code{c("secs",
-  "mins", "hours", "days", "months", "years")}. Can be abbreviated. Specifies
+\item{units}{A character string. One of the units listed: \code{c("secs", "mins", "hours", "days", "months", "years")}. Can be abbreviated. Specifies
 the rounding applied to first and last record in \code{"timestamp"} column
 of \code{x} to produce sensible x-axis ticks and labels.}
 

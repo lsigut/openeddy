@@ -27,8 +27,7 @@ identifying the prefix of coded values.}
 \item{split}{Character string containing a \code{\link{regular expression}}
 identifying the separator of variable names in \code{units} attribute.}
 
-\item{sf}{A logical value. Coded variable represents hard flag (\code{sf =
-FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.}
+\item{sf}{A logical value. Coded variable represents hard flag (\code{sf = FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.}
 }
 \value{
 A data frame with relevant column names defined by
@@ -45,8 +44,7 @@ character vector of certain properties is extracted and interpreted.
 Each element of \code{x} is expected to have the same structure according to
 the format specified by \code{units} attribute of \code{x}. \code{units}
 format string (e.g. \code{"8u/v/w/ts/h2o/co2"}) starts with a prefix
-(\code{"8"}) that is followed by variable names (\code{"u", "v", "w", "ts",
-"h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
+(\code{"8"}) that is followed by variable names (\verb{"u", "v", "w", "ts", "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
 of \code{x} thus consist of either seven components (prefix and six flags for
 each variable) or one \code{NA} value. Flags of coded variables can have
 three values: \itemize{ \item flag 0: measured variable passed the test.
@@ -65,9 +63,9 @@ data for computation of Tau and H fluxes. GA is used only for measurements of
 LE and NEE. A combination of SA and GA (SAGA) is used for measurements of LE
 and NEE. Filters where flags would be identical for both SA and GA have
 prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
-the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
-have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
-0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
+the correct performance of SA, all variables \verb{"u", "v", "w", "ts"} must
+have flag 0. In case of GA, all variables \verb{"co2", "h2o"} must have flag
+0. In case of SAGA, all variables \verb{"u", "v", "w", "ts", "h2o", "co2"}
 must have flag 0.
 }
 \section{Abbreviations}{

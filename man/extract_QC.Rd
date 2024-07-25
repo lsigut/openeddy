@@ -42,33 +42,30 @@ identifying the separator of variable names in \code{units} attribute. See
 
 \item{missfrac_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for fraction of missing high frequency data within averaging
-period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}}
-flags the records higher than the given thresholds.}
+period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}} flags the
+records higher than the given thresholds.}
 
 \item{scf_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for spectral correction factor if \code{filters} include
-\code{"scf"}. \code{\link{apply_thr}} flags the records higher than the
-given thresholds.}
+thresholds for spectral correction factor if \code{filters} include \code{"scf"}.
+\code{\link{apply_thr}} flags the records higher than the given thresholds.}
 
 \item{w_unrot_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for absolute value of unrotated \emph{w} if \code{filters}
-include \code{"wresid"} and \code{rotation = "double"}.
-\code{\link{apply_thr}} flags the records higher than the given thresholds.}
+thresholds for absolute value of unrotated \emph{w} if \code{filters} include
+\code{"wresid"} and \code{rotation = "double"}. \code{\link{apply_thr}} flags the
+records higher than the given thresholds.}
 
 \item{w_rot_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for absolute value of rotated \emph{w} if \code{filters} include
-\code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}}
-flags the records higher than the given thresholds.}
+\code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}} flags the
+records higher than the given thresholds.}
 
 \item{lowcov_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for computed covariance if \code{filters} include
-\code{"lowcov"}. \code{\link{apply_thr}} flags the records between given
-thresholds.}
+thresholds for computed covariance if \code{filters} include \code{"lowcov"}.
+\code{\link{apply_thr}} flags the records between given thresholds.}
 
 \item{ts_var_thr}{A numeric vector with 2 non-missing values. Represents
-thresholds for sonic temperature variance if \code{filters} include
-\code{"var"}. \code{\link{apply_thr}} flags the records higher than the
-given thresholds.}
+thresholds for sonic temperature variance if \code{filters} include \code{"var"}.
+\code{\link{apply_thr}} flags the records higher than the given thresholds.}
 
 \item{RH_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for relative humidity if \code{filters} include \code{"humid"}.
@@ -76,28 +73,26 @@ thresholds for relative humidity if \code{filters} include \code{"humid"}.
 
 \item{LI7200_signal_thr, LI7500_signal_thr}{A numeric vector with 2
 non-missing values. Represents thresholds for signal strength provided by
-LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
-\code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
-given thresholds.}
+LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or \code{"LI7500"}.
+\code{\link{apply_thr}} flags the records lower than the given thresholds.}
 
-\item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in
-EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
-flags extracted from EddyPro coded variables combined? See
+\item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in EddyPro
+column name) and hard (suffix \code{"_hf"} in EddyPro column name) flags
+extracted from EddyPro coded variables combined? See
 \code{\link{extract_coded}}.}
 }
 \value{
-A data frame. Each column has attributes \code{"varnames"} and
-\code{"units"}.
+A data frame. Each column has attributes \code{"varnames"} and \code{"units"}.
 }
 \description{
 QC information stored in columns of data frame \code{x} is extracted and
 interpreted in respect to instruments or individual fluxes.
 }
 \details{
-The data frame \code{x} is expected to have certain properties. It is
-required that it contains column names according to considered QC filters. In
-the case of coded variables, attribute \code{units} containing the format of
-coded variable is required to extract the coded QC information. See
+The data frame \code{x} is expected to have certain properties. It is required
+that it contains column names according to considered QC filters. In the case
+of coded variables, attribute \code{units} containing the format of coded variable
+is required to extract the coded QC information. See
 \code{\link{extract_coded}}.
 
 Extracted QC information can be relevant to fluxes measured by given
@@ -116,39 +111,32 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
  Filters from coded EddyPro columns (thresholds
 are set within EddyPro software). All of the filters extracted from coded
 variables are not additive. \itemize{ \item spikesHF: check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
-frequency data spike percentage} in averaging period against thresholds.
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high frequency data spike percentage} in averaging period against thresholds.
 HF in spikesHF means high frequency and distinguishes despiking done on raw
 data (spikesHF) from despiking done on low frequency data (spikesLF; see
 \code{\link{despikeLF}}). \item ampres: check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
-resolution} in the recorded data. \item dropout: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude resolution} in the recorded data. \item dropout: check of
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
 i.e. situations when the time series stays for “too long” on a value that
 is far from the mean. \item abslim: check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
-limits} when raw data are out of plausible range. \item skewkurt_sf and
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute limits} when raw data are out of plausible range. \item skewkurt_sf and
 skewkurt_hf: check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
-and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
 skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
 discont_hf: check of
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
-that lead to semi-permanent changes in the time series. If \code{simplify
-  = TRUE}, discont_sf and discont_hf are combined into discont column
+that lead to semi-permanent changes in the time series. If \code{simplify = TRUE}, discont_sf and discont_hf are combined into discont column
 instead. \item timelag_sf and timelag_hf: check of estimated
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
 compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
 and timelag_hf are combined into timelag column instead. \item attangle:
 check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
-of attack}. \item nonsteady: check of
-\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
-of horizontal wind}.}
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle of attack}. \item nonsteady: check of
+\href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness of horizontal wind}.}
 
 Additional filters extracted from EddyPro output. The only additive test is
 "wresid". \itemize{ \item missfrac: check of missing data in averaging
-period against thresholds (default is 10\\%). \item scf: check of spectral
+period against thresholds (default is 10\%). \item scf: check of spectral
 correction factor against thresholds. \item wresid: check of mean unrotated
 \emph{w} (double rotation) or \emph{w} residual (planar fit) against
 thresholds. \item runs: check of runs with repeating values
@@ -166,16 +154,14 @@ instrument).}
  \itemize{ \item For details
 concerning coded variables see \code{\link{extract_coded}}. \item
 \code{"file_records"}: number of valid records found in the raw file \item
-\code{"used_records"}: number of valid records used at given averaging
-period. This number can also contain high frequency spikes that should be
-excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
-  "co2_spikes"}: number of high frequency spikes detected at given averaging
-period in respective variable. Values can be set to 0 if
-\code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
-  "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
-flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
-rotated \emph{w} wind component, respectively (should be close to 0 m
-s-1).}
+\code{"used_records"}: number of valid records used at given averaging period.
+This number can also contain high frequency spikes that should be excluded.
+\item \verb{"u_spikes", "ts_spikes", "h2o_spikes" and "co2_spikes"}: number of
+high frequency spikes detected at given averaging period in respective
+variable. Values can be set to 0 if \code{"used_records"} already accounts for
+spikes. \item \verb{"Tau_scf", "H_scf", "LE_scf" and "co2_scf"}: spectral
+correction factor for given flux. Values are above 1. \item \verb{"w_unrot", "w_rot"}: unrotated and rotated \emph{w} wind component, respectively (should be
+close to 0 m s-1).}
 }
 
 \section{Naming Strategy}{

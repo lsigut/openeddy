@@ -73,9 +73,7 @@ renamed to "max_wind_speed" if present.
 If you want to specify \code{start} and \code{end} arguments as strings and
 you change also default \code{shift.by} value, \code{start} and \code{end}
 arguments need to be adopted accordingly to account for that change. E.g. if
-\code{shift.by = -900}, then \code{start = "2019-12-31 21:15:00", end =
-"2019-12-31 23:15:00"} instead of \code{start = "2019-12-31 21:30:00", end =
-"2019-12-31 23:30:00"}.
+\code{shift.by = -900}, then \verb{start = "2019-12-31 21:15:00", end = "2019-12-31 23:15:00"} instead of \verb{start = "2019-12-31 21:30:00", end = "2019-12-31 23:30:00"}.
 
 Note that \code{skip} and \code{fileEncoding} arguments must be valid across
 all files, otherwise the function will not execute correctly.

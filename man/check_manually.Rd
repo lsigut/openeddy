@@ -47,7 +47,7 @@ provided in an interactive session. If \code{FALSE}, previously created
 file with manual flags will be reloaded or \code{NULL} will be returned.}
 
 \item{siteyear}{A string. Unique label for the saved \emph{manual_QC} CSV
-file if no file with "manual_QC" pattern was found in \code{path}.}
+file if no file with \code{"manual_QC"} pattern was found in \code{path}.}
 
 \item{tname}{A string. Name of variable in \code{x} with date-time
 information.}

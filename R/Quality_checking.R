@@ -1,6 +1,6 @@
 #' Apply Thresholds
 #'
-#' Values of \code{x} are checked against the specified thresholds to obtain
+#' Values of `x` are checked against the specified thresholds to obtain
 #' their quality control (QC) flags.
 #'
 #' This function is called by \code{\link{extract_QC}} but can be useful on its
@@ -8,52 +8,52 @@
 #'
 #' Obtained QC flags are assigned in the range 0 - 2 according to these rules:
 #'
-#' For \code{flag = "higher"} \itemize{ \item If \code{x <= thr[1]}, QC flag =
-#' 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
-#' thr[2]}, QC flag = 2.}
+#' For `flag = "higher"` \itemize{ \item If `x <= thr[1]`, QC flag =
+#' 0. \item If `x > thr[1] & x <= thr[2]`, QC flag = 1. \item If `x >
+#' thr[2]`, QC flag = 2.}
 #'
-#' For \code{flag = "outside"} (\code{thr} supplied as vector) \itemize{ \item
-#' If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0. \item If \code{x < thr[1] |
-#' x > thr[2]}, QC flag = 2.}
+#' For `flag = "outside"` (`thr` supplied as vector) \itemize{ \item
+#' If `x >= thr[1] & x <= thr[2]`, QC flag = 0. \item If `x < thr[1] |
+#' x > thr[2]`, QC flag = 2.}
 #'
-#' For \code{flag = "outside"} (\code{thr} supplied as list) \itemize{ \item If
-#' \code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0. \item If \code{x <
-#' thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1. \item If \code{x < thr[[1]][1] |
-#' x > thr[[2]][2]}, QC flag = 2.}
+#' For `flag = "outside"` (`thr` supplied as list) \itemize{ \item If
+#' `x >= thr[[1]][2] & x <= thr[[2]][1]`, QC flag = 0. \item If `x <
+#' thr[[1]][2] | x > thr[[2]][1]`, QC flag = 1. \item If `x < thr[[1]][1] |
+#' x > thr[[2]][2]`, QC flag = 2.}
 #'
-#' For \code{flag = "between"} (\code{thr} supplied as vector) \itemize{ \item
-#' If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0. \item If \code{x > thr[1] &
-#' x < thr[2]}, QC flag = 2. }
+#' For `flag = "between"` (`thr` supplied as vector) \itemize{ \item
+#' If `x <= thr[1] | x >= thr[2]`, QC flag = 0. \item If `x > thr[1] &
+#' x < thr[2]`, QC flag = 2. }
 #'
-#' For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
-#' \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
-#' thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
-#' x < thr[[2]][1]}, QC flag = 2.}
+#' For `flag = "between"` (`thr` supplied as list) \itemize{ \item If
+#' `x <= thr[[1]][1] | x >= thr[[2]][2]`, QC flag = 0. \item If `x >
+#' thr[[1]][1] & x < thr[[2]][2]`, QC flag = 1. \item If `x > thr[[1]][2] &
+#' x < thr[[2]][1]`, QC flag = 2.}
 #'
-#' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
-#' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
-#' thr[2]}, QC flag = 2.}
+#' For `flag = "lower"` \itemize{ \item If `x >= thr[1]`, QC flag = 0.
+#' \item If `x < thr[1] & x >= thr[2]`, QC flag = 1. \item If `x <
+#' thr[2]`, QC flag = 2.}
 #'
-#' In case of \code{angles = TRUE}, conditions are appropriately implemented on
+#' In case of `angles = TRUE`, conditions are appropriately implemented on
 #' the circular scale. Angles are expected to be within the range [0, 360)
-#' degrees and corrected otherwise. Notice that using \code{flag = "higher"} or
-#' \code{flag = "lower"} might not be very useful on the circular scale.
+#' degrees and corrected otherwise. Notice that using `flag = "higher"` or
+#' `flag = "lower"` might not be very useful on the circular scale.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
-#' @param x A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.
+#' @param x A numeric atomic type with `NULL` \code{\link{dim}}ensions.
 #' @param thr A numeric vector of length two or list with two numeric vectors of
 #'   length two. If vector, first (second) element provides lower (upper)
 #'   boundary threshold for quality control flag 2. If list, first (second)
 #'   element provides lower (upper) boundary threshold for quality control flag
-#'   1 and 2. This is reversed for \code{flag = "lower"}. See examples.
-#' @param name_out A character string providing \code{varnames} attribute value
+#'   1 and 2. This is reversed for `flag = "lower"`. See examples.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param flag A character string. Selects one of the available flagging
 #'   approaches. Can be abbreviated. See 'Details'.
-#' @param angles A logical value. Choose if \code{x} represents angles.
+#' @param angles A logical value. Choose if `x` represents angles.
 #'
 #' @seealso \code{\link{extract_QC}}.
 #'
@@ -248,19 +248,19 @@ apply_thr <- function(x, thr, name_out = "-",
 #'
 #' Identify and flag values of runs with repeating values in a vector.
 #'
-#' \code{NA} values are omitted before evaluation of runs. Thus \code{NA}s do
+#' `NA` values are omitted before evaluation of runs. Thus `NA`s do
 #' not interrupt runs. Flagging is done according to the 0 - 2 quality control
 #' flag scheme.
 #'
 #' @param x A numeric atomic type with NULL dimensions.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param length A numeric value. The minimum number of repeating values to
 #'   trigger flagging.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
 #' @examples
 #' (xx <- c(rep(c(0, NA), 5)))
@@ -305,12 +305,12 @@ flag_runs <- function(x, name_out = "-", length = 4) {
 #' @param x A POSIXt vector providing timestamp of measurements.
 #' @param start,end A POSIXt vector marking the start and end of the periods to
 #'   be flagged. They must be of the same length.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
 #' @examples
 #' # alternative style: as.POSIXct("2000-01-01 12:15:00", tz = "GMT")
@@ -378,32 +378,32 @@ handleNA <- function(x, variables) {
 #' used directly. Coded QC information for one or multiple variables stored in a
 #' character vector of certain properties is extracted and interpreted.
 #'
-#' Each element of \code{x} is expected to have the same structure according to
-#' the format specified by \code{units} attribute of \code{x}. \code{units}
-#' format string (e.g. \code{"8u/v/w/ts/h2o/co2"}) starts with a prefix
-#' (\code{"8"}) that is followed by variable names (\code{"u", "v", "w", "ts",
-#' "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
-#' of \code{x} thus consist of either seven components (prefix and six flags for
-#' each variable) or one \code{NA} value. Flags of coded variables can have
+#' Each element of `x` is expected to have the same structure according to
+#' the format specified by `units` attribute of `x`. `units`
+#' format string (e.g. `"8u/v/w/ts/h2o/co2"`) starts with a prefix
+#' (`"8"`) that is followed by variable names (`"u", "v", "w", "ts",
+#' "h2o", "co2"`) that are distinguished by a separator (`"/"`). Elements
+#' of `x` thus consist of either seven components (prefix and six flags for
+#' each variable) or one `NA` value. Flags of coded variables can have
 #' three values: \itemize{ \item flag 0: measured variable passed the test.
 #' \item flag 1: measured variable failed the test. \item flag 9: flag could not
-#' be obtained for the given variable (\code{NA}).}
+#' be obtained for the given variable (`NA`).}
 #'
 #' The original flags are then interpreted within the QC scheme using QC flag
 #' range 0 - 2. Coded variable can represent either \itemize{\item hard flag
-#' (suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as flag 2.
-#' \item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1
+#' (suffix `"_hf"` in EddyPro column name): flag 1 interpreted as flag 2.
+#' \item soft flag (suffix `"_sf"` in EddyPro column name): flag 1
 #' interpreted as flag 1.}
 #'
-#' \code{x} is interpreted in respect to instruments required to measure given
+#' `x` is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
 #' data for computation of Tau and H fluxes. GA is used only for measurements of
 #' LE and NEE. A combination of SA and GA (SAGA) is used for measurements of LE
 #' and NEE. Filters where flags would be identical for both SA and GA have
 #' prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
-#' the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
-#' have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
-#' 0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
+#' the correct performance of SA, all variables `"u", "v", "w", "ts"` must
+#' have flag 0. In case of GA, all variables `"co2", "h2o"` must have flag
+#' 0. In case of SAGA, all variables `"u", "v", "w", "ts", "h2o", "co2"`
 #' must have flag 0.
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
@@ -416,9 +416,9 @@ handleNA <- function(x, variables) {
 #'   CO2 concentration \[umol mol-1\]}.
 #'
 #' @return A data frame with relevant column names defined by
-#'   \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
-#'   \code{name_out_ALL}. Each column has attributes \code{"varnames"} and
-#'   \code{"units"} and length equal to that of \code{x}.
+#'   `name_out_SA`, `name_out_GA`, `name_out_SAGA` and
+#'   `name_out_ALL`. Each column has attributes `"varnames"` and
+#'   `"units"` and length equal to that of `x`.
 #'
 #' @param x An atomic type.
 #' @param name_out_SA,name_out_GA,name_out_SAGA,name_out_ALL A character string.
@@ -426,9 +426,9 @@ handleNA <- function(x, variables) {
 #' @param prefix Character string containing a \code{\link{regular expression}}
 #'   identifying the prefix of coded values.
 #' @param split Character string containing a \code{\link{regular expression}}
-#'   identifying the separator of variable names in \code{units} attribute.
-#' @param sf A logical value. Coded variable represents hard flag (\code{sf =
-#'   FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.
+#'   identifying the separator of variable names in `units` attribute.
+#' @param sf A logical value. Coded variable represents hard flag (`sf =
+#'   FALSE`; default) or soft flag (`sf = TRUE`). See Details.
 #'
 #' @seealso \code{\link{extract_QC}}.
 #'
@@ -526,13 +526,13 @@ mf <- function(x, ur, mfr) {
 
 #' Extract Quality Control Information
 #'
-#' QC information stored in columns of data frame \code{x} is extracted and
+#' QC information stored in columns of data frame `x` is extracted and
 #' interpreted in respect to instruments or individual fluxes.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column names according to considered QC filters. In
-#' the case of coded variables, attribute \code{units} containing the format of
-#' coded variable is required to extract the coded QC information. See
+#' The data frame `x` is expected to have certain properties. It is required
+#' that it contains column names according to considered QC filters. In the case
+#' of coded variables, attribute `units` containing the format of coded variable
+#' is required to extract the coded QC information. See
 #' \code{\link{extract_coded}}.
 #'
 #' Extracted QC information can be relevant to fluxes measured by given
@@ -550,41 +550,41 @@ mf <- function(x, ur, mfr) {
 #' @section Extracted QC Checks: Filters from coded EddyPro columns (thresholds
 #'   are set within EddyPro software). All of the filters extracted from coded
 #'   variables are not additive. \itemize{ \item spikesHF: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
-#'    frequency data spike percentage} in averaging period against thresholds.
+#'   [high
+#'    frequency data spike percentage](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking) in averaging period against thresholds.
 #'   HF in spikesHF means high frequency and distinguishes despiking done on raw
 #'   data (spikesHF) from despiking done on low frequency data (spikesLF; see
 #'   \code{\link{despikeLF}}). \item ampres: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
-#'    resolution} in the recorded data. \item dropout: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
+#'   [amplitude
+#'    resolution](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution) in the recorded data. \item dropout: check of
+#'   [drop-outs](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts),
 #'    i.e. situations when the time series stays for “too long” on a value that
 #'   is far from the mean. \item abslim: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
-#'    limits} when raw data are out of plausible range. \item skewkurt_sf and
+#'   [absolute
+#'    limits](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits) when raw data are out of plausible range. \item skewkurt_sf and
 #'   skewkurt_hf: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
-#'    and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
+#'   [skewness
+#'    and kurtosis](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis) limits. If `simplify = TRUE`, skewkurt_sf and
 #'   skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
 #'   discont_hf: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
-#'    that lead to semi-permanent changes in the time series. If \code{simplify
-#'   = TRUE}, discont_sf and discont_hf are combined into discont column
+#'   [discontinuities](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities)
+#'    that lead to semi-permanent changes in the time series. If `simplify
+#'   = TRUE`, discont_sf and discont_hf are combined into discont column
 #'   instead. \item timelag_sf and timelag_hf: check of estimated
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
-#'    compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
+#'   [timelags](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags)
+#'    compared to the expected timelags. If `simplify = TRUE`, timelag_sf
 #'   and timelag_hf are combined into timelag column instead. \item attangle:
 #'   check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
-#'    of attack}. \item nonsteady: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
-#'    of horizontal wind}.}
+#'   [angle
+#'    of attack](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack). \item nonsteady: check of
+#'   [steadiness
+#'    of horizontal wind](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind).}
 #'
 #'   Additional filters extracted from EddyPro output. The only additive test is
 #'   "wresid". \itemize{ \item missfrac: check of missing data in averaging
-#'   period against thresholds (default is 10\%). \item scf: check of spectral
+#'   period against thresholds (default is 10%). \item scf: check of spectral
 #'   correction factor against thresholds. \item wresid: check of mean unrotated
-#'   \emph{w} (double rotation) or \emph{w} residual (planar fit) against
+#'   *w* (double rotation) or *w* residual (planar fit) against
 #'   thresholds. \item runs: check of runs with repeating values
 #'   (see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
 #'   checking runs, except for Tau. \item lowcov:
@@ -597,19 +597,18 @@ mf <- function(x, ur, mfr) {
 #'
 #' @section Content and Format of Columns: \itemize{ \item For details
 #'   concerning coded variables see \code{\link{extract_coded}}. \item
-#'   \code{"file_records"}: number of valid records found in the raw file \item
-#'   \code{"used_records"}: number of valid records used at given averaging
-#'   period. This number can also contain high frequency spikes that should be
-#'   excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
-#'   "co2_spikes"}: number of high frequency spikes detected at given averaging
-#'   period in respective variable. Values can be set to 0 if
-#'   \code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
-#'   "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
-#'   flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
-#'   rotated \emph{w} wind component, respectively (should be close to 0 m
-#'   s-1).}
+#'   `"file_records"`: number of valid records found in the raw file \item
+#'   `"used_records"`: number of valid records used at given averaging period.
+#'   This number can also contain high frequency spikes that should be excluded.
+#'   \item `"u_spikes", "ts_spikes", "h2o_spikes" and "co2_spikes"`: number of
+#'   high frequency spikes detected at given averaging period in respective
+#'   variable. Values can be set to 0 if `"used_records"` already accounts for
+#'   spikes. \item `"Tau_scf", "H_scf", "LE_scf" and "co2_scf"`: spectral
+#'   correction factor for given flux. Values are above 1. \item `"w_unrot",
+#'   "w_rot"`: unrotated and rotated *w* wind component, respectively (should be
+#'   close to 0 m s-1).}
 #'
-#' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
+#' @section Naming Strategy: **QC prefixes** (specifies which flux is
 #'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
 #'   relying only on SA (Tau, H) \item qc_GA: applicable to fluxes relying on GA
 #'   (LE, NEE); only GA issues considered \item qc_SAGA: applicable to fluxes
@@ -617,7 +616,7 @@ mf <- function(x, ur, mfr) {
 #'   qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
 #'   qc_ALL: applicable to all fluxes}
 #'
-#'   \strong{QC suffixes} (specifies which QC check was performed to get this QC
+#'   **QC suffixes** (specifies which QC check was performed to get this QC
 #'   output): \itemize{ \item See 'Extracted QC Checks' above for the complete
 #'   list.}
 #'
@@ -632,25 +631,24 @@ mf <- function(x, ur, mfr) {
 #'
 #' @section References: Foken, T., Wichura, B., 1996. Tools for quality
 #'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-#'   83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
+#'   83–105. <https://doi.org/10.1016/0168-1923(95)02248-1>
 #'
 #'   Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
 #'   for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
 #'   14(3), 512-526.
-#'   \url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
+#'   [https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2](https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2)
 #'
 #'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
 #'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
 #'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-#'   169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   169, 122-135. <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
 #'   McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
 #'   2018. Energy balance closure at a variety of ecosystems in Central Europe
 #'   with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-#'   \url{https://doi.org/10.1016/j.agrformet.2017.10.003}
+#'   <https://doi.org/10.1016/j.agrformet.2017.10.003>
 #'
-#' @return A data frame. Each column has attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return A data frame. Each column has attributes `"varnames"` and `"units"`.
 #'
 #' @param x A data frame with column names representing required variables.
 #' @param filters A character vector. A full set of supported filters to extract
@@ -660,43 +658,39 @@ mf <- function(x, ur, mfr) {
 #' @param prefix Character string containing a \code{\link{regular expression}}
 #'   identifying the prefix of coded values. See '\code{\link{extract_coded}}'.
 #' @param split Character string containing a \code{\link{regular expression}}
-#'   identifying the separator of variable names in \code{units} attribute. See
+#'   identifying the separator of variable names in `units` attribute. See
 #'   '\code{\link{extract_coded}}'.
 #' @param missfrac_thr A numeric vector with 2 non-missing values. Represents
 #'   thresholds for fraction of missing high frequency data within averaging
-#'   period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}}
-#'   flags the records higher than the given thresholds.
+#'   period if `filters` include `"missfrac"`. \code{\link{apply_thr}} flags the
+#'   records higher than the given thresholds.
 #' @param scf_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for spectral correction factor if \code{filters} include
-#'   \code{"scf"}. \code{\link{apply_thr}} flags the records higher than the
-#'   given thresholds.
-#' @param w_unrot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for absolute value of unrotated \emph{w} if \code{filters}
-#'   include \code{"wresid"} and \code{rotation = "double"}.
+#'   thresholds for spectral correction factor if `filters` include `"scf"`.
 #'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
+#' @param w_unrot_thr A numeric vector with 2 non-missing values. Represents
+#'   thresholds for absolute value of unrotated *w* if `filters` include
+#'   `"wresid"` and `rotation = "double"`. \code{\link{apply_thr}} flags the
+#'   records higher than the given thresholds.
 #' @param w_rot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for absolute value of rotated \emph{w} if \code{filters} include
-#'   \code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}}
-#'   flags the records higher than the given thresholds.
+#'   thresholds for absolute value of rotated *w* if `filters` include
+#'   `"wresid"` and `rotation = "planar fit"`. \code{\link{apply_thr}} flags the
+#'   records higher than the given thresholds.
 #' @param lowcov_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for computed covariance if \code{filters} include
-#'   \code{"lowcov"}. \code{\link{apply_thr}} flags the records between given
-#'   thresholds.
+#'   thresholds for computed covariance if `filters` include `"lowcov"`.
+#'   \code{\link{apply_thr}} flags the records between given thresholds.
 #' @param ts_var_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for sonic temperature variance if \code{filters} include
-#'   \code{"var"}. \code{\link{apply_thr}} flags the records higher than the
-#'   given thresholds.
+#'   thresholds for sonic temperature variance if `filters` include `"var"`.
+#'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
 #' @param RH_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for relative humidity if \code{filters} include \code{"humid"}.
+#'   thresholds for relative humidity if `filters` include `"humid"`.
 #'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
 #' @param LI7200_signal_thr,LI7500_signal_thr A numeric vector with 2
 #'   non-missing values. Represents thresholds for signal strength provided by
-#'   LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
-#'   \code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
-#'   given thresholds.
-#' @param simplify A logical value. Should be soft (suffix \code{"_sf"} in
-#'   EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
-#'   flags extracted from EddyPro coded variables combined? See
+#'   LI-COR 7200 or 7500 if `filters` include `"LI7200"` or `"LI7500"`.
+#'   \code{\link{apply_thr}} flags the records lower than the given thresholds.
+#' @param simplify A logical value. Should be soft (suffix `"_sf"` in EddyPro
+#'   column name) and hard (suffix `"_hf"` in EddyPro column name) flags
+#'   extracted from EddyPro coded variables combined? See
 #'   \code{\link{extract_coded}}.
 #'
 #' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
@@ -1104,18 +1098,18 @@ extract_QC <- function(x,
 #'
 #' To convert buoyancy flux to sensible heat flux (SND or Schotanus correction),
 #' reliable measurements of LE must be available. To correct LE and NEE
-#' estimated by open-path IRGA (\code{IRGA = "open"}) for the effects of density
+#' estimated by open-path IRGA (`IRGA = "open"`) for the effects of density
 #' fluctuations due to temperature and humidity fluctuations (WPL or Webb
 #' correction), reliable measurements of H must be available. To perform WPL
 #' correction of NEE estimated with any kind of IRGA, reliable measurements of
 #' LE must be available. Thus following set of rules apply:
 #'
-#' If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 |
-#' is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
-#' \code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) ==
-#' TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H)
-#' == TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 |
-#' is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
+#' If `IRGA = "en_closed"` \itemize{ \item If `qc_LE == 2 |
+#' is.na(qc_LE) == TRUE`: qc_H and qc_NEE flags are increased by 1.} If
+#' `IRGA = "open"` \itemize{ \item if `qc_LE == 2 | is.na(qc_LE) ==
+#' TRUE`: qc_H flags are increased by 1. \item If `qc_H == 2 | is.na(qc_H)
+#' == TRUE`: qc_LE flags are increased by 1. \item If `qc_H == 2 |
+#' is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE`: qc_NEE flags are
 #' increased by 1.}
 #'
 #' @section Abbreviations: \itemize{ \item QC: Quality Control \item H: Sensible
@@ -1126,18 +1120,18 @@ extract_QC <- function(x,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
 #'   and uncertainty assessment of long-term eddy-covariance measurements.
 #'   Agric. For. Meteorol. 169, 122-135.
-#'   \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
-#' @return A data frame. Each column has attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return A data frame. Each column has attributes `"varnames"` and
+#'   `"units"`.
 #'
 #' @param qc_LE An atomic type containing numeric or NA values. Combination of
 #'   all available QC flags for LE.
 #' @param qc_H An atomic type containing numeric or NA values. Combination of
-#'   all available QC flags for H. Used only if \code{IRGA = "open"}.
+#'   all available QC flags for H. Used only if `IRGA = "open"`.
 #' @param IRGA A character string. Specifies the type of IRGA. Allowed values
-#'   are \code{"en_closed"} both for closed and enclosed path systems and
-#'   \code{"open"} for open path systems. Can be abbreviated.
+#'   are `"en_closed"` both for closed and enclosed path systems and
+#'   `"open"` for open path systems. Can be abbreviated.
 #'
 #' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
 #'
@@ -1192,21 +1186,21 @@ interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
 #' This is a low level function not intended to be used on its own. It is
 #' utilized by \code{\link{despikeLF}} that should be used instead.
 #'
-#' @param xBlock1 The double-differenced \code{var} time series with appropriate
+#' @param xBlock1 The double-differenced `var` time series with appropriate
 #'   block size.
 #' @param xBlock2 Serves for computing despiking threshold and can be from the
-#'   same block as \code{xBlock1} (default) or from the whole year (more
+#'   same block as `xBlock1` (default) or from the whole year (more
 #'   conservative when less data available).
-#' @param refBlock1 \code{var} values from appropriate block for finding
+#' @param refBlock1 `var` values from appropriate block for finding
 #'   false-flagged spikes by comparison with scaled median absolute deviation.
-#' @param refBlock2 \code{var} values for computing median and mad from the same
-#'   block as \code{refBlock1} (default) or whole year (more conservative when
+#' @param refBlock2 `var` values for computing median and mad from the same
+#'   block as `refBlock1` (default) or whole year (more conservative when
 #'   less data available).
 #' @param z A numeric value. \eqn{MAD} scale factor.
 #' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#'   * \link{mad} constant} (`i.e. 3 * 1.4826 = 4.4478`).
 #'
-#' @return A logical vector. \code{TRUE} values flag spikes.
+#' @return A logical vector. `TRUE` values flag spikes.
 #'
 #' @seealso use \code{\link{despikeLF}} instead.
 #'
@@ -1240,23 +1234,23 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #'
 #' @param SD_sub A data frame prepared by \code{\link{despikeLF}} with expected
 #'   columns Index, Date, timestamp, var, Spike and Light. This is a subset of
-#'   data (\code{x}) provided to \code{\link{despikeLF}} containing only the
+#'   data (`x`) provided to \code{\link{despikeLF}} containing only the
 #'   data of good quality.
-#' @param date An unsubsetted vector of class \code{"Date"} extracted from data
-#'   frame \code{x} fed to \code{\link{despikeLF}}.
+#' @param date An unsubsetted vector of class `"Date"` extracted from data
+#'   frame `x` fed to \code{\link{despikeLF}}.
 #' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
 #' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
-#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#'   * \link{mad} constant} (`i.e. 3 * 1.4826 = 4.4478`).
+#' @param plot A logical value. If `TRUE`, list of \code{\link{ggplot}}
 #'   objects visualizing the spikes is also produced.
 #'
-#' @return If \code{plot = FALSE}, an updated data frame \code{SD_sub} with
+#' @return If `plot = FALSE`, an updated data frame `SD_sub` with
 #'   identified spikes in column Spike and with three new columns var_minus,
-#'   var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
-#'   data frame identical to the one produced if \code{plot = FALSE}) and
-#'   \code{plots} containing a list of \code{ggplot} objects.
+#'   var_plus and diff. If `plot = TRUE`, a list with elements `SD` (a
+#'   data frame identical to the one produced if `plot = FALSE`) and
+#'   `plots` containing a list of `ggplot` objects.
 #'
 #' @importFrom ggplot2 aes
 #' @keywords internal
@@ -1333,38 +1327,38 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' double-differenced time series to identify outliers.
 #'
 #' Low Frequency Data Despiking is not an additive quality control (QC) test.
-#' \code{despikeLF} follows the QC scheme using QC flag range 0 - 2.
-#' \code{varnames} attribute of returned vector should be chosen to follow the
+#' `despikeLF` follows the QC scheme using QC flag range 0 - 2.
+#' `varnames` attribute of returned vector should be chosen to follow the
 #' 'Naming Strategy' described in \code{\link{extract_QC}}, i.e. to be
-#' distinguished by suffix \code{"_spikesLF"}.
+#' distinguished by suffix `"_spikesLF"`.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column named \code{"timestamp"} of class
-#' \code{"POSIXt"} with regular sequence of date-time values, typically with
-#' (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
+#' The data frame `x` is expected to have certain properties. It is
+#' required that it contains column named `"timestamp"` of class
+#' `"POSIXt"` with regular sequence of date-time values, typically with
+#' (half-)hourly time interval. Any missing values in `"timestamp"` are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. It also has to contain required (depends on the argument values)
-#' column names. If QC flags are not available for \code{var}, \code{qc_flag}
-#' still has to be included in \code{x} as a named column with all values set to
-#' \code{0} (i.e. all values will be checked for outliers).
+#' column names. If QC flags are not available for `var`, `qc_flag`
+#' still has to be included in `x` as a named column with all values set to
+#' `0` (i.e. all values will be checked for outliers).
 #'
-#' Only non-missing \code{var} values with corresponding \code{qc_flag} values
-#' below \code{2} are used to detect the outliers. Missing \code{var} values or
-#' those with assigned flag \code{2} or \code{NA} are not checked and marked by
-#' \code{NA} flag in the output. Thus \code{NA} values of \code{despikeLF}
+#' Only non-missing `var` values with corresponding `qc_flag` values
+#' below `2` are used to detect the outliers. Missing `var` values or
+#' those with assigned flag `2` or `NA` are not checked and marked by
+#' `NA` flag in the output. Thus `NA` values of `despikeLF`
 #' should be considered as not checked records and therefore interpreted as
-#' \code{0} flag within the \code{0 - 2} quality control scheme.
+#' `0` flag within the `0 - 2` quality control scheme.
 #'
-#' \code{var_thr} is intended for exclusion of data clearly outside of
-#' theoretically acceptable range for the whole dataset. If \code{var_thr} is
-#' specified, \code{var} values below \code{var_thr[1]} and above
-#' \code{var_thr[2]} are marked as spikes (flag 2) in the output. Such values
+#' `var_thr` is intended for exclusion of data clearly outside of
+#' theoretically acceptable range for the whole dataset. If `var_thr` is
+#' specified, `var` values below `var_thr[1]` and above
+#' `var_thr[2]` are marked as spikes (flag 2) in the output. Such values
 #' are further not used for computing statistics on double-differenced time
 #' series.
 #'
-#' \code{light} and \code{night_thr} are intended to separate data to night and
-#' day subsets with different statistical properties. \code{NA}s in
-#' \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
+#' `light` and `night_thr` are intended to separate data to night and
+#' day subsets with different statistical properties. `NA`s in
+#' `x[light]` are thus not allowed due to the subsetting. Despiking is then
 #' applied to individual subsets and combined QC flags are returned.
 #'
 #' Despiking is done within blocks of 13 consecutive days to account for
@@ -1372,8 +1366,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' with its neighbours and \eqn{d[i]} scores are produced. This is achieved by
 #' double-differencing: \deqn{d[i] = (var[i] - var[i-1]) - (var[i+1] - var[i])}
 #' In order to obtain maximum amount of \eqn{d[i]} scores, all missing
-#' \code{var} values are removed from the block before \eqn{d[i]} scores are
-#' produced. \code{var} values are marked as spikes if \eqn{d[i]} is higher
+#' `var` values are removed from the block before \eqn{d[i]} scores are
+#' produced. `var` values are marked as spikes if \eqn{d[i]} is higher
 #' (lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled median
 #' absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i] < M[d]
 #' - (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
@@ -1381,30 +1375,30 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' The algorithm tends to flag also values that are neighbours of spikes. To
 #' prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
-#' \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
+#' `var` values within given block (\eqn{M[var]} and \eqn{mad[var]},
 #' respectively) is computed. Values can be marked as spikes only if
 #' \deqn{var[i] > M[var] + (c * mad / 1.4826)} or \deqn{var[i] < M[var] - (c *
 #' mad / 1.4826)}
 #'
-#' Number of available double-differenced \code{var} values (\code{nVals}) is
-#' checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
+#' Number of available double-differenced `var` values (`nVals`) is
+#' checked within each block. If equal or below `nVals`, \eqn{d[i]} or
 #' \eqn{var[i]} values are checked against the statistics computed using entire
 #' dataset to ensure robustness.
 #'
-#' The whole process is repeated iteratively if \code{iter > 1}. This way new
+#' The whole process is repeated iteratively if `iter > 1`. This way new
 #' statistics are produced for each iteration after exclusion of already
 #' detected outliers and new spikes can be identified.
 #'
-#' @section Plotting: Plots are produced as a list of \code{ggplot} objects.
+#' @section Plotting: Plots are produced as a list of `ggplot` objects.
 #'   Thus they can be assigned to an object and modified as needed before actual
 #'   plotting. Each plot consists of two panels. The upper one shows the
-#'   double-differenced time series, the bottom one the actual \code{var}
-#'   values. Grey bands mark the respective intervals in which \code{var} value
+#'   double-differenced time series, the bottom one the actual `var`
+#'   values. Grey bands mark the respective intervals in which `var` value
 #'   cannot be considered as an outlier. The red points in upper panel show all
-#'   points that would be marked as spikes if \code{c = 0}. Only the points
+#'   points that would be marked as spikes if `c = 0`. Only the points
 #'   marked by blue color (bottom panel) will be considered spikes. The spike
 #'   detection tolerance (width of grey bands) can be modified by scale factors
-#'   \code{z} (upper panel) and \code{c} (bottom panel).
+#'   `z` (upper panel) and `c` (bottom panel).
 #'
 #' @section Abbreviations: \itemize{\item QC: Quality Control \item PAR:
 #'   Photosynthetic Active Radiation \[umol m-2 s-1\] \item GR: Global Radiation
@@ -1414,22 +1408,22 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
 #'   and uncertainty assessment of long-term eddy-covariance measurements.
 #'   Agric. For. Meteorol. 169, 122-135.
-#'   \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
 #'   Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
 #'   Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
 #'   2006. Towards a more harmonized processing of eddy covariance CO2 fluxes:
 #'   algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
-#'   \url{https://doi.org/10.5194/bgd-3-961-2006}
+#'   <https://doi.org/10.5194/bgd-3-961-2006>
 #'
 #'   Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
 #'   Springer, Berlin.
 #'
-#' @return If \code{plot = FALSE}, an integer vector with attributes
-#'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
-#'   elements \code{SD} and \code{plots}. \code{SD} contains identical output as
-#'   produced when \code{plot = FALSE}, \code{plots} contains list of
-#'   \code{ggplot} objects for respective iteration, \code{light} subset and
+#' @return If `plot = FALSE`, an integer vector with attributes
+#'   `"varnames"` and `"units"`. If `plot = TRUE`, a list with
+#'   elements `SD` and `plots`. `SD` contains identical output as
+#'   produced when `plot = FALSE`, `plots` contains list of
+#'   `ggplot` objects for respective iteration, `light` subset and
 #'   13-day period.
 #'
 #'   Side effect: the counts of spikes detected in each iteration are printed to
@@ -1437,30 +1431,30 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.
-#' @param var A character string. Specifies the variable name in \code{x} with
+#' @param var A character string. Specifies the variable name in `x` with
 #'   values to be despiked.
-#' @param qc_flag A character string. Specifies the column name in \code{x} with
-#'   \code{var} related quality control flag.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param qc_flag A character string. Specifies the column name in `x` with
+#'   `var` related quality control flag.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param var_thr A numeric vector with 2 non-missing values. Specifies fixed
-#'   thresholds for \code{var} values. Values outside this range will be flagged
-#'   as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.
+#'   thresholds for `var` values. Values outside this range will be flagged
+#'   as spikes (flag 2). If `var_thr = NULL`, thresholds are not applied.
 #' @param iter An integer value. Defines number of despiking iterations.
-#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#' @param plot A logical value. If `TRUE`, list of \code{\link{ggplot}}
 #'   objects visualizing the spikes is also produced.
 #' @param light A character string. Selects preferred variable for incoming
-#'   light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
-#'   abbreviated. If \code{light = NULL}, \code{var} values are not separated to
-#'   night/day subsets and \code{night_thr} is not used.
+#'   light intensity. `"PAR"` or `"GR"` is allowed. Can be
+#'   abbreviated. If `light = NULL`, `var` values are not separated to
+#'   night/day subsets and `night_thr` is not used.
 #' @param night_thr A numeric value that defines the threshold  between night
-#'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
-#'   \code{light} values higher than \code{night_thr}) for incoming light.
+#'   (for `light` values equal or lower than `night_thr`) and day (for
+#'   `light` values higher than `night_thr`) for incoming light.
 #' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
 #' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#'   * \link{mad} constant} (`i.e. 3 * 1.4826 = 4.4478`).
 #'
 #' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
 #'   \code{\link{median}} and \code{\link{mad}}.
@@ -1584,7 +1578,7 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 
 #' Apply Fetch Filter
 #'
-#' \code{fetch_filter} flags all halfhours that have longer fetch distance (of
+#' `fetch_filter` flags all halfhours that have longer fetch distance (of
 #' given percentage of contribution to the flux) than the user defined boundary
 #' of the region of interest (ROI).
 #'
@@ -1592,15 +1586,15 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 #' the cases when fetch reached beyond ROI.
 #'
 #' The spatial extent of the studied ecosystem (ROI) is specified by its
-#' \code{ROI_boundary} that describes the distance from eddy covariance tower to
-#' the edge of the studied ecosystem. \code{ROI_boundary} has following
+#' `ROI_boundary` that describes the distance from eddy covariance tower to
+#' the edge of the studied ecosystem. `ROI_boundary` has following
 #' properties: \itemize{ \item the number of circular sectors is the same as the
 #' number of provided distances; \item the angular resolution of the ROI
 #' boundary can be computed as 360 degrees / number of angular sectors; \item
 #' the ROI boundary distances are assigned to the centers of their respective
 #' circular sectors with first sector centered on 0 degrees.}
 #'
-#' Example: \code{ROI_boundary} specified as c(150, 200, 250, 300) has following
+#' Example: `ROI_boundary` specified as c(150, 200, 250, 300) has following
 #' properties: \itemize{ \item 4 circular sectors with 90° angular resolution;
 #' \item ROI boundary is specified for the whole first sector (315°, 45°] at the
 #' distance 150 m from tower (center of the sector is 0°); \item boundary of the
@@ -1608,17 +1602,17 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 #' 225°] is at the distance 250 m; \item fourth sector (225°, 315°] is at the
 #' distance 300 m.}
 #'
-#' @return An integer vector with attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return An integer vector with attributes `"varnames"` and
+#'   `"units"`.
 #'
 #' @param x A data frame with column names representing required variables.
-#' @param fetch_name A character string. Specifies the column name in \code{x}
+#' @param fetch_name A character string. Specifies the column name in `x`
 #'   with fetch distance values.
-#' @param wd_name A character string. Specifies the column name in \code{x} with
+#' @param wd_name A character string. Specifies the column name in `x` with
 #'   wind direction values.
 #' @param ROI_boundary A numeric vector. Represents the boundary of region of
 #'   interest.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #'
 #' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
@@ -1669,16 +1663,16 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' (next plot) is executed while at the last plot.
 #'
 #' @param x A numeric vector with values to inspect.
-#' @param qc_x An integer vector in the range \code{0 - 2} providing quality
-#'   control information about \code{x}.
+#' @param qc_x An integer vector in the range `0 - 2` providing quality
+#'   control information about `x`.
 #' @param y,z A numeric vector with values of auxiliary variable helping with
-#'   the interpretation of \code{x}.
-#' @param name_out A character string providing \code{varnames} attribute value
+#'   the interpretation of `x`.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
-#' @param win_size An integer. Number of \code{x} values displayed per plot.
+#' @param win_size An integer. Number of `x` values displayed per plot.
 #'
-#' @return An integer vector with attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return An integer vector with attributes `"varnames"` and
+#'   `"units"`.
 #'
 #' @seealso \code{\link{check_manually}}
 #'
@@ -1910,58 +1904,58 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' variables in a data frame and manual flagging of values to be discarded.
 #' Saving and reloading of results is supported.
 #'
-#' Automatic reload of previously saved results in \code{path} with filename
-#' including pattern \code{"manual_QC"} is attempted. If found, timestamp is
-#' merged with date-time information in \code{x} if not identical and quality
+#' Automatic reload of previously saved results in `path` with filename
+#' including pattern `"manual_QC"` is attempted. If found, timestamp is
+#' merged with date-time information in `x` if not identical and quality
 #' control is combined with the new flags marked by user (flag 2 marks data
-#' exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
-#' \code{path} is also used for saving file (\code{"manual_QC"} pattern) with
+#' exclusion). Proper alignment of timestamps can be assured by `shift.by`.
+#' `path` is also used for saving file (`"manual_QC"` pattern) with
 #' results. Actual flagging allows to run \code{\link{exclude}} over all
-#' \code{vars}. Each variable is required to have associated quality control
-#' column in format \code{qc_prefix+vars+qc_suffix}.
+#' `vars`. Each variable is required to have associated quality control
+#' column in format `qc_prefix+vars+qc_suffix`.
 #'
-#' Function can be run in two modes. If \code{interactive = TRUE}, attempt to
+#' Function can be run in two modes. If `interactive = TRUE`, attempt to
 #' load previously saved manual QC will be performed, user will be allowed to
 #' flag data manually in interactive session and save (merged) results. If you
-#' just want to reload previously saved results, use \code{interactive = FALSE}.
+#' just want to reload previously saved results, use `interactive = FALSE`.
 #'
 #' @param x A data frame.
 #' @param path A string. Specifies a path to directory where results should be
 #'   saved.
 #' @param vars A character vector, matrix or data frame providing names of
-#'   variables in data frame \code{x} that will be inspected. If character
-#'   vector, each value is iteratively used as argument \code{x} in
+#'   variables in data frame `x` that will be inspected. If character
+#'   vector, each value is iteratively used as argument `x` in
 #'   \code{\link{exclude}}. If matrix or data frame, first, second and third
-#'   column are respectively interpreted as arguments \code{x} (quality checked
-#'   variable), \code{y} and \code{z} (auxiliary variables) in
+#'   column are respectively interpreted as arguments `x` (quality checked
+#'   variable), `y` and `z` (auxiliary variables) in
 #'   \code{\link{exclude}} and used iteratively across rows. If auxiliary
-#'   variables are not needed for certain combinations (\code{vars} rows),
-#'   provide \code{NA} values.
+#'   variables are not needed for certain combinations (`vars` rows),
+#'   provide `NA` values.
 #' @param qc_prefix,qc_suffix A string. Quality control columns corresponding to
-#'   \code{vars} names are required in \code{x} in format
-#'   \code{qc_prefix+vars+qc_suffix}. If \code{vars} is matrix or data frame,
-#'   \code{qc_prefix} and \code{qc_suffix} is applied only for the first column.
-#'   Set to \code{NULL} if either \code{qc_prefix} or \code{qc_suffix} is not
+#'   `vars` names are required in `x` in format
+#'   `qc_prefix+vars+qc_suffix`. If `vars` is matrix or data frame,
+#'   `qc_prefix` and `qc_suffix` is applied only for the first column.
+#'   Set to `NULL` if either `qc_prefix` or `qc_suffix` is not
 #'   applicable.
-#' @param interactive A logical value. If \code{TRUE}, manual checking will be
-#'   provided in an interactive session. If \code{FALSE}, previously created
-#'   file with manual flags will be reloaded or \code{NULL} will be returned.
-#' @param siteyear A string. Unique label for the saved \emph{manual_QC} CSV
-#'   file if no file with "manual_QC" pattern was found in \code{path}.
-#' @param tname A string. Name of variable in \code{x} with date-time
+#' @param interactive A logical value. If `TRUE`, manual checking will be
+#'   provided in an interactive session. If `FALSE`, previously created
+#'   file with manual flags will be reloaded or `NULL` will be returned.
+#' @param siteyear A string. Unique label for the saved *manual_QC* CSV
+#'   file if no file with `"manual_QC"` pattern was found in `path`.
+#' @param tname A string. Name of variable in `x` with date-time
 #'   information.
 #' @param shift.by An integer value specifying the time shift (in seconds) to be
 #'   applied to the date-time information of the reloaded manual QC if present.
 #' @param with_units A logical value indicating whether read (or written) data
 #'   frame with manual flags includes (should include) also units.
 #' @param win_size An integer. Number of values displayed per plot.
-#' @param format A string. Format of \code{tname} date-time information.
+#' @param format A string. Format of `tname` date-time information.
 #'
 #' @return A data frame with flags 0 (marking accepted points) and flags 2
-#'   (marking excluded points). Results can be written to \code{path}.
+#'   (marking excluded points). Results can be written to `path`.
 #'
-#'   If \code{interactive = FALSE}, and no file in \code{path} with pattern
-#'   \code{"manual_QC"}, \code{NULL} is returned.
+#'   If `interactive = FALSE`, and no file in `path` with pattern
+#'   `"manual_QC"`, `NULL` is returned.
 #'
 #' @seealso \code{\link{exclude}}, \code{\link{locator}},
 #'   \code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
@@ -2270,19 +2264,19 @@ check_manually <- function(x,
 #'
 #' Apply quality control information to the respective numeric vector.
 #'
-#' Values of \code{x} are set to \code{NA} if \code{qc} value (flag) equals or
-#' is above \code{qc_thr} or if \code{qc} value is missing.
+#' Values of `x` are set to `NA` if `qc` value (flag) equals or
+#' is above `qc_thr` or if `qc` value is missing.
 #'
-#' \code{na.as = 0} can be used to preserve \code{x} values with respective
-#' \code{NA} \code{qc} values.
+#' `na.as = 0` can be used to preserve `x` values with respective
+#' `NA` `qc` values.
 #'
 #' @param x A numeric vector.
 #' @param qc A numeric vector.
 #' @param qc_thr An integer value.
-#' @param na.as An integer value or \code{NA}.
+#' @param na.as An integer value or `NA`.
 #'
-#' @return A numeric vector of length \code{x} with attributes \code{"varnames"}
-#'   and \code{"units"}.
+#' @return A numeric vector of length `x` with attributes `"varnames"`
+#'   and `"units"`.
 #'
 #' @examples
 #' set.seed(215)

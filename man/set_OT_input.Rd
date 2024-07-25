@@ -16,11 +16,11 @@ set_OT_input(
 )
 }
 \arguments{
-\item{x}{A data frame with column names and \code{"timestamp"} column in
-POSIXt format.}
+\item{x}{A data frame with column names and \code{"timestamp"} column in POSIXt
+format.}
 
-\item{names_in}{A character vector. Column names (variables) present in
-\code{x} that will be used as input.}
+\item{names_in}{A character vector. Column names (variables) present in \code{x}
+that will be used as input.}
 
 \item{names_out}{A character vector. Column names required by the tools for
 respective \code{names_in}.}
@@ -36,57 +36,46 @@ using qcTau flags. See details.}
 }
 \description{
 Creates input for gap-filling and flux partitioning tools implemented either
-offline in R (\code{REddyProc} package) or accessible online
-(\href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
-Tool}) from the data frame \code{x}.
+offline in R (\code{REddyProc} package) or accessible online (\href{https://bgc.iwww.mpg.de/5622399/REddyProc}{Online Tool}) from the data frame \code{x}.
 }
 \details{
-The data frame \code{x} is expected to have certain properties. It is
-required that it has column names and contains column named
-\code{"timestamp"} of class \code{"POSIXt"} with regular sequence of
-date-time values with (half-)hourly time interval. Any missing values in
-\code{"timestamp"} are not allowed. Thus, if no records exist for given
-date-time value, it still has to be included. It also has to contain column
-names specified by \code{names_in} (respective to \code{names_out}). Default
-vector of \code{names_out} represents a typical set of variables used in the
-processing tools but can be modified. Minimum requirement is for the data
-frame \code{x} to include timestamp and global radiation. Columns of data
-frame \code{x} ideally have assigned attributes \code{varnames} and
-\code{units}.
+The data frame \code{x} is expected to have certain properties. It is required
+that it has column names and contains column named \code{"timestamp"} of class
+\code{"POSIXt"} with regular sequence of date-time values with (half-)hourly time
+interval. Any missing values in \code{"timestamp"} are not allowed. Thus, if no
+records exist for given date-time value, it still has to be included. It also
+has to contain column names specified by \code{names_in} (respective to
+\code{names_out}). Default vector of \code{names_out} represents a typical set of
+variables used in the processing tools but can be modified. Minimum
+requirement is for the data frame \code{x} to include timestamp and global
+radiation. Columns of data frame \code{x} ideally have assigned attributes
+\code{varnames} and \code{units}.
 
 The typical variables (column names; i.e. \code{names_out}) expected by the
 processing tools (name; unit) are quality control of net ecosystem exchange
-(\code{"qcNEE"}; \code{"-"}), net ecosystem exchange (\code{"NEE"};
-\code{"umol m-2 s-1"}), quality control of latent heat (\code{"qcLE"};
-\code{"-"}), latent heat (\code{"LE"}; \code{"W m-2"}), quality control of
-sensible heat (\code{"qcH"}; \code{"-"}), sensible heat (\code{"H"}; \code{"W
-m-2"}), global radiation (\code{"Rg"}; \code{"W m-2"}), air temperature
-(\code{"Tair"}; \code{"degC"}), soil temperature (\code{"Tsoil"};
-\code{"degC"}), relative humidity (\code{"rH"}; \code{"\%"}), vapor pressure
-deficit(\code{"VPD"}; \code{"hPa"}), quality control of momentum flux
-(\code{"qcTau"}; \code{"-"}) and friction velocity (\code{"Ustar"}; \code{"m
-s-1"}). The unicode character for a greek letter micro (e.g. in NEE units) is
-not accepted by the processing tools, thus it is substituted by simple
-\code{"u"}. Check the processing tools
-\href{https://bgc.iwww.mpg.de/5622399/REddyProc}{documentation} for more
-details.
+(\code{"qcNEE"}; \code{"-"}), net ecosystem exchange (\code{"NEE"}; \code{"umol m-2 s-1"}),
+quality control of latent heat (\code{"qcLE"}; \code{"-"}), latent heat (\code{"LE"}; \code{"W m-2"}), quality control of sensible heat (\code{"qcH"}; \code{"-"}), sensible heat
+(\code{"H"}; \code{"W m-2"}), global radiation (\code{"Rg"}; \code{"W m-2"}), air temperature
+(\code{"Tair"}; \code{"degC"}), soil temperature (\code{"Tsoil"}; \code{"degC"}), relative
+humidity (\code{"rH"}; \code{"\%"}), vapor pressure deficit(\code{"VPD"}; \code{"hPa"}), quality
+control of momentum flux (\code{"qcTau"}; \code{"-"}) and friction velocity (\code{"Ustar"};
+\code{"m s-1"}). The unicode character for a greek letter micro (e.g. in NEE
+units) is not accepted by the processing tools, thus it is substituted by
+simple \code{"u"}. Check the processing tools
+\href{https://bgc.iwww.mpg.de/5622399/REddyProc}{documentation} for more details.
 
-\code{time_format} has two available options. \code{"YDH"} (default) extracts
-columns Year, DoY (Day of year) and Hour (decimal number) from the timestamp
-of \code{x}. It is less informative than \code{"YMDHM"} format but it is
-supported by all versions of both offline and online tools. \code{"YMDHM"}
-extracts columns Year, Month, Day, Hour, Minute. This format is not accepted
-by the current
-\href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
-Tool}.
+\code{time_format} has two available options. \code{"YDH"} (default) extracts columns
+Year, DoY (Day of year) and Hour (decimal number) from the timestamp of \code{x}.
+It is less informative than \code{"YMDHM"} format but it is supported by all
+versions of both offline and online tools. \code{"YMDHM"} extracts columns Year,
+Month, Day, Hour, Minute. This format is not accepted by the current \href{https://bgc.iwww.mpg.de/5624918/Input-Format}{Online Tool}.
 
 Fluxes are always filtered with respective quality control flags if provided.
 In case of \code{"qcTau"}, quality control is applied to friction velocity
-(\code{"Ustar"}). In case of \code{"NEE"}, it is filtered according to
-\code{"qcNEE"} flags and if \code{qcTau_filter = TRUE} also according to
-\code{"qcTau"} flags. This conservative approach will assure that NEE values
-that cannot be compared against friction velocity threshold (Ustar filtering)
-will be excluded.
+(\code{"Ustar"}). In case of \code{"NEE"}, it is filtered according to \code{"qcNEE"} flags
+and if \code{qcTau_filter = TRUE} also according to \code{"qcTau"} flags. This
+conservative approach will assure that NEE values that cannot be compared
+against friction velocity threshold (Ustar filtering) will be excluded.
 }
 \seealso{
 \code{\link{read_eddy}} and \code{\link{write_eddy}}.

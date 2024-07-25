@@ -1,20 +1,20 @@
 #' Set Range for Plotting
 #'
-#' \code{setRange} makes sure that the range extracted from \code{x} will be
+#' `setRange` makes sure that the range extracted from `x` will be
 #' valid for plotting.
 #'
-#' Set range for a given numeric vector \code{x} subsetted by a logical vector
-#' \code{filter}. If the subset contains any finite value, finite range of the
-#' \code{x} subset is returned. Else if \code{x} contains any finite value,
-#' finite range of \code{x} is returned. When no finite value can be found in
-#' \code{x}, range is set manually (default \code{man = c(0, 0)}).
+#' Set range for a given numeric vector `x` subsetted by a logical vector
+#' `filter`. If the subset contains any finite value, finite range of the
+#' `x` subset is returned. Else if `x` contains any finite value,
+#' finite range of `x` is returned. When no finite value can be found in
+#' `x`, range is set manually (default `man = c(0, 0)`).
 #'
-#' If \code{x} length is higher than \code{filter} length, \code{filter} will be
+#' If `x` length is higher than `filter` length, `filter` will be
 #' recycled.
 #'
 #' @param x A numeric vector.
 #' @param filter A logical vector that can be recycled if necessary to match the
-#'   length of \code{x}.
+#'   length of `x`.
 #' @param man A numeric vector of length 2.
 #'
 #' @seealso \code{\link{range}}.
@@ -63,84 +63,84 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' related variables in monthly and weekly intervals. Missing values, scales of
 #' axes and plotting regions are treated in an automated way.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column named \code{"timestamp"} of class
-#' \code{"POSIXt"} with regular sequence of date-time values, typically with
-#' (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
+#' The data frame `x` is expected to have certain properties. It is
+#' required that it contains column named `"timestamp"` of class
+#' `"POSIXt"` with regular sequence of date-time values, typically with
+#' (half-)hourly time interval. Any missing values in `"timestamp"` are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. Any other required columns (depends on the argument values and
-#' applied modules) will be automatically initialized with \code{NA} values. If
-#' present, column \code{"P"} is expected to contain precipitation.
+#' applied modules) will be automatically initialized with `NA` values. If
+#' present, column `"P"` is expected to contain precipitation.
 #'
-#' If \code{skip = "weekly"}, minimum requirements for \code{x} column names are
-#' \code{"timestamp"} and \code{flux}. If \code{skip = "none"} or
-#' \code{"monthly"}, respective names specified in 'Modules' (see below) are
+#' If `skip = "weekly"`, minimum requirements for `x` column names are
+#' `"timestamp"` and `flux`. If `skip = "none"` or
+#' `"monthly"`, respective names specified in 'Modules' (see below) are
 #' also required.
 #'
 #' Variable names for plot labels are extracted from required column names of
-#' \code{x}. Units are extracted from \code{x} if they are present as
-#' \code{units} attributes of required columns. If missing, \code{"-"} string is
+#' `x`. Units are extracted from `x` if they are present as
+#' `units` attributes of required columns. If missing, `"-"` string is
 #' used instead.
 #'
-#' Plotting is separated into two stages. Firstly, \code{flux} time-series data
+#' Plotting is separated into two stages. Firstly, `flux` time-series data
 #' are drawn in monthly intervals. Monthly plotting regions consist of four
 #' figures on top of each other representing separately four consecutive months.
-#' Secondly, if \code{skip = "none"} or \code{"monthly"}, \code{flux}
+#' Secondly, if `skip = "none"` or `"monthly"`, `flux`
 #' time-series data are drawn together with auxiliary data in weekly intervals.
 #' Weekly plotting regions are described in 'Modules' section (see below).
 #'
-#' @section Modules: Applies only if \code{skip = "none"} or \code{"monthly"}.
+#' @section Modules: Applies only if `skip = "none"` or `"monthly"`.
 #'   Plotting of auxiliary variables in weekly intervals is simplified by using
 #'   predefined modules. Their main purpose is to achieve well-arranged display
 #'   of auxiliary variables. Weekly plotting regions consist of two figures
 #'   representing separately two consecutive weeks. Each figure contains three
 #'   panels on top of each other. The middle panel always contains the values
-#'   from \code{flux} and, if present, \code{"P"} columns of \code{x}. Variables
-#'   used in the upper and lower panel can be changed by \code{panel_top} and
-#'   \code{panel_bottom}. These arguments specify the respective modules that
+#'   from `flux` and, if present, `"P"` columns of `x`. Variables
+#'   used in the upper and lower panel can be changed by `panel_top` and
+#'   `panel_bottom`. These arguments specify the respective modules that
 #'   will be loaded (can be the same) and thus also a certain set of required
-#'   column names of \code{x} (variables).
+#'   column names of `x` (variables).
 #'
-#'   Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
-#'   \code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires
-#'   \code{"VPD"} and \code{"Rn"} columns. \item H_err_var: requires
-#'   \code{"rand_err_H"} and \code{"ts_var"} columns. \item blue_red: requires
-#'   columns specified by \code{panel_top/bottom_vars}. \item violet_orange:
-#'   requires columns specified by \code{panel_top/bottom_vars}.}
+#'   Available modules are: \itemize{ \item T_light: requires `"Tair"`,
+#'   `"Tsoil"` and selected `light` columns. \item VPD_Rn: requires
+#'   `"VPD"` and `"Rn"` columns. \item H_err_var: requires
+#'   `"rand_err_H"` and `"ts_var"` columns. \item blue_red: requires
+#'   columns specified by `panel_top/bottom_vars`. \item violet_orange:
+#'   requires columns specified by `panel_top/bottom_vars`.}
 #'
 #'   Modules T_light, VPD_Rn and H_err_var have predefined color combinations
 #'   and variables. Modules blue_red and violet_orange provide more flexibility
 #'   as they only have predefined color combinations. Actual plotted variables
 #'   are selected by additional argument (see above).
 #'
-#' @section Quality Control: \code{qc_flag} and \code{test} relate to QC flags
-#'   available for the specified \code{flux}. Only QC scheme using QC flag range
+#' @section Quality Control: `qc_flag` and `test` relate to QC flags
+#'   available for the specified `flux`. Only QC scheme using QC flag range
 #'   0 - 2 is supported.
 #'
-#'   Flags specified by \code{qc_flag} separate corresponding flux values to two
-#'   groups. \emph{Used data} for flags 0 and 1 (black points) and
-#'   \emph{Excluded data} for flags 2 and \code{NA} (grey points). The y-axis
-#'   limits in the figures with \code{flux} values are based on \emph{Used data}
-#'   only. If \code{qc_flag = "none"}, all data are \emph{Used data}. The time
+#'   Flags specified by `qc_flag` separate corresponding flux values to two
+#'   groups. *Used data* for flags 0 and 1 (black points) and
+#'   *Excluded data* for flags 2 and `NA` (grey points). The y-axis
+#'   limits in the figures with `flux` values are based on *Used data*
+#'   only. If `qc_flag = "none"`, all data are *Used data*. The time
 #'   interval used for setting the range is one month both for monthly
 #'   (respective month) and weekly (month centered on the respective week)
-#'   plots. Additionally, maximum \code{ylim} range can be set for the figures
-#'   with \code{flux} values (e.g. in case of large outliers).
+#'   plots. Additionally, maximum `ylim` range can be set for the figures
+#'   with `flux` values (e.g. in case of large outliers).
 #'
-#'   In order to emphasize \code{flux} values with lower quality, \code{test}
+#'   In order to emphasize `flux` values with lower quality, `test`
 #'   can be specified. Values with QC flag = 1 have green center of the point.
-#'   Values with QC flag = 2 or \code{NA} have red center of the point.
+#'   Values with QC flag = 2 or `NA` have red center of the point.
 #'
-#'   NB: \code{flux} data with \code{NA} values are always \emph{Excluded data}
-#'   and cannot be emphasized (\code{NA} values are not drawn).
+#'   NB: `flux` data with `NA` values are always *Excluded data*
+#'   and cannot be emphasized (`NA` values are not drawn).
 #'
 #' @section Gap-filling and NEE separation: Gap-filled flux values can be
-#'   displayed using \code{flux_gf} as a line overlaying the \code{flux} values.
-#'   If \code{NEE_sep = TRUE}, columns \code{"Reco"} and \code{"GPP"} are
-#'   expected in \code{x}. \code{GPP_scor} allows to change the sign convention
+#'   displayed using `flux_gf` as a line overlaying the `flux` values.
+#'   If `NEE_sep = TRUE`, columns `"Reco"` and `"GPP"` are
+#'   expected in `x`. `GPP_scor` allows to change the sign convention
 #'   of GPP to minimize lines overlay during plotting. CO2 uptake in
-#'   \code{REddyProc} package is represented by positive GPP, thus, to optimize
-#'   plotting, \code{GPP_scor = TRUE} is taken as default.
+#'   `REddyProc` package is represented by positive GPP, thus, to optimize
+#'   plotting, `GPP_scor = TRUE` is taken as default.
 #'
 #' @section Abbreviations: \itemize{ \item H: Sensible heat flux \[W m-2\] \item
 #'   NEE: Net Ecosystem Exchange \[umol m-2 s-1\] \item GPP: Gross Primary
@@ -155,47 +155,47 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.
-#' @param flux A character string. Specifies the column name in \code{x} with
+#' @param flux A character string. Specifies the column name in `x` with
 #'   flux values.
-#' @param qc_flag A character string. Specifies the column name in \code{x} with
+#' @param qc_flag A character string. Specifies the column name in `x` with
 #'   flux related quality control flag used for visualisation of data quality
 #'   and setting of y-axis range. If "none" is provided, all data will be used.
 #'   See 'Quality Control'.
-#' @param test A character string. Specifies the column name in \code{x} with
+#' @param test A character string. Specifies the column name in `x` with
 #'   quality control flag for visualisation of its effect on the data. If "none"
 #'   is provided, no visualisation will be done. See 'Quality Control'.
-#' @param flux_gf A character string. Specifies the column name in \code{x} with
+#' @param flux_gf A character string. Specifies the column name in `x` with
 #'   gap-filled flux values.
 #' @param NEE_sep A logical value. Determines whether NEE separation should be
-#'   visualized. If \code{TRUE}, columns \code{"Reco"} and \code{"GPP"} are
-#'   expected in \code{x}.
+#'   visualized. If `TRUE`, columns `"Reco"` and `"GPP"` are
+#'   expected in `x`.
 #' @param skip A character string. Determines whether plotting should be done in
-#'   monthly (\code{skip = "weekly"}), weekly intervals (\code{skip =
-#'   "monthly"}) or both (\code{skip = "none"}).
-#' @param ylim A numeric vector of length two or \code{NULL}. If \code{NULL}
-#'   (default), the treatment of y-axis limits in the figures with \code{flux}
-#'   values is fully automated. Otherwise, \code{ylim} sets the maximum range of
+#'   monthly (`skip = "weekly"`), weekly intervals (`skip =
+#'   "monthly"`) or both (`skip = "none"`).
+#' @param ylim A numeric vector of length two or `NULL`. If `NULL`
+#'   (default), the treatment of y-axis limits in the figures with `flux`
+#'   values is fully automated. Otherwise, `ylim` sets the maximum range of
 #'   automatically computed y-axis limits. See 'Quality Control'.
 #' @param panel_top A character string. Selects one of the available modules for
 #'   plotting additional variables. This module is displayed above the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
-#' @param panel_top_vars A character vector of length two or \code{NULL}.
-#'   Specifies two variables expected in \code{x} if \code{panel_top =
-#'   "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.
+#' @param panel_top_vars A character vector of length two or `NULL`.
+#'   Specifies two variables expected in `x` if `panel_top =
+#'   "blue_red"` or `"violet_orange"`, otherwise `NULL`.
 #' @param panel_bottom A character string. Selects one of the available modules
 #'   for plotting additional variables. This module is displayed below the panel
 #'   with fluxes in weekly plots. Can be abbreviated. See 'Modules'.
-#' @param panel_bottom_vars A character vector of length two or \code{NULL}.
-#'   Specifies two variables expected in \code{x} if \code{panel_bottom =
-#'   "blue_red"} or \code{"violet_orange"}, otherwise \code{NULL}.
-#' @param light A character string. Required only for the \code{"T_light"}
+#' @param panel_bottom_vars A character vector of length two or `NULL`.
+#'   Specifies two variables expected in `x` if `panel_bottom =
+#'   "blue_red"` or `"violet_orange"`, otherwise `NULL`.
+#' @param light A character string. Required only for the `"T_light"`
 #'   module. Selects preferred variable for incoming light intensity.
-#'   \code{"PAR"} or \code{"GR"} is allowed. Can be abbreviated.
+#'   `"PAR"` or `"GR"` is allowed. Can be abbreviated.
 #' @param GPP_scor A logical value. Should sign correction of GPP be performed?
 #'   See Gap-filling and NEE separation section in Details. Ignored if
-#'   \code{NEE_sep = FALSE}.
-#' @param document A logical value. If \code{TRUE}, values of \code{qc_flag} and
-#'   \code{test} arguments are documented in both monthly and weekly plots.
+#'   `NEE_sep = FALSE`.
+#' @param document A logical value. If `TRUE`, values of `qc_flag` and
+#'   `test` arguments are documented in both monthly and weekly plots.
 #'
 #' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
 #'
@@ -666,17 +666,17 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #' additional settings. Plots are optimized for quick rendering when saved as
 #' PDF files.
 #'
-#' \code{plot_precheck} allows to glimpse through the preliminary data with
-#' outlying data removed by defined \code{qrange}. If you do not want to limit
-#' y-axis, set \code{qrange = NULL} or \code{qrange = c(0, 1)} or use
-#' \code{plot_hh}.
+#' `plot_precheck` allows to glimpse through the preliminary data with
+#' outlying data removed by defined `qrange`. If you do not want to limit
+#' y-axis, set `qrange = NULL` or `qrange = c(0, 1)` or use
+#' `plot_hh`.
 #'
-#' \code{plot_hh} provides a glimpse at all available time series data for given
+#' `plot_hh` provides a glimpse at all available time series data for given
 #' variable.
 #'
-#' @param x A data frame with column names and \code{"timestamp"} column in
+#' @param x A data frame with column names and `"timestamp"` column in
 #'   POSIXt format.
-#' @param var A character string. An \code{x} column name of the variable to
+#' @param var A character string. An `x` column name of the variable to
 #'   plot on y-axis.
 #' @param qrange A numeric vector of length 2, giving the quantile range of
 #'   y-axis.
@@ -686,14 +686,14 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #'   symbols should be magnified relative to the default. See \code{\link{par}}
 #'   for details.
 #' @param alpha.f A numeric value. Factor modifying the color opacity alpha for
-#'   plotted points; typically in \code{[0,1]}.
-#' @param units A character string. One of the units listed: \code{c("secs",
-#'   "mins", "hours", "days", "months", "years")}. Can be abbreviated. Specifies
-#'   the rounding applied to first and last record in \code{"timestamp"} column
-#'   of \code{x} to produce sensible x-axis ticks and labels.
-#' @param interval An interval of the x-axis ticks. See \code{by} argument of
+#'   plotted points; typically in `[0,1]`.
+#' @param units A character string. One of the units listed: `c("secs",
+#'   "mins", "hours", "days", "months", "years")`. Can be abbreviated. Specifies
+#'   the rounding applied to first and last record in `"timestamp"` column
+#'   of `x` to produce sensible x-axis ticks and labels.
+#' @param interval An interval of the x-axis ticks. See `by` argument of
 #'   \code{\link{seq.POSIXt}} for details. Intervals are counted from the first
-#'   record in \code{"timestamp"} column of \code{x}.
+#'   record in `"timestamp"` column of `x`.
 #' @param format A character string defining the date-time information format at
 #'   x-axis.see \code{\link{strptime}}.
 #'
@@ -774,20 +774,20 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
 #' aggregation periods on x-axis.
 #'
 #' @param x A data frame with column names.
-#' @param var A character string. An \code{x} column name of the variable to
+#' @param var A character string. An `x` column name of the variable to
 #'   plot on y-axis.
-#' @param interval A character string. Specifies \code{xlab} timescale and does
+#' @param interval A character string. Specifies `xlab` timescale and does
 #'   not affect computations (e.g. "daily", "3-daily", "weekly", "monthly",
 #'   etc.).
-#' @param nTicks An integer. Number of x-axis ticks to plot. If \code{NULL},
-#'   maximum 20 ticks with corresponding \code{names.arg} will be plotted,
-#'   otherwise \code{nTicks} defaults to \code{8}. Specifying \code{nTicks}
+#' @param nTicks An integer. Number of x-axis ticks to plot. If `NULL`,
+#'   maximum 20 ticks with corresponding `names.arg` will be plotted,
+#'   otherwise `nTicks` defaults to `8`. Specifying `nTicks`
 #'   allows greater control over the x-axis ticks density.
 #' @param days A numeric vector. Number of days (or their fractions) aggregated
-#'   within each time interval described by \code{names.arg}. Used to specify
+#'   within each time interval described by `names.arg`. Used to specify
 #'   bar widths.
 #' @param names.arg A character vector. Names of each aggregation period
-#'   corresponding to \code{x$var} used as x-axis labels.
+#'   corresponding to `x$var` used as x-axis labels.
 #'
 #' @seealso \code{\link{barplot}}
 #'
@@ -842,27 +842,27 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' amount of intervals along x-axis. Each interval contains comparable amount of
 #' data points, thus can have unequal width.
 #'
-#' \code{circular = TRUE} effectively sets the last interval as neighboring to
+#' `circular = TRUE` effectively sets the last interval as neighboring to
 #' the first interval. This allows to interpolate the statistics also for the
 #' edge cases.
 #'
-#' \code{qrange} reduces y-axis limits to reduce the impact of outliers on plot
+#' `qrange` reduces y-axis limits to reduce the impact of outliers on plot
 #' readability. It does not affect computed statistics. If you do not want to
-#' limit y-axis, set \code{qrange = NULL} or \code{qrange = c(0, 1)}.
+#' limit y-axis, set `qrange = NULL` or `qrange = c(0, 1)`.
 #'
 #' @param data A data frame with required timestamp column
-#'   (\code{data$timestamp}) of class \code{"POSIXt"}.
-#' @param x,y A character string. A \code{data} column name of the variable to
+#'   (`data$timestamp`) of class `"POSIXt"`.
+#' @param x,y A character string. A `data` column name of the variable to
 #'   plot on x-axis (y-axis).
-#' @param breaks An integer. Number of breakpoints separating variable \code{x}
-#'   to \code{breaks - 1} intervals.
-#' @param circular A logical value. Is \code{x} a circular variable?
-#' @param ylim Either \code{NULL}, \code{"band"} or a numeric vector of length
-#'   2. If \code{NULL} (default), y-axis limits are taken from the original
-#'   data, potentially modified by \code{qrange}. If \code{"band"}, y-axis
+#' @param breaks An integer. Number of breakpoints separating variable `x`
+#'   to `breaks - 1` intervals.
+#' @param circular A logical value. Is `x` a circular variable?
+#' @param ylim Either `NULL`, `"band"` or a numeric vector of length
+#'   2. If `NULL` (default), y-axis limits are taken from the original
+#'   data, potentially modified by `qrange`. If `"band"`, y-axis
 #'   limits are chosen to fit only the computed uncertainty band. If numeric
 #'   vector, manually specified limits are applied. In latter two cases
-#'   \code{qrange} is ignored.
+#'   `qrange` is ignored.
 #' @param qrange A numeric vector of length 2, giving the quantile range of
 #'   y-axis.
 #' @param center,deviation A character string. Statistics applied to each x-axis

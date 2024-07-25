@@ -64,7 +64,7 @@ records in a year.}
 }
 \value{
 A data frame with columns corresponding to year, space-time-equitable
-budget of original dataset (space_time_eq_orig), 5\\%, 50\\% and 95\\%
+budget of original dataset (space_time_eq_orig), 5\%, 50\% and 95\%
 quantiles of resampled datasets (space_time_eq_q05, space_time_eq_q50,
 space_time_eq_q95) and number of observations used for budget computation
 each year.
@@ -74,11 +74,11 @@ Yearly space-time-equitable budgets with uncertainty estimation.
 }
 \details{
 Data from individual years are separated to \code{nInt} number of bins (e.g.
-for \code{nInt = 8} that is \code{8x8 = 64} bins) as in the original Griebel
+for \code{nInt = 8} that is \verb{8x8 = 64} bins) as in the original Griebel
 et al. (2020) method. Each bin is then resampled \code{samples} amount of
 times with \code{\link{sample}} \code{size} according to the smallest amount
 of records across all bins. In addition to space-time-equitable budget of
-original dataset (space_time_eq_orig), 5\\%, 50\\% and 95\\% quantiles of
+original dataset (space_time_eq_orig), 5\%, 50\% and 95\% quantiles of
 resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
 are provided for uncertainty assessment.
 
@@ -118,7 +118,7 @@ adapted to sign convention applied in \code{REddyProc} package.
   Griebel, A., Metzen, D., Pendall, E., Burba, G., &
 Metzger, S. (2020). Generating spatially robust carbon budgets from flux
 tower observations. Geophysical Research Letters, 47, e2019GL085942.
-https://doi.org/10.1029/2019GL085942
+\url{https://doi.org/10.1029/2019GL085942}
 }
 
 \examples{

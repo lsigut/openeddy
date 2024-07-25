@@ -28,8 +28,7 @@ within the typical processing workflow employing
 
 If \code{attr = "names"}, correction is meant to arrive to syntactically
 valid names with a higher level of control. This assumes that the original
-names were preserved during data loading (e.g. by using \code{check.names =
-FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
+names were preserved during data loading (e.g. by using \code{check.names = FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
 literal strings are renamed as: \itemize{\item \code{"(z-d)/L"} by
 \code{"zeta"} \item \code{"qc_Tau"} by \code{"qc_Tau_SSITC"} \item
 \code{"qc_H"} by \code{"qc_H_SSITC"} \item \code{"qc_LE"} by

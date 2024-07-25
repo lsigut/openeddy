@@ -76,8 +76,7 @@ Duplicated column names within \code{x} elements are corrected using
 validated \code{"timestamp"} column that can be either automatically
 extracted from \code{x} or manually specified.
 
-For horizontal merging (adding columns instead of rows) \code{check_dupl =
-FALSE} must be set but simple \code{\link{merge}} could be preferred.
+For horizontal merging (adding columns instead of rows) \code{check_dupl = FALSE} must be set but simple \code{\link{merge}} could be preferred.
 Combination of vertical and horizontal merging should be avoided as it
 depends on the order of \code{x} elements and can lead to row duplication.
 Instead, data chunks from different data sources should be first separately

@@ -23,8 +23,7 @@ summary_QC(
 
 \item{qc_names}{A vector of names of data frame \code{x} columns to combine.}
 
-\item{cumul}{A logical value that determines if cumulative (\code{cumul =
-  TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
+\item{cumul}{A logical value that determines if cumulative (\code{cumul = TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
 flags should be shown.}
 
 \item{plot}{A logical value. If \code{TRUE}, the results are represented as a
@@ -70,8 +69,7 @@ form of table or plot.
 }
 \details{
 \code{summary_QC} loads a data frame \code{x}, extracts quality control (QC)
-columns from it based on \code{qc_names} and creates a table (\code{plot =
-FALSE}) or a plot (\code{plot = TRUE}) for these columns. Results are
+columns from it based on \code{qc_names} and creates a table (\code{plot = FALSE}) or a plot (\code{plot = TRUE}) for these columns. Results are
 displayed as percentages (\code{perc = TRUE}) or counts (\code{perc = FALSE})
 for given flag and QC filter.
 

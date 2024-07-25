@@ -56,7 +56,7 @@ to obtain robust statistics.}
 \item{z}{A numeric value. \eqn{MAD} scale factor.}
 
 \item{c}{A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-* \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).}
+* \link{mad} constant} (\verb{i.e. 3 * 1.4826 = 4.4478}).}
 }
 \value{
 If \code{plot = FALSE}, an integer vector with attributes

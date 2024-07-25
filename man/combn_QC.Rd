@@ -60,8 +60,7 @@ should \code{NA}s be interpreted.
 The quality checking results to combine must be provided as columns of a data
 frame \code{x}, optionally with any number of further columns that will be
 ignored. Columns specified by \code{qc_names} will be further separated
-according to their additivity. For flags with fixed effect (\code{additive =
-FALSE}; the most typical type), maximum is taken over each row. For flags
+according to their additivity. For flags with fixed effect (\code{additive = FALSE}; the most typical type), maximum is taken over each row. For flags
 with additive effect (\code{additive = TRUE}), sum is taken over each row. In
 case both types of flags are present, results for both groups are summed
 together.

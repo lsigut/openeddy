@@ -138,7 +138,7 @@ performed only for autodetected columns with appropriate suffixes (see
 further). Note that uncertainty products of \code{agg_fsd} and
 \code{agg_DT_SD} are reported as standard deviations (\code{SD}) and require
 further correction to represent uncertainty bounds for given confidence
-interval (e.g. \code{SD * 1.96} for 95\\% confidence level).
+interval (e.g. \code{SD * 1.96} for 95\% confidence level).
 
 The summarizations are done on a data frame \code{x} with required timestamp
 column (\code{x$timestamp}) of class \code{"POSIXt"}. With exception of
@@ -157,8 +157,7 @@ intervals.
 
 The formatting of the timestamp (original or after cutting) using
 \code{format} is another (preferable) way to change aggregation intervals.
-For example changing original \code{"POSIXt"} time format (\code{"\%Y-\%m-\%d
-\%H:\%M:\%S"}) to \code{"\%Y-\%m-\%d"}, \code{"\%W_\%y"}, \code{"\%m-\%y"} or
+For example changing original \code{"POSIXt"} time format (\code{"\%Y-\%m-\%d \%H:\%M:\%S"}) to \code{"\%Y-\%m-\%d"}, \code{"\%W_\%y"}, \code{"\%m-\%y"} or
 \code{"\%Y"} will result in daily, weekly, monthly or yearly aggregation
 intervals, respectively. Note that improper \code{format} can repress
 expected effect of \code{breaks}.
@@ -167,12 +166,12 @@ expected effect of \code{breaks}.
 suffixes in order to evaluate uncertainty correctly. These columns are a
 product of \code{REddyProc} package gap-filling and flux partitioning methods
 and are documented here:
-\url{https://www.bgc-jena.mpg.de/bgi/index.php/Services/REddyProcWebOutput}.
+\url{https://bgc.iwww.mpg.de/5624929/Output-Format}.
 Detailed description of uncertainty aggregation is available here:
 \url{https://github.com/bgctw/REddyProc/blob/master/vignettes/aggUncertainty.md}.
 
-\code{agg_fsd} requires columns with suffixes \code{_fall}, \code{_orig},
-\code{_fqc} and \code{_fsd} for each variable.
+\code{agg_fsd} requires columns with suffixes \verb{_fall}, \verb{_orig},
+\verb{_fqc} and \verb{_fsd} for each variable.
 
 \code{agg_DT_SD} requires corresponding columns with \code{\link{regexp}}
 patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
