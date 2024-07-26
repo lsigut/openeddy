@@ -21,10 +21,10 @@ extract_coded(
 \item{name_out_SA, name_out_GA, name_out_SAGA, name_out_ALL}{A character string.
 Name of the output column with QC related to SA, GA, SAGA or ALL.}
 
-\item{prefix}{Character string containing a \code{\link{regular expression}}
+\item{prefix}{Character string containing a \link{regular expression}
 identifying the prefix of coded values.}
 
-\item{split}{Character string containing a \code{\link{regular expression}}
+\item{split}{Character string containing a \link{regular expression}
 identifying the separator of variable names in \code{units} attribute.}
 
 \item{sf}{A logical value. Coded variable represents hard flag (\code{sf = FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.}
@@ -36,7 +36,7 @@ A data frame with relevant column names defined by
 \code{"units"} and length equal to that of \code{x}.
 }
 \description{
-This function is called by \code{\link{extract_QC}} and is not intended to be
+This function is called by \code{\link[=extract_QC]{extract_QC()}} and is not intended to be
 used directly. Coded QC information for one or multiple variables stored in a
 character vector of certain properties is extracted and interpreted.
 }
@@ -91,5 +91,5 @@ cbind(xx, extract_coded(xx))
 
 }
 \seealso{
-\code{\link{extract_QC}}.
+\code{\link[=extract_QC]{extract_QC()}}.
 }

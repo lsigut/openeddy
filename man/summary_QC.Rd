@@ -41,8 +41,7 @@ determining interpretation of missing flags in each respective column of
 \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
 used. If only one value is provided, all columns are treated the same way.}
 
-\item{na.as_0_pattern}{A character string. A \code{\link[=regexp]{regular
-  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+\item{na.as_0_pattern}{A character string. A \link[=regexp]{regular expression} \code{\link[=grep]{grep()}} \code{pattern} identifying \code{qc_names}
 for which \code{NA} flags are interpreted as zeros.}
 
 \item{additive}{\code{NULL} or a vector of logical values (\code{TRUE} or
@@ -53,8 +52,7 @@ Otherwise, values determine if the flags should be treated as additive
 only one value is provided, all columns are considered to be of the same
 type.}
 
-\item{additive_pattern}{A character string. A \code{\link[=regexp]{regular
-  expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+\item{additive_pattern}{A character string. A \link[=regexp]{regular expression} \code{\link[=grep]{grep()}} \code{pattern} identifying \code{qc_names}
 of flags with additive effect.}
 
 \item{no_messages}{A logical value.}
@@ -79,7 +77,7 @@ the results do depend on the order of qc_names. \code{additive} is considered
 only if \code{cumul = TRUE}, otherwise skipped.
 
 For a detailed description of automated recognition see
-\code{\link{combn_QC}}.
+\code{\link[=combn_QC]{combn_QC()}}.
 }
 \examples{
 set.seed(6)
@@ -101,5 +99,5 @@ xx + theme(text = element_text(size = 20))
 
 }
 \seealso{
-\code{\link{combn_QC}}, \code{\link{ggplot}}.
+\code{\link[=combn_QC]{combn_QC()}}, \code{\link[=ggplot]{ggplot()}}.
 }

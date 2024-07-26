@@ -20,7 +20,7 @@ merge_eddy(
 \code{units} for each column.}
 
 \item{start, end}{A value specifying the first (last) value of the generated
-date-time sequence. If \code{NULL}, \code{\link{min}} (\code{\link{max}})
+date-time sequence. If \code{NULL}, \code{\link[=min]{min()}} (\code{\link[=max]{max()}})
 is taken across the values in \code{"timestamp"} columns across \code{x}
 elements. If numeric, the value specifies the year for which the first
 (last) date-time value will be generated, considering given time
@@ -36,10 +36,10 @@ merging.}
 the generated date-time sequence.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
-provided as a character string.The default \code{\link[=strptime]{format}}
+provided as a character string.The default \link[=strptime]{format}
 is \code{"\%Y-\%m-\%d \%H:\%M"}.}
 
-\item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
+\item{tz}{A time zone (see \link{time zones}) specification to be used
 for the conversion of \code{start} (\code{end}) if provided as a character
 string.}
 }
@@ -63,20 +63,20 @@ values across \code{x} elements overlap, detected duplicated rows are removed
 elements). A special case when \code{x} has only one element allows to fill
 missing date-time values in \code{"timestamp"} column of given data frame.
 Storage mode of \code{"timestamp"} column is set to be integer instead
-of double. This simplifies application of \code{\link{round_df}} but could
+of double. This simplifies application of \code{\link[=round_df]{round_df()}} but could
 lead to unexpected behavior if the date-time information is expected to
 resolve fractional seconds.
 
 The list of data frames, each with column \code{"timestamp"}, is sequentially
-\code{\link{merge}}d using \code{\link{Reduce}}. A \emph{(full) outer join},
+\code{\link[=merge]{merge()}}d using \code{\link[=Reduce]{Reduce()}}. A \emph{(full) outer join},
 i.e. \code{merge(..., all = TRUE)}, is performed to keep all columns of
 \code{x} elements. The order of \code{x} elements can affect the result.
 Duplicated column names within \code{x} elements are corrected using
-\code{\link{make.unique}}. The merged data frame is then merged on the
+\code{\link[=make.unique]{make.unique()}}. The merged data frame is then merged on the
 validated \code{"timestamp"} column that can be either automatically
 extracted from \code{x} or manually specified.
 
-For horizontal merging (adding columns instead of rows) \code{check_dupl = FALSE} must be set but simple \code{\link{merge}} could be preferred.
+For horizontal merging (adding columns instead of rows) \code{check_dupl = FALSE} must be set but simple \code{\link[=merge]{merge()}} could be preferred.
 Combination of vertical and horizontal merging should be avoided as it
 depends on the order of \code{x} elements and can lead to row duplication.
 Instead, data chunks from different data sources should be first separately
@@ -109,6 +109,6 @@ z <- merge_eddy(list(y1, z1))
 
 }
 \seealso{
-\code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
-\code{\link{time zones}}, \code{\link{make.unique}}
+\code{\link[=merge]{merge()}}, \code{\link[=Reduce]{Reduce()}}, \code{\link[=strptime]{strptime()}},
+\link{time zones}, \code{\link[=make.unique]{make.unique()}}
 }

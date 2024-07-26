@@ -249,5 +249,5 @@ plot_eddy(a[1], "my_var", skip = "monthly")
 
 }
 \seealso{
-\code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
+\code{\link[=read_eddy]{read_eddy()}} and \code{\link[=strptime_eddy]{strptime_eddy()}}.
 }

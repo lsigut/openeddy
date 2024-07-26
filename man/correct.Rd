@@ -13,7 +13,7 @@ correct(x, attr = c("names", "units"), ...)
 vector \code{x} to correct. Can be abbreviated.}
 
 \item{...}{Further arguments to be passed to the internal
-\code{\link{make.names}} function.}
+\code{\link[=make.names]{make.names()}} function.}
 }
 \value{
 A corrected character vector.
@@ -24,11 +24,11 @@ Substitute given characters or strings by their alternatives.
 \details{
 The function is intended to simplify the use of variable names and units
 within the typical processing workflow employing
-\code{\link[openeddy]{openeddy}}.
+\link{openeddy}.
 
 If \code{attr = "names"}, correction is meant to arrive to syntactically
 valid names with a higher level of control. This assumes that the original
-names were preserved during data loading (e.g. by using \code{check.names = FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
+names were preserved during data loading (e.g. by using \code{check.names = FALSE} in \code{\link[=read_eddy]{read_eddy()}} or \code{\link[=read.table]{read.table()}}). Specifically,
 literal strings are renamed as: \itemize{\item \code{"(z-d)/L"} by
 \code{"zeta"} \item \code{"qc_Tau"} by \code{"qc_Tau_SSITC"} \item
 \code{"qc_H"} by \code{"qc_H_SSITC"} \item \code{"qc_LE"} by
@@ -49,5 +49,5 @@ correct(c("[m]", "(s)", "kg"), attr = "units")
 
 }
 \seealso{
-\code{\link{make.names}}.
+\code{\link[=make.names]{make.names()}}.
 }

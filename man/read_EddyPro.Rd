@@ -20,8 +20,8 @@ read_EddyPro(
 than CSV files are ignored.}
 
 \item{start, end}{A value specifying the first (last) value of the column
-"timestamp" in outputted data frame. If \code{NULL}, \code{\link{min}}
-(\code{\link{max}}) of date-time values from "timestamp" column across all
+"timestamp" in outputted data frame. If \code{NULL}, \code{\link[=min]{min()}}
+(\code{\link[=max]{max()}}) of date-time values from "timestamp" column across all
 input files is used. If numeric, the value specifies the year for which the
 first (last) date-time value will be generated, considering given time
 interval (automatically detected from "timestamp" column) and convention of
@@ -34,7 +34,7 @@ reading data.}
 
 \item{fileEncoding}{A character string. If non-empty, declares the encoding
 used on a file (not a connection) so the character data can be re-encoded.
-See \code{\link{read.table}} for further details.}
+See \code{\link[=read.table]{read.table()}} for further details.}
 
 \item{format}{A character string. Format of \code{start} (\code{end}) if
 provided as a character string.}

@@ -76,7 +76,7 @@ Yearly space-time-equitable budgets with uncertainty estimation.
 Data from individual years are separated to \code{nInt} number of bins (e.g.
 for \code{nInt = 8} that is \verb{8x8 = 64} bins) as in the original Griebel
 et al. (2020) method. Each bin is then resampled \code{samples} amount of
-times with \code{\link{sample}} \code{size} according to the smallest amount
+times with \code{\link[=sample]{sample()}} \code{size} according to the smallest amount
 of records across all bins. In addition to space-time-equitable budget of
 original dataset (space_time_eq_orig), 5\%, 50\% and 95\% quantiles of
 resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
@@ -152,5 +152,5 @@ spti_boot(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 
 }
 \seealso{
-\code{\link{Griebel20_budgets}} and \code{\link{spti_coverage}}.
+\code{\link[=Griebel20_budgets]{Griebel20_budgets()}} and \code{\link[=spti_coverage]{spti_coverage()}}.
 }

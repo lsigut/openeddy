@@ -78,5 +78,5 @@ conservative approach will assure that NEE values that cannot be compared
 against friction velocity threshold (Ustar filtering) will be excluded.
 }
 \seealso{
-\code{\link{read_eddy}} and \code{\link{write_eddy}}.
+\code{\link[=read_eddy]{read_eddy()}} and \code{\link[=write_eddy]{write_eddy()}}.
 }

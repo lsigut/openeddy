@@ -17,7 +17,7 @@
 #'   length of `x`.
 #' @param man A numeric vector of length 2.
 #'
-#' @seealso \code{\link{range}}.
+#' @seealso [range()].
 #'
 #' @examples
 #' \dontrun{
@@ -197,7 +197,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @param document A logical value. If `TRUE`, values of `qc_flag` and
 #'   `test` arguments are documented in both monthly and weekly plots.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{strptime_eddy}}.
+#' @seealso [read_eddy()] and [strptime_eddy()].
 #'
 #' @examples
 #' # prepare mock data
@@ -681,9 +681,9 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #' @param qrange A numeric vector of length 2, giving the quantile range of
 #'   y-axis.
 #' @param pch Either an integer specifying a symbol or a single character to be
-#'   used as the default in plotting points. See \code{\link{par}} for details.
+#'   used as the default in plotting points. See [par()] for details.
 #' @param cex A numerical value giving the amount by which plotting text and
-#'   symbols should be magnified relative to the default. See \code{\link{par}}
+#'   symbols should be magnified relative to the default. See [par()]
 #'   for details.
 #' @param alpha.f A numeric value. Factor modifying the color opacity alpha for
 #'   plotted points; typically in `[0,1]`.
@@ -692,10 +692,10 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #'   the rounding applied to first and last record in `"timestamp"` column
 #'   of `x` to produce sensible x-axis ticks and labels.
 #' @param interval An interval of the x-axis ticks. See `by` argument of
-#'   \code{\link{seq.POSIXt}} for details. Intervals are counted from the first
+#'   [seq.POSIXt()] for details. Intervals are counted from the first
 #'   record in `"timestamp"` column of `x`.
 #' @param format A character string defining the date-time information format at
-#'   x-axis.see \code{\link{strptime}}.
+#'   x-axis.see [strptime()].
 #'
 #' @examples
 #' set.seed(123)
@@ -789,7 +789,7 @@ plot_hh <- function(x, var, pch = ".", cex = 1, alpha.f = 1, units = "months",
 #' @param names.arg A character vector. Names of each aggregation period
 #'   corresponding to `x$var` used as x-axis labels.
 #'
-#' @seealso \code{\link{barplot}}
+#' @seealso [barplot()]
 #'
 #' @examples
 #' set.seed(123)
@@ -870,10 +870,10 @@ barplot_agg <- function(x, var, interval = NULL, nTicks = NULL, days = x$days,
 #' @param header A logical value. Should automated plot title and subtitle be
 #'   included?
 #'
-#' @seealso \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
-#'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
-#'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
-#'   \code{\link{varnames}}
+#' @seealso [aggregate()], [as.POSIXlt()],
+#'   [cut.POSIXt()], [mean()], [regexp],
+#'   [strftime()], [sum()], [time zones],
+#'   [varnames()]
 #'
 #' @examples
 #' set.seed(123)

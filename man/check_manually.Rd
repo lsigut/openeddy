@@ -28,10 +28,10 @@ saved.}
 \item{vars}{A character vector, matrix or data frame providing names of
 variables in data frame \code{x} that will be inspected. If character
 vector, each value is iteratively used as argument \code{x} in
-\code{\link{exclude}}. If matrix or data frame, first, second and third
+\code{\link[=exclude]{exclude()}}. If matrix or data frame, first, second and third
 column are respectively interpreted as arguments \code{x} (quality checked
 variable), \code{y} and \code{z} (auxiliary variables) in
-\code{\link{exclude}} and used iteratively across rows. If auxiliary
+\code{\link[=exclude]{exclude()}} and used iteratively across rows. If auxiliary
 variables are not needed for certain combinations (\code{vars} rows),
 provide \code{NA} values.}
 
@@ -70,7 +70,7 @@ If \code{interactive = FALSE}, and no file in \code{path} with pattern
 \code{"manual_QC"}, \code{NULL} is returned.
 }
 \description{
-A wrapper for \code{\link{exclude}} that allows visual inspection of selected
+A wrapper for \code{\link[=exclude]{exclude()}} that allows visual inspection of selected
 variables in a data frame and manual flagging of values to be discarded.
 Saving and reloading of results is supported.
 }
@@ -81,7 +81,7 @@ merged with date-time information in \code{x} if not identical and quality
 control is combined with the new flags marked by user (flag 2 marks data
 exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
 \code{path} is also used for saving file (\code{"manual_QC"} pattern) with
-results. Actual flagging allows to run \code{\link{exclude}} over all
+results. Actual flagging allows to run \code{\link[=exclude]{exclude()}} over all
 \code{vars}. Each variable is required to have associated quality control
 column in format \code{qc_prefix+vars+qc_suffix}.
 
@@ -162,6 +162,6 @@ man <- check_manually(a,
 
 }
 \seealso{
-\code{\link{exclude}}, \code{\link{locator}},
-\code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
+\code{\link[=exclude]{exclude()}}, \code{\link[=locator]{locator()}},
+\code{\link[=combn_QC]{combn_QC()}}, \code{\link[=strptime_eddy]{strptime_eddy()}}, \code{\link[=merge]{merge()}}.
 }

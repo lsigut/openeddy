@@ -56,7 +56,7 @@ agg_DT_SD(
 class \code{"POSIXt"}.}
 
 \item{format}{A character string specifying \code{x$timestamp} formatting for
-aggregation through internal \code{\link{strftime}} function.}
+aggregation through internal \code{\link[=strftime]{strftime()}} function.}
 
 \item{breaks}{A vector of cut points or number giving the number of intervals
 which \code{x$timestamp} is to be cut into or an interval specification,
@@ -70,13 +70,13 @@ the generated date-time sequence. If \code{NULL}, \code{interval}
 autodetection is attempted.}
 
 \item{tz}{A character string specifying the time zone to be used for the
-conversion. System-specific (see \code{\link{as.POSIXlt}} or
-\code{\link{timezones}}), but \code{""} is the current time zone, and
+conversion. System-specific (see \code{\link[=as.POSIXlt]{as.POSIXlt()}} or
+\link{time zones}), but \code{""} is the current time zone, and
 \code{"GMT"} is UTC. Invalid values are most commonly treated as UTC, on
 some platforms with a warning.}
 
 \item{...}{Further arguments to be passed to the internal
-\code{\link{aggregate}} function.}
+\code{\link[=aggregate]{aggregate()}} function.}
 
 \item{fun}{Either a function or a non-empty character string naming the
 function to be called.}
@@ -148,7 +148,7 @@ due to time resolution estimation.
 Change of aggregation interval can be achieved through \code{breaks} and
 \code{format} arguments.
 
-The data frame \code{x} can be \link[=cut.POSIXt]{cut} to custom intervals
+The data frame \code{x} can be \link[=cut.POSIXt]{cut()} to custom intervals
 using argument \code{breaks}. Note that labels are constructed from the
 left-hand end of the intervals and converted to \code{"POSIXct"} class. This
 can be useful when aggregating e.g. half-hourly data over hourly
@@ -173,7 +173,7 @@ Detailed description of uncertainty aggregation is available here:
 \code{agg_fsd} requires columns with suffixes \verb{_fall}, \verb{_orig},
 \verb{_fqc} and \verb{_fsd} for each variable.
 
-\code{agg_DT_SD} requires corresponding columns with \code{\link{regexp}}
+\code{agg_DT_SD} requires corresponding columns with \link{regexp}
 patterns \code{"^NEE_.*_orig$"}, \code{"^NEE_.*_fqc$"}, \code{"^Reco_DT_"},
 \code{"^GPP_DT_"}, \code{"^Reco_DT_.*_SD$"} and \code{"^GPP_DT_.*_SD$"}.
 }
@@ -293,8 +293,8 @@ lapply(unc_DT, openeddy::units, names = TRUE)
 
 }
 \seealso{
-\code{\link{aggregate}}, \code{\link{as.POSIXlt}},
-\code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
-\code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
-\code{\link{varnames}}
+\code{\link[=aggregate]{aggregate()}}, \code{\link[=as.POSIXlt]{as.POSIXlt()}},
+\code{\link[=cut.POSIXt]{cut.POSIXt()}}, \code{\link[=mean]{mean()}}, \link{regexp},
+\code{\link[=strftime]{strftime()}}, \code{\link[=sum]{sum()}}, \link{time zones},
+\code{\link[=varnames]{varnames()}}
 }

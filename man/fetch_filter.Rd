@@ -58,5 +58,5 @@ fetch_filter(xx, "x_70perc", "WD", 300, "qc_ALL_fetch70")
 
 }
 \seealso{
-\code{\link{combn_QC}} and \code{\link{extract_QC}}.
+\code{\link[=combn_QC]{combn_QC()}} and \code{\link[=extract_QC]{extract_QC()}}.
 }

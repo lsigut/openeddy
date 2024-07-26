@@ -9,7 +9,7 @@ round_df(x, digits = 6)
 \arguments{
 \item{x}{A data frame.}
 
-\item{digits}{An integer. See \code{\link{signif}} for details.}
+\item{digits}{An integer. See \code{\link[=signif]{signif()}} for details.}
 }
 \value{
 A data frame with \code{varnames} and \code{units} attributes.
@@ -19,9 +19,9 @@ Round the columns of numeric mode type double to specified (default = 6)
 significant digits.
 }
 \details{
-Actual \code{\link{signif}} function is used for rounding. Note that other
+Actual \code{\link[=signif]{signif()}} function is used for rounding. Note that other
 classes might be internally stored as numeric types. Particularly
-\code{\link{POSIXct}} class is by default stored as integer (rounding does
+\code{\link[=POSIXct]{POSIXct()}} class is by default stored as integer (rounding does
 not apply) but in case of adding (subtracting) double or if displaying
 fractional seconds, such date-time information will be internally converted
 to the type double (rounding applies). See examples.

@@ -39,10 +39,10 @@ plot on y-axis.}
 y-axis.}
 
 \item{pch}{Either an integer specifying a symbol or a single character to be
-used as the default in plotting points. See \code{\link{par}} for details.}
+used as the default in plotting points. See \code{\link[=par]{par()}} for details.}
 
 \item{cex}{A numerical value giving the amount by which plotting text and
-symbols should be magnified relative to the default. See \code{\link{par}}
+symbols should be magnified relative to the default. See \code{\link[=par]{par()}}
 for details.}
 
 \item{alpha.f}{A numeric value. Factor modifying the color opacity alpha for
@@ -53,11 +53,11 @@ the rounding applied to first and last record in \code{"timestamp"} column
 of \code{x} to produce sensible x-axis ticks and labels.}
 
 \item{interval}{An interval of the x-axis ticks. See \code{by} argument of
-\code{\link{seq.POSIXt}} for details. Intervals are counted from the first
+\code{\link[=seq.POSIXt]{seq.POSIXt()}} for details. Intervals are counted from the first
 record in \code{"timestamp"} column of \code{x}.}
 
 \item{format}{A character string defining the date-time information format at
-x-axis.see \code{\link{strptime}}.}
+x-axis.see \code{\link[=strptime]{strptime()}}.}
 }
 \description{
 Plot half-hourly time series data of selected variable as a scatter plot with

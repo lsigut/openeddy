@@ -58,5 +58,5 @@ units(yy) <- units
 str(yy)
 }
 \seealso{
-\code{\link{read_eddy}} and \code{\link{write_eddy}}.
+\code{\link[=read_eddy]{read_eddy()}} and \code{\link[=write_eddy]{write_eddy()}}.
 }

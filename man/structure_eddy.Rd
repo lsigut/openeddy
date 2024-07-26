@@ -47,5 +47,5 @@ xx$Input_for_GF
 
 }
 \seealso{
-\code{\link{file.path}}
+\code{\link[=file.path]{file.path()}}
 }

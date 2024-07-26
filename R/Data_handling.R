@@ -27,7 +27,7 @@
 #'   Corresponding directories are created as a function side effect if
 #'   `create_dirs = TRUE`.
 #'
-#' @seealso \code{\link{file.path}}
+#' @seealso [file.path()]
 #'
 #' @examples
 #' xx <- structure_eddy()
@@ -90,15 +90,15 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
 #' Round the columns of numeric mode type double to specified (default = 6)
 #' significant digits.
 #'
-#' Actual \code{\link{signif}} function is used for rounding. Note that other
+#' Actual [signif()] function is used for rounding. Note that other
 #' classes might be internally stored as numeric types. Particularly
-#' \code{\link{POSIXct}} class is by default stored as integer (rounding does
+#' [POSIXct()] class is by default stored as integer (rounding does
 #' not apply) but in case of adding (subtracting) double or if displaying
 #' fractional seconds, such date-time information will be internally converted
 #' to the type double (rounding applies). See examples.
 #'
 #' @param x A data frame.
-#' @param digits An integer. See \code{\link{signif}} for details.
+#' @param digits An integer. See [signif()] for details.
 #'
 #' @return A data frame with `varnames` and `units` attributes.
 #'
@@ -153,8 +153,8 @@ round_df <- function(x, digits = 6) {
 #'   `x` has named dimnames, it can be a character vector selecting
 #'   dimension names.
 #' @family NA handlers
-#' @seealso \code{\link{NA}} for general information about NAs and
-#'   \code{\link{apply}} for `apply` description.
+#' @seealso [NA] for general information about NAs and
+#'   [apply()] for `apply` description.
 #' @examples
 #' \dontrun{
 #' xx <- matrix(1:20, nrow = 4)
@@ -195,7 +195,7 @@ allNA <- function(x, margin) {
 #'   The length must be `1` if `x` is an atomic type or equal to
 #'   number of columns in `x` if `x` is a data frame.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#' @seealso [read_eddy()] and [write_eddy()].
 #'
 #' @examples
 #' xx <- data.frame(a = 1, b = 2, c = 3, d = 4)
@@ -321,12 +321,12 @@ units <- function(x, names = FALSE) {
 #' @param x An atomic type or a data frame. Object from which to extract
 #'   element(s).
 #' @param i,j Indices specifying elements to extract as specified in
-#'   \code{\link{Extract}}.
+#'   [Extract()].
 #' @param drop A logical value. If `TRUE` (default), the result is coerced
 #'   to the lowest possible dimension.
 #'
-#' @seealso \code{\link{Extract}}, \code{\link{drop}} and
-#'   \code{\link{varnames}}.
+#' @seealso [Extract()], [drop()] and
+#'   [varnames()].
 #'
 #' @examples
 #' xx <- data.frame(lengths = 1:3, areas = 4:6)
@@ -372,9 +372,9 @@ ex <- function(x, i, j, drop = TRUE) {
 #' units of measurement or space efficient metadata) are assigned to each
 #' column.
 #'
-#' `read_eddy` extends the possibilities of \code{\link{read.table}} so it
+#' `read_eddy` extends the possibilities of [read.table()] so it
 #' can also read units of measurement. However, it uses default arguments of
-#' \code{\link{read.csv}} to accomodate loading of data for the most common
+#' [read.csv()] to accomodate loading of data for the most common
 #' input type. `read_eddy` also sets useful defaults common for eddy
 #' covariance (*eddy*) data. Missing values are often reported as
 #' `"-9999.0"` or `"-9999"` by post-processing software, therefore
@@ -406,7 +406,7 @@ ex <- function(x, i, j, drop = TRUE) {
 #'
 #' @param file The file name with input data to be read. It can be a file name
 #'   inside the current working directory, *relative* or *absolute*
-#'   path or \code{\link{connection}}. See \code{\link{read.table}} for more
+#'   path or [connection]. See [read.table()] for more
 #'   detailed description. Connections to anonymous file or clipboard are not
 #'   allowed. To read from clipboard use `"clipboard"` string instead of
 #'   connection.
@@ -419,7 +419,7 @@ ex <- function(x, i, j, drop = TRUE) {
 #'   `FALSE`, the `units` attribute of each column will be set to
 #'   `units_fill` string representing missing values.
 #' @param sep A character that separates the fields of input. Default separator
-#'   for CSV files is `","`. See \code{\link{read.table}} for other
+#'   for CSV files is `","`. See [read.table()] for other
 #'   options.
 #' @param quote A character string that contains the quoting characters.
 #' @param dec A character that specifies decimal mark used in the input.
@@ -429,7 +429,7 @@ ex <- function(x, i, j, drop = TRUE) {
 #'   in the input file. Blank fields are also considered to be missing values in
 #'   logical, integer, numeric and complex fields.
 #' @param colClasses A character vector of classes to be assumed for the columns
-#'   and recycled as necessary. See \code{\link{read.table}} for more detailed
+#'   and recycled as necessary. See [read.table()] for more detailed
 #'   description.
 #' @param nrows An integer specifying the maximum number of rows to read in.
 #'   Negative and other invalid values are ignored.
@@ -445,10 +445,10 @@ ex <- function(x, i, j, drop = TRUE) {
 #'   an error message.
 #' @param ... Further arguments to be passed to the internal `read.table`
 #'   function
-#' @seealso \code{\link{read.table}} for information about further arguments
+#' @seealso [read.table()] for information about further arguments
 #'   passed to `read.table`.
 #'
-#'   \code{\link{write_eddy}} to save data frame with `units` attributes
+#'   [write_eddy()] to save data frame with `units` attributes
 #'   specified for each column.
 #' @examples
 #' ## Storing timestamp metadata (format) and unit of height.
@@ -546,7 +546,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' Conversion of Regular Date-time Sequence from Character
 #'
 #' Converts character vector to class `"POSIXct"` using
-#' \code{\link{strptime}} and validates the result. The input has to represent a
+#' [strptime()] and validates the result. The input has to represent a
 #' regular date-time sequence with given time interval. Additional attributes
 #' `varnames` and `units` are assigned to returned vector with fixed
 #' strings `"timestamp"` and `"-"`, respectively.
@@ -565,13 +565,13 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' corrected prior using `strptime_eddy`. It is expected that time series
 #' are continuous even if no valid measurements are available for given time
 #' interval. Therefore `interval` value is checked against the lagged
-#' differences (\code{\link{diff}}) applied to the converted date-time vector
+#' differences ([diff()]) applied to the converted date-time vector
 #' and returns an error message if mismatch is found. If `allow_gaps =
 #' TRUE`, date-time information does not have to be regular but time differences
 #' must be multiples of `interval`.
 #'
 #' The storage mode of returned POSIXct vector is forced to be integer instead
-#' of double. This simplifies application of \code{\link{round_df}} but could
+#' of double. This simplifies application of [round_df()] but could
 #' lead to unexpected behavior if the date-time information is expected to
 #' resolve fractional seconds. Similarly `as.integer` is applied to
 #' `shift.by` before it is added to the POSIXct vector to assure integer
@@ -588,17 +588,17 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' @param allow_gaps A logical value. If `TRUE`, date-time information does
 #'   not have to be regular but time differences must be multiples of
 #'   `interval`.
-#' @param tz A time zone (see \code{\link{time zones}}) specification to be used
+#' @param tz A time zone (see [time zones]) specification to be used
 #'   for the conversion.
 #' @param ... Further arguments to be passed from or to other methods.
-#' @seealso \code{\link{strptime}} provides the details about conversions
+#' @seealso [strptime()] provides the details about conversions
 #'   between date-time character representation and `"POSIXct"` or
 #'   `"POSIXlt"` classes. It also includes information about `format`
 #'   *conversion specification*.
 #'
-#'   \code{\link{DateTimeClasses}} further inform about the date-time classes.
+#'   [DateTimeClasses] further inform about the date-time classes.
 #'
-#'   See \code{\link{locales}} to query or set a locale.
+#'   See [locales] to query or set a locale.
 #' @examples
 #' xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 #' "01.01.2014  01:30:00", "01.01.2014  02:00:00")
@@ -652,7 +652,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #' Eddy Covariance Data Output
 #'
 #' Facilitates printing object `x` also with its units of measurement (or
-#' space efficient metadata) to a file or \code{\link{connection}}.
+#' space efficient metadata) to a file or [connection].
 #'
 #' `write_eddy` extends the possibilities of `write.table` so the
 #' units of measurement can also be written. However, it uses default arguments
@@ -670,7 +670,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #' data region. If the `varnames` or `units` attribute of given column
 #' is `NULL`, of length not equal to 1, or contains missing value or empty
 #' string, it is not considered meaningful. In that case the default column name
-#' produced by \code{\link{as.data.frame}} is used instead (considered only if
+#' produced by [as.data.frame()] is used instead (considered only if
 #' `x` is supplied as vector) and unit of measurement is substituted with
 #' `units_fill` string. `units_fill` can be an empty string.
 #'
@@ -680,9 +680,9 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #'
 #' @param x The object that will be written. It is a data frame with optional
 #'   attributes `units` and `varnames` assigned to each column.
-#'   Otherwise it is converted by \code{\link{as.data.frame}}.
+#'   Otherwise it is converted by [as.data.frame()].
 #' @param file Either a character string naming a file to write to or a
-#'   \code{\link{connection}} that is open for writing. `""` results in
+#'   [connection] that is open for writing. `""` results in
 #'   writing to the console.
 #' @param append A logical value. It is considered only if `file` is not a
 #'   `connection`. If `TRUE`, the output is written below the content
@@ -708,7 +708,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #'   to extract meaningful variable name from its attribute `varnames`. In
 #'   all cases, units extracted from `units` attribute of each column will
 #'   be written one line below column names with identical format. See the 'CSV
-#'   files' section in \code{\link{write.table}} for further explanation of
+#'   files' section in [write.table()] for further explanation of
 #'   `col.names = NA`.
 #' @param qmethod A character string. It determines the way how strings quoting
 #'   is performed in case of embedded double quote characters. The options are
@@ -716,11 +716,11 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #'   that doubles the quote character, or `"escape"` (`write.table`
 #'   default), that escapes it in C style by a backslash.
 #' @param ... Further arguments to be passed to the internal
-#'   \code{\link{write.table}} function.
-#' @seealso \code{\link{write.table}} for information about full list of allowed
+#'   [write.table()] function.
+#' @seealso [write.table()] for information about full list of allowed
 #'   arguments and their descriptions.
 #'
-#'   \code{\link{read_eddy}} to read data frame with `varnames` and
+#'   [read_eddy()] to read data frame with `varnames` and
 #'   `units` attributes specified for each column.
 #' @examples
 #' xx <- read_eddy(text =
@@ -800,12 +800,12 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #'
 #' The function is intended to simplify the use of variable names and units
 #' within the typical processing workflow employing
-#' \code{\link[openeddy]{openeddy}}.
+#' [openeddy::openeddy].
 #'
 #' If `attr = "names"`, correction is meant to arrive to syntactically
 #' valid names with a higher level of control. This assumes that the original
 #' names were preserved during data loading (e.g. by using `check.names =
-#' FALSE` in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
+#' FALSE` in [read_eddy()] or [read.table()]). Specifically,
 #' literal strings are renamed as: \itemize{\item `"(z-d)/L"` by
 #' `"zeta"` \item `"qc_Tau"` by `"qc_Tau_SSITC"` \item
 #' `"qc_H"` by `"qc_H_SSITC"` \item `"qc_LE"` by
@@ -823,11 +823,11 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' @param attr A character string identifying an attribute type a character
 #'   vector `x` to correct. Can be abbreviated.
 #' @param ... Further arguments to be passed to the internal
-#'   \code{\link{make.names}} function.
+#'   [make.names()] function.
 #'
 #' @return A corrected character vector.
 #'
-#' @seealso \code{\link{make.names}}.
+#' @seealso [make.names()].
 #'
 #' @examples
 #' correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
@@ -876,19 +876,19 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #' Exceptionally, value `0` can be used in case that the `NA` flag of
 #' the quality checking test/filter is an expected result and means that the
 #' half-hour was not checked by the given test/filter (e.g.
-#' \code{\link{despikeLF}}).
+#' [despikeLF()]).
 #'
 #' @section Automated recognition: Default values for `additive` and
 #'   `na.as` arguments are `FALSE` and `NA`, respectively. In
 #'   case that `additive_pattern` is found within `qc_names` (i.e.
 #'   `qc_names` ending with `"interdep"` or `"wresid"` pattern),
 #'   respective values of `additive` are changed to `TRUE`. This is
-#'   because \code{\link{interdep}} and wresid (see \code{\link{extract_QC}})
+#'   because [interdep()] and wresid (see [extract_QC()])
 #'   quality control checks are defined as additive within the current quality
 #'   control scheme. If `na.as_0_pattern` is detected within
 #'   `qc_names` (i.e. `qc_names` ending with `"spikesLF"`,
 #'   `"fetch70"` or `"man"` pattern), respective values of
-#'   `na.as` are changed to `0` (see \code{\link{despikeLF}}).
+#'   `na.as` are changed to `0` (see [despikeLF()]).
 #'
 #' @return An integer vector with attributes `varnames` and `units` is
 #'   produced. `varnames` value is set by `name_out` argument. Default
@@ -909,15 +909,15 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #'   determining interpretation of missing flags in each respective column of
 #'   `x` given by `qc_names`. If `NULL`, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
-#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} `pattern` identifying `qc_names`
+#' @param additive_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   of flags with additive effect.
-#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} `pattern` identifying `qc_names`
+#' @param na.as_0_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   for which `NA` flags are interpreted as zeros.
 #' @param no_messages A logical value.
 #'
-#' @seealso \code{\link{summary_QC}}.
+#' @seealso [summary_QC()].
 #'
 #' @examples
 #' set.seed(5)
@@ -1036,7 +1036,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' @return A vector with attributes `varnames` and `units` is
 #'   produced. `varnames` value is set by `name_out` argument.
 #'   `units` value is extracted from `flux` vector by
-#'   \code{\link{units}} or set to default `"-"`.
+#'   [units()] or set to default `"-"`.
 #'
 #' @param flux A numeric vector with flux values.
 #' @param name_out A character string providing `varnames` value of the
@@ -1046,7 +1046,7 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 #' @param stp A numeric vector with storage computed using
 #' profile measurement of CO2.
 #'
-#' @seealso \code{\link{units}}.
+#' @seealso [units()].
 #'
 #' @examples
 #' aa <- matrix(ncol = 3, nrow = 10, byrow = TRUE, c(-1, 1, 2),
@@ -1141,7 +1141,7 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #' @param qcTau_filter A logical value indicating whether NEE should be filtered
 #'   using qcTau flags. See details.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#' @seealso [read_eddy()] and [write_eddy()].
 #'
 #' @encoding UTF-8
 #' @export
@@ -1273,7 +1273,7 @@ set_OT_input <- function(x,
 #' only if `cumul = TRUE`, otherwise skipped.
 #'
 #' For a detailed description of automated recognition see
-#' \code{\link{combn_QC}}.
+#' [combn_QC()].
 #'
 #' @return A table or a ggplot object depending on the `plot` argument
 #'   value. If `length(qc_names) == 0`, `NULL` is returned instead.
@@ -1294,8 +1294,8 @@ set_OT_input <- function(x,
 #'   determining interpretation of missing flags in each respective column of
 #'   `x` given by `qc_names`. If `NULL`, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
-#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} `pattern` identifying `qc_names`
+#' @param na.as_0_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   for which `NA` flags are interpreted as zeros.
 #' @param additive `NULL` or a vector of logical values (`TRUE` or
 #'   `FALSE`) determining additivity of each respective column of `x`
@@ -1304,12 +1304,12 @@ set_OT_input <- function(x,
 #'   (`additive = TRUE`) or with fixed effect (`additive = FALSE`). If
 #'   only one value is provided, all columns are considered to be of the same
 #'   type.
-#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} `pattern` identifying `qc_names`
+#' @param additive_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   of flags with additive effect.
 #' @param no_messages A logical value.
 #'
-#' @seealso \code{\link{combn_QC}}, \code{\link{ggplot}}.
+#' @seealso [combn_QC()], [ggplot()].
 #'
 #' @examples
 #' set.seed(6)
@@ -1451,7 +1451,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' Remap Variables
 #'
 #' Extracts and renames specified columns of a data frame, computes mean in case
-#' of \code{\link{regular expression}} pattern matching multiple column names or
+#' of [regular expression] pattern matching multiple column names or
 #' initializes one if missing.
 #'
 #' New data frame is created based on `x` and specified `source`.
@@ -1477,7 +1477,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' be renamed or skipped if not present.
 #'
 #' If `regexp = TRUE`, multiple columns can match the `source` element
-#' \code{\link{regular expression}} pattern. In that case \code{\link{rowMeans}}
+#' [regular expression] pattern. In that case [rowMeans()]
 #' are produced and names of averaged columns kept as `varnames` attributes
 #' for traceability. Similarly, also quality control flags are averaged over
 #' available columns if `qc` is specified. Note that variable names need to
@@ -1486,7 +1486,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' can be used.
 #'
 #' `varnames` attribute is expected. If not automatically assigned to
-#' `x` through \code{\link{read_eddy}} when read from a file, they should
+#' `x` through [read_eddy()] when read from a file, they should
 #' be assigned before remapping to keep documentation (especially if multiple
 #' columns are combined to a single one).
 #'
@@ -1494,12 +1494,12 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' @param new A character vector of new column names for remapping.
 #' @param source A vector of `x` column names matching `new` to remap.
 #'   If `regexp = TRUE`, character vector containing
-#'   \code{\link[=regexp]{regular expression}}s.
+#'   [regular expression][regexp]s.
 #' @param regexp A logical value. If `FALSE` (the default), `source`
 #'   will be interpreted literally. If `TRUE`, `source` elements will
-#'   be used as \code{\link{grep}} `pattern`s.
-#' @param qc A character string. A \code{\link{regular expression}}
-#'   \code{\link{grep}} `pattern` identifying `x` column names that
+#'   be used as [grep()] `pattern`s.
+#' @param qc A character string. A [regular expression]
+#'   [grep()] `pattern` identifying `x` column names that
 #'   carry quality control information for respective `source`.
 #' @param na.rm A logical value indicating whether `NA` values should be
 #'   stripped before the computation proceeds. `na.rm` is used only if
@@ -1509,7 +1509,7 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' @return A data frame with attributes `varnames` and `units`
 #'   assigned to each respective column.
 #'
-#' @seealso \code{\link{varnames}}.
+#' @seealso [varnames()].
 #'
 #' @examples
 #' # Simulate soil temperature profile at different depths/positions
@@ -1666,21 +1666,21 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' elements). A special case when `x` has only one element allows to fill
 #' missing date-time values in `"timestamp"` column of given data frame.
 #' Storage mode of `"timestamp"` column is set to be integer instead
-#' of double. This simplifies application of \code{\link{round_df}} but could
+#' of double. This simplifies application of [round_df()] but could
 #' lead to unexpected behavior if the date-time information is expected to
 #' resolve fractional seconds.
 #'
 #' The list of data frames, each with column `"timestamp"`, is sequentially
-#' \code{\link{merge}}d using \code{\link{Reduce}}. A *(full) outer join*,
+#' [merge()]d using [Reduce()]. A *(full) outer join*,
 #' i.e. `merge(..., all = TRUE)`, is performed to keep all columns of
 #' `x` elements. The order of `x` elements can affect the result.
 #' Duplicated column names within `x` elements are corrected using
-#' \code{\link{make.unique}}. The merged data frame is then merged on the
+#' [make.unique()]. The merged data frame is then merged on the
 #' validated `"timestamp"` column that can be either automatically
 #' extracted from `x` or manually specified.
 #'
 #' For horizontal merging (adding columns instead of rows) `check_dupl =
-#' FALSE` must be set but simple \code{\link{merge}} could be preferred.
+#' FALSE` must be set but simple [merge()] could be preferred.
 #' Combination of vertical and horizontal merging should be avoided as it
 #' depends on the order of `x` elements and can lead to row duplication.
 #' Instead, data chunks from different data sources should be first separately
@@ -1690,7 +1690,7 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #'   `"POSIXt"`. Optionally with attributes `varnames` and
 #'   `units` for each column.
 #' @param start,end A value specifying the first (last) value of the generated
-#'   date-time sequence. If `NULL`, \code{\link{min}} (\code{\link{max}})
+#'   date-time sequence. If `NULL`, [min()] ([max()])
 #'   is taken across the values in `"timestamp"` columns across `x`
 #'   elements. If numeric, the value specifies the year for which the first
 #'   (last) date-time value will be generated, considering given time
@@ -1703,17 +1703,17 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' @param interval A numeric value specifying the time interval (in seconds) of
 #'   the generated date-time sequence.
 #' @param format A character string. Format of `start` (`end`) if
-#'   provided as a character string.The default \code{\link[=strptime]{format}}
+#'   provided as a character string.The default [format][strptime]
 #'   is `"%Y-%m-%d %H:%M"`.
-#' @param tz A time zone (see \code{\link{time zones}}) specification to be used
+#' @param tz A time zone (see [time zones]) specification to be used
 #'   for the conversion of `start` (`end`) if provided as a character
 #'   string.
 #'
 #' @return A data frame with attributes `varnames` and `units` for
 #'   each column, containing date-time information in column `"timestamp"`.
 #'
-#' @seealso \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
-#'   \code{\link{time zones}}, \code{\link{make.unique}}
+#' @seealso [merge()], [Reduce()], [strptime()],
+#'   [time zones], [make.unique()]
 #'
 #' @examples
 #' set.seed(123)
@@ -1921,7 +1921,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
 #'   MeteoDBS format. Other than CSV files are ignored.
 #' @param start,end A value specifying the first (last) value of the generated
 #'   date-time sequence in temporary column "timestamp". If `NULL`,
-#'   \code{\link{min}} (\code{\link{max}}) of date-time values from "date/time"
+#'   [min()] ([max()]) of date-time values from "date/time"
 #'   column across all files is used. If numeric, the value specifies the year
 #'   for which the first (last) date-time value will be generated, considering
 #'   given time interval (automatically detected from "date/time" column) and
@@ -2092,8 +2092,8 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #' @param path A string. The path to directory with EddyPro full output. Other
 #'   than CSV files are ignored.
 #' @param start,end A value specifying the first (last) value of the column
-#'   "timestamp" in outputted data frame. If `NULL`, \code{\link{min}}
-#'   (\code{\link{max}}) of date-time values from "timestamp" column across all
+#'   "timestamp" in outputted data frame. If `NULL`, [min()]
+#'   ([max()]) of date-time values from "timestamp" column across all
 #'   input files is used. If numeric, the value specifies the year for which the
 #'   first (last) date-time value will be generated, considering given time
 #'   interval (automatically detected from "timestamp" column) and convention of
@@ -2104,7 +2104,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #'   reading data.
 #' @param fileEncoding A character string. If non-empty, declares the encoding
 #'   used on a file (not a connection) so the character data can be re-encoded.
-#'   See \code{\link{read.table}} for further details.
+#'   See [read.table()] for further details.
 #' @param format A character string. Format of `start` (`end`) if
 #'   provided as a character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be

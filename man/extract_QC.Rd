@@ -33,53 +33,53 @@ extract_QC(
 \item{rotation}{A character string. Specifies the type of coordinate rotation
 applied. Allowed values are "double" and "planar fit". Can be abbreviated.}
 
-\item{prefix}{Character string containing a \code{\link{regular expression}}
-identifying the prefix of coded values. See '\code{\link{extract_coded}}'.}
+\item{prefix}{Character string containing a \link{regular expression}
+identifying the prefix of coded values. See \code{\link[=extract_coded]{extract_coded()}}.}
 
-\item{split}{Character string containing a \code{\link{regular expression}}
+\item{split}{Character string containing a \link{regular expression}
 identifying the separator of variable names in \code{units} attribute. See
-'\code{\link{extract_coded}}'.}
+\code{\link[=extract_coded]{extract_coded()}}.}
 
 \item{missfrac_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for fraction of missing high frequency data within averaging
-period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}} flags the
+period if \code{filters} include \code{"missfrac"}. \code{\link[=apply_thr]{apply_thr()}} flags the
 records higher than the given thresholds.}
 
 \item{scf_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for spectral correction factor if \code{filters} include \code{"scf"}.
-\code{\link{apply_thr}} flags the records higher than the given thresholds.}
+\code{\link[=apply_thr]{apply_thr()}} flags the records higher than the given thresholds.}
 
 \item{w_unrot_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for absolute value of unrotated \emph{w} if \code{filters} include
-\code{"wresid"} and \code{rotation = "double"}. \code{\link{apply_thr}} flags the
+\code{"wresid"} and \code{rotation = "double"}. \code{\link[=apply_thr]{apply_thr()}} flags the
 records higher than the given thresholds.}
 
 \item{w_rot_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for absolute value of rotated \emph{w} if \code{filters} include
-\code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}} flags the
+\code{"wresid"} and \code{rotation = "planar fit"}. \code{\link[=apply_thr]{apply_thr()}} flags the
 records higher than the given thresholds.}
 
 \item{lowcov_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for computed covariance if \code{filters} include \code{"lowcov"}.
-\code{\link{apply_thr}} flags the records between given thresholds.}
+\code{\link[=apply_thr]{apply_thr()}} flags the records between given thresholds.}
 
 \item{ts_var_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for sonic temperature variance if \code{filters} include \code{"var"}.
-\code{\link{apply_thr}} flags the records higher than the given thresholds.}
+\code{\link[=apply_thr]{apply_thr()}} flags the records higher than the given thresholds.}
 
 \item{RH_thr}{A numeric vector with 2 non-missing values. Represents
 thresholds for relative humidity if \code{filters} include \code{"humid"}.
-\code{\link{apply_thr}} flags the records higher than the given thresholds.}
+\code{\link[=apply_thr]{apply_thr()}} flags the records higher than the given thresholds.}
 
 \item{LI7200_signal_thr, LI7500_signal_thr}{A numeric vector with 2
 non-missing values. Represents thresholds for signal strength provided by
 LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or \code{"LI7500"}.
-\code{\link{apply_thr}} flags the records lower than the given thresholds.}
+\code{\link[=apply_thr]{apply_thr()}} flags the records lower than the given thresholds.}
 
 \item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in EddyPro
 column name) and hard (suffix \code{"_hf"} in EddyPro column name) flags
 extracted from EddyPro coded variables combined? See
-\code{\link{extract_coded}}.}
+\code{\link[=extract_coded]{extract_coded()}}.}
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and \code{"units"}.
@@ -93,13 +93,13 @@ The data frame \code{x} is expected to have certain properties. It is required
 that it contains column names according to considered QC filters. In the case
 of coded variables, attribute \code{units} containing the format of coded variable
 is required to extract the coded QC information. See
-\code{\link{extract_coded}}.
+\code{\link[=extract_coded]{extract_coded()}}.
 
 Extracted QC information can be relevant to fluxes measured by given
 instrument(s), specific flux or is applicable to all fluxes. See 'Naming
 Strategy' below. Results are reported according to the QC scheme using QC
 flag range 0 - 2. In cases when extracted variable is checked against
-thresholds, \code{\link{apply_thr}} is used to assign flag values.
+thresholds, \code{\link[=apply_thr]{apply_thr()}} is used to assign flag values.
 
 Check of missing data in averaging period (missfrac) takes into account
 number of valid records used for given averaging period. This number is
@@ -114,7 +114,7 @@ variables are not additive. \itemize{ \item spikesHF: check of
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high frequency data spike percentage} in averaging period against thresholds.
 HF in spikesHF means high frequency and distinguishes despiking done on raw
 data (spikesHF) from despiking done on low frequency data (spikesLF; see
-\code{\link{despikeLF}}). \item ampres: check of
+\code{\link[=despikeLF]{despikeLF()}}). \item ampres: check of
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude resolution} in the recorded data. \item dropout: check of
 \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
 i.e. situations when the time series stays for “too long” on a value that
@@ -140,7 +140,7 @@ period against thresholds (default is 10\%). \item scf: check of spectral
 correction factor against thresholds. \item wresid: check of mean unrotated
 \emph{w} (double rotation) or \emph{w} residual (planar fit) against
 thresholds. \item runs: check of runs with repeating values
-(see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
+(see \code{\link[=flag_runs]{flag_runs()}}). Flux values are rounded to 2 digits prior
 checking runs, except for Tau. \item lowcov:
 check of fluxes too close to zero (assuming issues during covariance
 computation) \item var: check of variances against thresholds. \item humid:
@@ -152,7 +152,7 @@ instrument).}
 
 \section{Content and Format of Columns}{
  \itemize{ \item For details
-concerning coded variables see \code{\link{extract_coded}}. \item
+concerning coded variables see \code{\link[=extract_coded]{extract_coded()}}. \item
 \code{"file_records"}: number of valid records found in the raw file \item
 \code{"used_records"}: number of valid records used at given averaging period.
 This number can also contain high frequency spikes that should be excluded.
@@ -293,5 +293,5 @@ extract_QC(y)
 
 }
 \seealso{
-\code{\link{extract_coded}} and \code{\link{apply_thr}}.
+\code{\link[=extract_coded]{extract_coded()}} and \code{\link[=apply_thr]{apply_thr()}}.
 }

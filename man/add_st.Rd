@@ -22,7 +22,7 @@ output.}
 A vector with attributes \code{varnames} and \code{units} is
 produced. \code{varnames} value is set by \code{name_out} argument.
 \code{units} value is extracted from \code{flux} vector by
-\code{\link{units}} or set to default \code{"-"}.
+\code{\link[=units]{units()}} or set to default \code{"-"}.
 }
 \description{
 Correction of matter or energy flux (\code{flux}) with storage computed using
@@ -46,5 +46,5 @@ lapply(aa, attributes)
 
 }
 \seealso{
-\code{\link{units}}.
+\code{\link[=units]{units()}}.
 }

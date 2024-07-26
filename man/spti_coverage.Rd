@@ -112,5 +112,5 @@ spti_coverage(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc", plot = TRUE)
 
 }
 \seealso{
-\code{\link{Griebel20_budgets}} and \code{\link{spti_boot}}.
+\code{\link[=Griebel20_budgets]{Griebel20_budgets()}} and \code{\link[=spti_boot]{spti_boot()}}.
 }

@@ -13,7 +13,7 @@ apply_thr(
 )
 }
 \arguments{
-\item{x}{A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.}
+\item{x}{A numeric atomic type with \code{NULL} \code{\link[=dim]{dim()}}ensions.}
 
 \item{thr}{A numeric vector of length two or list with two numeric vectors of
 length two. If vector, first (second) element provides lower (upper)
@@ -39,7 +39,7 @@ Values of \code{x} are checked against the specified thresholds to obtain
 their quality control (QC) flags.
 }
 \details{
-This function is called by \code{\link{extract_QC}} but can be useful on its
+This function is called by \code{\link[=extract_QC]{extract_QC()}} but can be useful on its
 own when filtering values of variable according to the 0 - 2 QC flag scheme.
 
 Obtained QC flags are assigned in the range 0 - 2 according to these rules:
@@ -124,5 +124,5 @@ zz
 str(zz)
 }
 \seealso{
-\code{\link{extract_QC}}.
+\code{\link[=extract_QC]{extract_QC()}}.
 }

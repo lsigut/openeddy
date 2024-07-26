@@ -38,7 +38,7 @@ as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.}
 
 \item{iter}{An integer value. Defines number of despiking iterations.}
 
-\item{plot}{A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+\item{plot}{A logical value. If \code{TRUE}, list of \code{\link[=ggplot]{ggplot()}}
 objects visualizing the spikes is also produced.}
 
 \item{light}{A character string. Selects preferred variable for incoming
@@ -55,8 +55,7 @@ to obtain robust statistics.}
 
 \item{z}{A numeric value. \eqn{MAD} scale factor.}
 
-\item{c}{A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-* \link{mad} constant} (\verb{i.e. 3 * 1.4826 = 4.4478}).}
+\item{c}{A numeric value. \code{\link[=mad]{mad()}} scale factor. Default is \verb{3 * [mad] constant} (\verb{i.e. 3 * 1.4826 = 4.4478}).}
 }
 \value{
 If \code{plot = FALSE}, an integer vector with attributes
@@ -77,7 +76,7 @@ double-differenced time series to identify outliers.
 Low Frequency Data Despiking is not an additive quality control (QC) test.
 \code{despikeLF} follows the QC scheme using QC flag range 0 - 2.
 \code{varnames} attribute of returned vector should be chosen to follow the
-'Naming Strategy' described in \code{\link{extract_QC}}, i.e. to be
+'Naming Strategy' described in \code{\link[=extract_QC]{extract_QC()}}, i.e. to be
 distinguished by suffix \code{"_spikesLF"}.
 
 The data frame \code{x} is expected to have certain properties. It is
@@ -122,7 +121,7 @@ absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i] < M[d]
 M[d]))}
 
 The algorithm tends to flag also values that are neighbours of spikes. To
-prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
+prevent false flagging, \code{\link[=median]{median()}} and \code{\link[=mad]{mad()}} of
 \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
 respectively) is computed. Values can be marked as spikes only if
 \deqn{var[i] > M[var] + (c * mad / 1.4826)} or \deqn{var[i] < M[var] - (c *
@@ -174,6 +173,6 @@ Springer, Berlin.
 }
 
 \seealso{
-\code{\link{combn_QC}}, \code{\link{extract_QC}},
-\code{\link{median}} and \code{\link{mad}}.
+\code{\link[=combn_QC]{combn_QC()}}, \code{\link[=extract_QC]{extract_QC()}},
+\code{\link[=median]{median()}} and \code{\link[=mad]{mad()}}.
 }

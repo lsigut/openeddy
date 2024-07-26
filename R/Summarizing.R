@@ -29,7 +29,7 @@
 #' Change of aggregation interval can be achieved through `breaks` and
 #' `format` arguments.
 #'
-#' The data frame `x` can be \link[=cut.POSIXt]{cut} to custom intervals
+#' The data frame `x` can be [cut()][cut.POSIXt] to custom intervals
 #' using argument `breaks`. Note that labels are constructed from the
 #' left-hand end of the intervals and converted to `"POSIXct"` class. This
 #' can be useful when aggregating e.g. half-hourly data over hourly
@@ -55,7 +55,7 @@
 #' `agg_fsd` requires columns with suffixes `_fall`, `_orig`,
 #' `_fqc` and `_fsd` for each variable.
 #'
-#' `agg_DT_SD` requires corresponding columns with \code{\link{regexp}}
+#' `agg_DT_SD` requires corresponding columns with [regexp]
 #' patterns `"^NEE_.*_orig$"`, `"^NEE_.*_fqc$"`, `"^Reco_DT_"`,
 #' `"^GPP_DT_"`, `"^Reco_DT_.*_SD$"` and `"^GPP_DT_.*_SD$"`.
 #'
@@ -99,7 +99,7 @@
 #' @param x A data frame with required timestamp column (`x$timestamp`) of
 #'   class `"POSIXt"`.
 #' @param format A character string specifying `x$timestamp` formatting for
-#'   aggregation through internal \code{\link{strftime}} function.
+#'   aggregation through internal [strftime()] function.
 #' @param breaks A vector of cut points or number giving the number of intervals
 #'   which `x$timestamp` is to be cut into or an interval specification,
 #'   one of `"sec"`, `"min"`, `"hour"`, `"day"`,
@@ -110,12 +110,12 @@
 #'   the generated date-time sequence. If `NULL`, `interval`
 #'   autodetection is attempted.
 #' @param tz A character string specifying the time zone to be used for the
-#'   conversion. System-specific (see \code{\link{as.POSIXlt}} or
-#'   \code{\link{timezones}}), but `""` is the current time zone, and
+#'   conversion. System-specific (see [as.POSIXlt()] or
+#'   [time zones]), but `""` is the current time zone, and
 #'   `"GMT"` is UTC. Invalid values are most commonly treated as UTC, on
 #'   some platforms with a warning.
 #' @param ... Further arguments to be passed to the internal
-#'   \code{\link{aggregate}} function.
+#'   [aggregate()] function.
 #' @param fun Either a function or a non-empty character string naming the
 #'   function to be called.
 #' @param agg_per A character string providing the time interval of aggregation
@@ -148,10 +148,10 @@
 #'   "days" providing fraction (or multiple) of days aggregated within each
 #'   period.
 #'
-#' @seealso \code{\link{aggregate}}, \code{\link{as.POSIXlt}},
-#'   \code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
-#'   \code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
-#'   \code{\link{varnames}}
+#' @seealso [aggregate()], [as.POSIXlt()],
+#'   [cut.POSIXt()], [mean()], [regexp],
+#'   [strftime()], [sum()], [time zones],
+#'   [varnames()]
 #'
 #' @examples
 #' \dontrun{
@@ -1201,7 +1201,7 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #'   budgets and number of observations used for budget computation each year.
 #'   Each column has assigned attributes varnames and units.
 #'
-#' @seealso \code{\link{spti_boot}} and \code{\link{spti_coverage}}.
+#' @seealso [spti_boot()] and [spti_coverage()].
 #'
 #' @examples
 #' \dontrun{
@@ -1332,7 +1332,7 @@ Griebel20_budgets <- function(df,
 #' Data from individual years are separated to `nInt` number of bins (e.g.
 #' for `nInt = 8` that is `8x8 = 64` bins) as in the original Griebel
 #' et al. (2020) method. Each bin is then resampled `samples` amount of
-#' times with \code{\link{sample}} `size` according to the smallest amount
+#' times with [sample()] `size` according to the smallest amount
 #' of records across all bins. In addition to space-time-equitable budget of
 #' original dataset (space_time_eq_orig), 5%, 50% and 95% quantiles of
 #' resampled datasets (space_time_eq_q05, space_time_eq_q50, space_time_eq_q95)
@@ -1409,7 +1409,7 @@ Griebel20_budgets <- function(df,
 #'   space_time_eq_q95) and number of observations used for budget computation
 #'   each year.
 #'
-#' @seealso \code{\link{Griebel20_budgets}} and \code{\link{spti_coverage}}.
+#' @seealso [Griebel20_budgets()] and [spti_coverage()].
 #'
 #' @examples
 #' \dontrun{
@@ -1675,7 +1675,7 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' @return If `plot = FALSE`, a data frame. If `plot = TRUE`, a named
 #'   list of `ggplot` objects.
 #'
-#' @seealso \code{\link{Griebel20_budgets}} and \code{\link{spti_boot}}.
+#' @seealso [Griebel20_budgets()] and [spti_boot()].
 #'
 #' @examples
 #' \dontrun{

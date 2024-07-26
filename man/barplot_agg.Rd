@@ -53,5 +53,5 @@ barplot_agg(aggd, var = "H_sum", "daily")
 
 }
 \seealso{
-\code{\link{barplot}}
+\code{\link[=barplot]{barplot()}}
 }

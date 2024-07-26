@@ -31,14 +31,14 @@ applied to the date-time information.}
 not have to be regular but time differences must be multiples of
 \code{interval}.}
 
-\item{tz}{A time zone (see \code{\link{time zones}}) specification to be used
+\item{tz}{A time zone (see \link{time zones}) specification to be used
 for the conversion.}
 
 \item{...}{Further arguments to be passed from or to other methods.}
 }
 \description{
 Converts character vector to class \code{"POSIXct"} using
-\code{\link{strptime}} and validates the result. The input has to represent a
+\code{\link[=strptime]{strptime()}} and validates the result. The input has to represent a
 regular date-time sequence with given time interval. Additional attributes
 \code{varnames} and \code{units} are assigned to returned vector with fixed
 strings \code{"timestamp"} and \code{"-"}, respectively.
@@ -58,12 +58,12 @@ In case that multiple formats are present in the timestamp, it has to be
 corrected prior using \code{strptime_eddy}. It is expected that time series
 are continuous even if no valid measurements are available for given time
 interval. Therefore \code{interval} value is checked against the lagged
-differences (\code{\link{diff}}) applied to the converted date-time vector
+differences (\code{\link[=diff]{diff()}}) applied to the converted date-time vector
 and returns an error message if mismatch is found. If \code{allow_gaps = TRUE}, date-time information does not have to be regular but time differences
 must be multiples of \code{interval}.
 
 The storage mode of returned POSIXct vector is forced to be integer instead
-of double. This simplifies application of \code{\link{round_df}} but could
+of double. This simplifies application of \code{\link[=round_df]{round_df()}} but could
 lead to unexpected behavior if the date-time information is expected to
 resolve fractional seconds. Similarly \code{as.integer} is applied to
 \code{shift.by} before it is added to the POSIXct vector to assure integer
@@ -93,12 +93,12 @@ strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)
 
 }
 \seealso{
-\code{\link{strptime}} provides the details about conversions
+\code{\link[=strptime]{strptime()}} provides the details about conversions
 between date-time character representation and \code{"POSIXct"} or
 \code{"POSIXlt"} classes. It also includes information about \code{format}
 \emph{conversion specification}.
 
-\code{\link{DateTimeClasses}} further inform about the date-time classes.
+\link{DateTimeClasses} further inform about the date-time classes.
 
-See \code{\link{locales}} to query or set a locale.
+See \link{locales} to query or set a locale.
 }

@@ -27,7 +27,7 @@ Interdependency of H, LE and NEE QC flags due to corrections/conversions.
 \details{
 Flux interdependency is an additive QC flag correction. Results follow the QC
 scheme using QC flag range 0 - 2. Returned data frame follows the 'Naming
-Strategy' described in \code{\link{extract_QC}}. Returned QC flags have QC
+Strategy' described in \code{\link[=extract_QC]{extract_QC()}}. Returned QC flags have QC
 suffix interdep.
 
 To convert buoyancy flux to sensible heat flux (SND or Schotanus correction),
@@ -57,5 +57,5 @@ Agric. For. Meteorol. 169, 122-135.
 }
 
 \seealso{
-\code{\link{combn_QC}} and \code{\link{extract_QC}}.
+\code{\link[=combn_QC]{combn_QC()}} and \code{\link[=extract_QC]{extract_QC()}}.
 }

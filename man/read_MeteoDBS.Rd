@@ -20,7 +20,7 @@ MeteoDBS format. Other than CSV files are ignored.}
 
 \item{start, end}{A value specifying the first (last) value of the generated
 date-time sequence in temporary column "timestamp". If \code{NULL},
-\code{\link{min}} (\code{\link{max}}) of date-time values from "date/time"
+\code{\link[=min]{min()}} (\code{\link[=max]{max()}}) of date-time values from "date/time"
 column across all files is used. If numeric, the value specifies the year
 for which the first (last) date-time value will be generated, considering
 given time interval (automatically detected from "date/time" column) and

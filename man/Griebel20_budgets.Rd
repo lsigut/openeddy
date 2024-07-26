@@ -145,5 +145,5 @@ Griebel20_budgets(filled, "DateTime", "WD", "NEE", "NEE_uStar_fqc")
 
 }
 \seealso{
-\code{\link{spti_boot}} and \code{\link{spti_coverage}}.
+\code{\link[=spti_boot]{spti_boot()}} and \code{\link[=spti_coverage]{spti_coverage()}}.
 }

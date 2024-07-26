@@ -73,8 +73,8 @@ ggplot_stats(x, x = "wd", y = "H", ylim = "band")
 
 }
 \seealso{
-\code{\link{aggregate}}, \code{\link{as.POSIXlt}},
-\code{\link{cut.POSIXt}}, \code{\link{mean}}, \code{\link{regexp}},
-\code{\link{strftime}}, \code{\link{sum}}, \code{\link{timezones}},
-\code{\link{varnames}}
+\code{\link[=aggregate]{aggregate()}}, \code{\link[=as.POSIXlt]{as.POSIXlt()}},
+\code{\link[=cut.POSIXt]{cut.POSIXt()}}, \code{\link[=mean]{mean()}}, \link{regexp},
+\code{\link[=strftime]{strftime()}}, \code{\link[=sum]{sum()}}, \link{time zones},
+\code{\link[=varnames]{varnames()}}
 }

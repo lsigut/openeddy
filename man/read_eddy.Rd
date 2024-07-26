@@ -25,7 +25,7 @@ read_eddy(
 \arguments{
 \item{file}{The file name with input data to be read. It can be a file name
 inside the current working directory, \emph{relative} or \emph{absolute}
-path or \code{\link{connection}}. See \code{\link{read.table}} for more
+path or \link{connection}. See \code{\link[=read.table]{read.table()}} for more
 detailed description. Connections to anonymous file or clipboard are not
 allowed. To read from clipboard use \code{"clipboard"} string instead of
 connection.}
@@ -41,7 +41,7 @@ variables are included one line above the data region in the input file. If
 \code{units_fill} string representing missing values.}
 
 \item{sep}{A character that separates the fields of input. Default separator
-for CSV files is \code{","}. See \code{\link{read.table}} for other
+for CSV files is \code{","}. See \code{\link[=read.table]{read.table()}} for other
 options.}
 
 \item{quote}{A character string that contains the quoting characters.}
@@ -56,7 +56,7 @@ in the input file. Blank fields are also considered to be missing values in
 logical, integer, numeric and complex fields.}
 
 \item{colClasses}{A character vector of classes to be assumed for the columns
-and recycled as necessary. See \code{\link{read.table}} for more detailed
+and recycled as necessary. See \code{\link[=read.table]{read.table()}} for more detailed
 description.}
 
 \item{nrows}{An integer specifying the maximum number of rows to read in.
@@ -90,9 +90,9 @@ units of measurement or space efficient metadata) are assigned to each
 column.
 }
 \details{
-\code{read_eddy} extends the possibilities of \code{\link{read.table}} so it
+\code{read_eddy} extends the possibilities of \code{\link[=read.table]{read.table()}} so it
 can also read units of measurement. However, it uses default arguments of
-\code{\link{read.csv}} to accomodate loading of data for the most common
+\code{\link[=read.csv]{read.csv()}} to accomodate loading of data for the most common
 input type. \code{read_eddy} also sets useful defaults common for eddy
 covariance (\emph{eddy}) data. Missing values are often reported as
 \code{"-9999.0"} or \code{"-9999"} by post-processing software, therefore
@@ -157,9 +157,9 @@ str(bb)
 
 }
 \seealso{
-\code{\link{read.table}} for information about further arguments
+\code{\link[=read.table]{read.table()}} for information about further arguments
 passed to \code{read.table}.
 
-\code{\link{write_eddy}} to save data frame with \code{units} attributes
+\code{\link[=write_eddy]{write_eddy()}} to save data frame with \code{units} attributes
 specified for each column.
 }

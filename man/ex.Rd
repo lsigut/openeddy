@@ -11,7 +11,7 @@ ex(x, i, j, drop = TRUE)
 element(s).}
 
 \item{i, j}{Indices specifying elements to extract as specified in
-\code{\link{Extract}}.}
+\code{\link[=Extract]{Extract()}}.}
 
 \item{drop}{A logical value. If \code{TRUE} (default), the result is coerced
 to the lowest possible dimension.}
@@ -48,6 +48,6 @@ ex(xx$lengths, 2:3)
 
 }
 \seealso{
-\code{\link{Extract}}, \code{\link{drop}} and
-\code{\link{varnames}}.
+\code{\link[=Extract]{Extract()}}, \code{\link[=drop]{drop()}} and
+\code{\link[=varnames]{varnames()}}.
 }

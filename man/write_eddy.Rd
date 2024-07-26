@@ -21,10 +21,10 @@ write_eddy(
 \arguments{
 \item{x}{The object that will be written. It is a data frame with optional
 attributes \code{units} and \code{varnames} assigned to each column.
-Otherwise it is converted by \code{\link{as.data.frame}}.}
+Otherwise it is converted by \code{\link[=as.data.frame]{as.data.frame()}}.}
 
 \item{file}{Either a character string naming a file to write to or a
-\code{\link{connection}} that is open for writing. \code{""} results in
+\link{connection} that is open for writing. \code{""} results in
 writing to the console.}
 
 \item{append}{A logical value. It is considered only if \code{file} is not a
@@ -57,7 +57,7 @@ used as column names. If \code{x} is supplied as vector, an attempt is made
 to extract meaningful variable name from its attribute \code{varnames}. In
 all cases, units extracted from \code{units} attribute of each column will
 be written one line below column names with identical format. See the 'CSV
-files' section in \code{\link{write.table}} for further explanation of
+files' section in \code{\link[=write.table]{write.table()}} for further explanation of
 \code{col.names = NA}.}
 
 \item{qmethod}{A character string. It determines the way how strings quoting
@@ -67,11 +67,11 @@ that doubles the quote character, or \code{"escape"} (\code{write.table}
 default), that escapes it in C style by a backslash.}
 
 \item{...}{Further arguments to be passed to the internal
-\code{\link{write.table}} function.}
+\code{\link[=write.table]{write.table()}} function.}
 }
 \description{
 Facilitates printing object \code{x} also with its units of measurement (or
-space efficient metadata) to a file or \code{\link{connection}}.
+space efficient metadata) to a file or \link{connection}.
 }
 \details{
 \code{write_eddy} extends the possibilities of \code{write.table} so the
@@ -90,7 +90,7 @@ efficient metadata) of respective variables that are written one line above
 data region. If the \code{varnames} or \code{units} attribute of given column
 is \code{NULL}, of length not equal to 1, or contains missing value or empty
 string, it is not considered meaningful. In that case the default column name
-produced by \code{\link{as.data.frame}} is used instead (considered only if
+produced by \code{\link[=as.data.frame]{as.data.frame()}} is used instead (considered only if
 \code{x} is supplied as vector) and unit of measurement is substituted with
 \code{units_fill} string. \code{units_fill} can be an empty string.
 
@@ -123,9 +123,9 @@ unlink("ex.data")}
 
 }
 \seealso{
-\code{\link{write.table}} for information about full list of allowed
+\code{\link[=write.table]{write.table()}} for information about full list of allowed
 arguments and their descriptions.
 
-\code{\link{read_eddy}} to read data frame with \code{varnames} and
+\code{\link[=read_eddy]{read_eddy()}} to read data frame with \code{varnames} and
 \code{units} attributes specified for each column.
 }
