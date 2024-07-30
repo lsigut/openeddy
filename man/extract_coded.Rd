@@ -47,15 +47,21 @@ format string (e.g. \code{"8u/v/w/ts/h2o/co2"}) starts with a prefix
 (\code{"8"}) that is followed by variable names (\verb{"u", "v", "w", "ts", "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
 of \code{x} thus consist of either seven components (prefix and six flags for
 each variable) or one \code{NA} value. Flags of coded variables can have
-three values: \itemize{ \item flag 0: measured variable passed the test.
-\item flag 1: measured variable failed the test. \item flag 9: flag could not
-be obtained for the given variable (\code{NA}).}
+three values:
+\itemize{
+\item flag 0: measured variable passed the test.
+\item flag 1: measured variable failed the test.
+\item flag 9: flag could not be obtained for the given variable (\code{NA}).
+}
 
 The original flags are then interpreted within the QC scheme using QC flag
-range 0 - 2. Coded variable can represent either \itemize{\item hard flag
-(suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as flag 2.
-\item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1
-interpreted as flag 1.}
+range 0 - 2. Coded variable can represent either
+\itemize{
+\item hard flag (suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as
+flag 2.
+\item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1 interpreted as
+flag 1.
+}
 
 \code{x} is interpreted in respect to instruments required to measure given
 fluxes. SA is required for measurements of all fluxes and solely provides
@@ -69,14 +75,22 @@ have flag 0. In case of GA, all variables \verb{"co2", "h2o"} must have flag
 must have flag 0.
 }
 \section{Abbreviations}{
- \itemize{ \item QC: Quality Control \item SA: Sonic
-Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-\item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-\item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal
-wind speed component [m s-1] \item v: Cross-wind wind speed component [m
-s-1] \item w: Vertical wind speed component [m s-1] \item ts: Sonic
-temperature [degC] \item h2o: H2O concentration [mmol mol-1] \item co2:
-CO2 concentration [umol mol-1]}.
+
+\itemize{
+\item QC: Quality Control
+\item SA: Sonic Anemometer
+\item GA: Gas Analyzer
+\item Tau: Momentum flux [kg m-1 s-2]
+\item H: Sensible heat flux [W m-2]
+\item LE: Latent heat flux [W m-2]
+\item NEE: Net ecosystem exchange [umol m-2 s-1]
+\item u: Longitudinal wind speed component [m s-1]
+\item v: Cross-wind wind speed component [m s-1]
+\item w: Vertical wind speed component [m s-1]
+\item ts: Sonic temperature [degC]
+\item h2o: H2O concentration [mmol mol-1]
+\item co2: CO2 concentration [umol mol-1].
+}
 }
 
 \examples{

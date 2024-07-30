@@ -91,7 +91,6 @@ flag data manually in interactive session and save (merged) results. If you
 just want to reload previously saved results, use \code{interactive = FALSE}.
 }
 \examples{
-\dontrun{
 # prepare mock data
 set.seed(87)
 NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
@@ -124,40 +123,49 @@ a$LE[c(88, 182, 350, 550)] <- c(900, -400, -1000, 2000)
 a$NEE[c(10, 152, 400, 500)] <- c(50, -100, 70, -250)
 
 # single variable example without auxiliary variables
-man <- check_manually(a, vars = "H", interactive = TRUE,
-                      siteyear = "MySite2022")
-summary_QC(man, names(man)[-1])
+if (dev.interactive()) {
+  man <- check_manually(a, vars = "H", interactive = TRUE,
+                        siteyear = "MySite2022")
+  summary_QC(man, names(man)[-1])
+}
 
 # multiple vars provided as vector (without auxiliary variables)
-man <- check_manually(a, vars = c("H", "LE", "NEE"),
-                      interactive = TRUE)
+if (dev.interactive()) {
+  man <- check_manually(a, vars = c("H", "LE", "NEE"),
+                        interactive = TRUE)
+}
 
 # multiple vars provided as matrix (including auxiliary variables)
-man <- check_manually(a,
-                      vars = cbind(
-                        c("H", "LE", "NEE"), # main variables (x)
-                        c("Rn", "Rn", "PAR") # auxiliary variables (y)
-                      ),
-                      interactive = TRUE)
+if (dev.interactive()) {
+  man <- check_manually(a,
+                        vars = cbind(
+                          c("H", "LE", "NEE"), # main variables (x)
+                          c("Rn", "Rn", "PAR") # auxiliary variables (y)
+                        ),
+                        interactive = TRUE)
+}
 
 # two sets of auxiliary variables
 # - "missing_var" not present in "a", thus handled as if NA was provided
-man <- check_manually(a,
-                      vars = cbind(
-                        c("H", "LE", "NEE"),      # main variables (x)
-                        c("Rn", "Rn", NA),        # auxiliary variables (y)
-                        c("missing_var", "H", NA) # auxiliary variables (z)
-                      ),
-                      interactive = TRUE)
+if (dev.interactive()) {
+  man <- check_manually(a,
+                        vars = cbind(
+                          c("H", "LE", "NEE"),      # main variables (x)
+                          c("Rn", "Rn", NA),        # auxiliary variables (y)
+                          c("missing_var", "H", NA) # auxiliary variables (z)
+                        ),
+                        interactive = TRUE)
+}
 
 # multiple vars provided as data frame (including two sets of auxiliary vars)
-man <- check_manually(a,
-                      vars = data.frame(
-                        x = c("H", "LE", "NEE"),
-                        y = c("Rn", "Rn", "PAR"),
-                        z = c("LE", "H", "Tair")
-                      ),
-                      interactive = TRUE)
+if (dev.interactive()) {
+  man <- check_manually(a,
+                        vars = data.frame(
+                          x = c("H", "LE", "NEE"),
+                          y = c("Rn", "Rn", "PAR"),
+                          z = c("LE", "H", "Tair")
+                        ),
+                        interactive = TRUE)
 }
 
 }

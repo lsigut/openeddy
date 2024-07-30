@@ -123,12 +123,14 @@ used in the upper and lower panel can be changed by \code{panel_top} and
 will be loaded (can be the same) and thus also a certain set of required
 column names of \code{x} (variables).
 
-Available modules are: \itemize{ \item T_light: requires \code{"Tair"},
-\code{"Tsoil"} and selected \code{light} columns. \item VPD_Rn: requires
-\code{"VPD"} and \code{"Rn"} columns. \item H_err_var: requires
-\code{"rand_err_H"} and \code{"ts_var"} columns. \item blue_red: requires
-columns specified by \code{panel_top/bottom_vars}. \item violet_orange:
-requires columns specified by \code{panel_top/bottom_vars}.}
+Available modules are:
+\itemize{
+\item T_light: requires \code{"Tair"}, \code{"Tsoil"} and selected \code{light} columns.
+\item VPD_Rn: requires \code{"VPD"} and \code{"Rn"} columns.
+\item H_err_var: requires \code{"rand_err_H"} and \code{"ts_var"} columns.
+\item blue_red: requires columns specified by \code{panel_top/bottom_vars}.
+\item violet_orange: requires columns specified by \code{panel_top/bottom_vars}.
+}
 
 Modules T_light, VPD_Rn and H_err_var have predefined color combinations
 and variables. Modules blue_red and violet_orange provide more flexibility
@@ -170,16 +172,24 @@ plotting, \code{GPP_scor = TRUE} is taken as default.
 }
 
 \section{Abbreviations}{
- \itemize{ \item H: Sensible heat flux [W m-2] \item
-NEE: Net Ecosystem Exchange [umol m-2 s-1] \item GPP: Gross Primary
-Production [umol m-2 s-1] \item Reco: Ecosystem Respiration [umol m-2
-s-1] \item QC: Quality Control \item P: Precipitation [mm] \item PAR:
-Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-[W m-2] \item T: Temperature [degC] \item Tair: Air Temperature
-[degC] \item Tsoil: Soil Temperature [degC] \item VPD: Vapor Pressure
-Deficit [hPa] \item Rn: Net Radiation [W m-2] \item rand_err_H: random
-error of H [W m-2]; in plots abbreviated as H_re \item ts_var: sonic
-temperature variance [K2]}
+
+\itemize{
+\item H: Sensible heat flux [W m-2]
+\item NEE: Net Ecosystem Exchange [umol m-2 s-1]
+\item GPP: Gross Primary Production [umol m-2 s-1]
+\item Reco: Ecosystem Respiration [umol m-2 s-1]
+\item QC: Quality Control
+\item P: Precipitation [mm]
+\item PAR: Photosynthetic Active Radiation [umol m-2 s-1]
+\item GR: Global Radiation [W m-2]
+\item T: Temperature [degC]
+\item Tair: Air Temperature [degC]
+\item Tsoil: Soil Temperature [degC]
+\item VPD: Vapor Pressure Deficit [hPa]
+\item Rn: Net Radiation [W m-2]
+\item rand_err_H: random error of H [W m-2]; in plots abbreviated as H_re
+\item ts_var: sonic temperature variance [K2]
+}
 }
 
 \examples{

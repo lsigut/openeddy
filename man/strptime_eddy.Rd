@@ -84,12 +84,10 @@ format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
 zz <- xx[-3]
 strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M", allow_gaps = TRUE)
 
-\dontrun{
 ## This is not a regular date-time sequence
-strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M") # error returned
+try(strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M")) # error returned
 ## interval argument provided incorrectly
-strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)
-}
+try(strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600L)) # error returned
 
 }
 \seealso{

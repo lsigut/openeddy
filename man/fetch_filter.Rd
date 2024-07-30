@@ -37,19 +37,26 @@ the cases when fetch reached beyond ROI.
 The spatial extent of the studied ecosystem (ROI) is specified by its
 \code{ROI_boundary} that describes the distance from eddy covariance tower to
 the edge of the studied ecosystem. \code{ROI_boundary} has following
-properties: \itemize{ \item the number of circular sectors is the same as the
-number of provided distances; \item the angular resolution of the ROI
-boundary can be computed as 360 degrees / number of angular sectors; \item
-the ROI boundary distances are assigned to the centers of their respective
-circular sectors with first sector centered on 0 degrees.}
+properties:
+\itemize{
+\item the number of circular sectors is the same as the
+number of provided distances;
+\item the angular resolution of the ROI
+boundary can be computed as 360 degrees / number of angular sectors;
+\item the ROI boundary distances are assigned to the centers of their respective
+circular sectors with first sector centered on 0 degrees.
+}
 
 Example: \code{ROI_boundary} specified as c(150, 200, 250, 300) has following
-properties: \itemize{ \item 4 circular sectors with 90° angular resolution;
+properties:
+\itemize{
+\item 4 circular sectors with 90° angular resolution;
 \item ROI boundary is specified for the whole first sector (315°, 45°] at the
-distance 150 m from tower (center of the sector is 0°); \item boundary of the
-second sector (45°, 135°] is at the distance 200 m; \item third sector (135°,
-225°] is at the distance 250 m; \item fourth sector (225°, 315°] is at the
-distance 300 m.}
+distance 150 m from tower (center of the sector is 0°);
+\item boundary of the second sector (45°, 135°] is at the distance 200 m;
+\item third sector (135°, 225°] is at the distance 250 m;
+\item fourth sector (225°, 315°] is at the distance 300 m.
+}
 }
 \examples{
 set.seed(20)

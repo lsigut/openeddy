@@ -8,14 +8,14 @@
 #' them into levels corresponding to the processing stage. The folder structure
 #' is not required to successfully apply the workflow but simplifies its use.
 #'
-#' Data processing stages \itemize{
-#' \item level_1: EddyPro full output files, meteo data and their merged product
+#' Data processing stages:
+#' * level_1: EddyPro full output files, meteo data and their merged product
 #' as an input for quality checking.
-#' \item level_2: quality checking results and documentation, and files used as
+#' * level_2: quality checking results and documentation, and files used as
 #' inputs for gap-filling.
-#' \item level_3: gap-filling output and its documentation, summary of the
+#' * level_3: gap-filling output and its documentation, summary of the
 #' computed fluxes and meteorological data including their aggregation and
-#' plotting.}
+#' plotting.
 #'
 #' @param root A character string defining the root of created folder structure.
 #' @param create_dirs A logical value. Indicates whether directories should be
@@ -156,16 +156,15 @@ round_df <- function(x, digits = 6) {
 #' @seealso [NA] for general information about NAs and
 #'   [apply()] for `apply` description.
 #' @examples
-#' \dontrun{
 #' xx <- matrix(1:20, nrow = 4)
 #' xx[2, ] <- NA
 #' allNA(xx, 2) # All columns have at least one non-missing value
 #' allNA(xx, 1) # Second row has all values missing
-#' apply(xx, 1, max, na.rm = TRUE)
+#' try(apply(xx, 1, max, na.rm = TRUE))
 #' ## returns c(17, -Inf, 19, 20) and a warning message
 #' ## Skip the allNA row in apply()
 #' apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
-#' }
+#'
 #' @keywords internal
 #' @noRd
 allNA <- function(x, margin) {
@@ -614,12 +613,10 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' zz <- xx[-3]
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M", allow_gaps = TRUE)
 #'
-#' \dontrun{
 #' ## This is not a regular date-time sequence
-#' strptime_eddy(zz, "%d.%m.%Y %H:%M") # error returned
+#' try(strptime_eddy(zz, "%d.%m.%Y %H:%M")) # error returned
 #' ## interval argument provided incorrectly
-#' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)
-#' }
+#' try(strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)) # error returned
 #'
 #' @export
 strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
@@ -736,14 +733,14 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #' write_eddy(xx[, 1], "") # 'varnames' attribute of the vector used as column name
 #' write_eddy(head(xx), "") # dropped 'units' attribute
 #'
-#' \dontrun{
 #' # Example of using "col.names = NA"
-#' zz <- file("ex.data", "w")  # open an output file connection
-#' write_eddy(xx, zz, row.names = T, col.names = NA)
+#' f <- file.path(tempdir(), "ex.csv")
+#' zz <- file(f, "w")  # open an output file connection
+#' write_eddy(xx, zz, row.names = TRUE, col.names = NA)
 #' close(zz)
-#' (ex_data <- read_eddy("ex.data", row.names = 1))
+#' (ex_data <- read_eddy(f, row.names = 1))
 #' str(ex_data)
-#' unlink("ex.data")}
+#' unlink(f)
 #'
 #' @importFrom utils write.table
 #' @export
@@ -806,15 +803,21 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #' valid names with a higher level of control. This assumes that the original
 #' names were preserved during data loading (e.g. by using `check.names =
 #' FALSE` in [read_eddy()] or [read.table()]). Specifically,
-#' literal strings are renamed as: \itemize{\item `"(z-d)/L"` by
-#' `"zeta"` \item `"qc_Tau"` by `"qc_Tau_SSITC"` \item
-#' `"qc_H"` by `"qc_H_SSITC"` \item `"qc_LE"` by
-#' `"qc_LE_SSITC"` \item `"qc_co2_flux"` by `"qc_NEE_SSITC"` }
+#' literal strings are renamed as:
+#' * `"(z-d)/L"` by `"zeta"`
+#' * `"qc_Tau"` by `"qc_Tau_SSITC"`
+#' * `"qc_H"` by `"qc_H_SSITC"`
+#' * `"qc_LE"` by `"qc_LE_SSITC"`
+#' * `"qc_co2_flux"` by `"qc_NEE_SSITC"`
+#'
 #' and specified patterns or characters withing strings are substituted using
-#' regular expression patterns: \itemize{\item `"co2_flux"` by `"NEE"`
-#' \item `"*"` by `"star"` \item `"%"` by `"perc"` \item
-#' `"-"` and `"/"` by `"_"`.} After the substitutions
-#' `make.names(names = x, ...)` is executed.
+#' regular expression patterns:
+#' * `"co2_flux"` by `"NEE"`
+#' * `"*"` by `"star"`
+#' * `"%"` by `"perc"`
+#' * `"-"` and `"/"` by `"_"`.
+#'
+#' After the substitutions `make.names(names = x, ...)` is executed.
 #'
 #' If `attr = "units"`, round and square brackets are substituted by an
 #' empty string.

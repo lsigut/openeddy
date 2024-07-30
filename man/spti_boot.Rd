@@ -122,7 +122,6 @@ tower observations. Geophysical Research Letters, 47, e2019GL085942.
 }
 
 \examples{
-\dontrun{
 library(REddyProc)
 
 # convert timestamp
@@ -137,6 +136,7 @@ not_filled <- DETha98
 not_filled$DateTime <- not_filled$DateTime - 900
 spti_boot(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 
+\dontrun{
 # gap-filling is not needed but illustrates processing of FLUXNET data
 # notice that ustar filtering of NEE should be applied before budgeting
 DETha98 <- filterLongRuns(DETha98, "NEE")

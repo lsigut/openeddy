@@ -44,23 +44,45 @@ own when filtering values of variable according to the 0 - 2 QC flag scheme.
 
 Obtained QC flags are assigned in the range 0 - 2 according to these rules:
 
-For \code{flag = "higher"} \itemize{ \item If \code{x <= thr[1]}, QC flag =
-0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x > thr[2]}, QC flag = 2.}
+For \code{flag = "higher"}
+\itemize{
+\item If \code{x <= thr[1]}, QC flag = 0.
+\item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1.
+\item If \code{x > thr[2]}, QC flag = 2.
+}
 
-For \code{flag = "outside"} (\code{thr} supplied as vector) \itemize{ \item
-If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0. \item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.}
+For \code{flag = "outside"} (\code{thr} supplied as vector)
+\itemize{
+\item If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0.
+\item If \code{x < thr[1] | x > thr[2]}, QC flag = 2.
+}
 
-For \code{flag = "outside"} (\code{thr} supplied as list) \itemize{ \item If
-\code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0. \item If \code{x < thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1. \item If \code{x < thr[[1]][1] | x > thr[[2]][2]}, QC flag = 2.}
+For \code{flag = "outside"} (\code{thr} supplied as list)
+\itemize{
+\item If \code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0.
+\item If \code{x < thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1.
+\item If \code{x < thr[[1]][1] | x > thr[[2]][2]}, QC flag = 2.
+}
 
-For \code{flag = "between"} (\code{thr} supplied as vector) \itemize{ \item
-If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0. \item If \code{x > thr[1] & x < thr[2]}, QC flag = 2. }
+For \code{flag = "between"} (\code{thr} supplied as vector)
+\itemize{
+\item If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0.
+\item If \code{x > thr[1] & x < thr[2]}, QC flag = 2.
+}
 
-For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
-\code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x > thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] & x < thr[[2]][1]}, QC flag = 2.}
+For \code{flag = "between"} (\code{thr} supplied as list)
+\itemize{
+\item If \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0.
+\item If \code{x > thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1.
+\item If \code{x > thr[[1]][2] & x < thr[[2]][1]}, QC flag = 2.
+}
 
-For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
-\item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x < thr[2]}, QC flag = 2.}
+For \code{flag = "lower"}
+\itemize{
+\item If \code{x >= thr[1]}, QC flag = 0.
+\item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1.
+\item If \code{x < thr[2]}, QC flag = 2.
+}
 
 In case of \code{angles = TRUE}, conditions are appropriately implemented on
 the circular scale. Angles are expected to be within the range [0, 360)

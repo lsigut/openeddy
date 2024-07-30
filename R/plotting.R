@@ -101,12 +101,12 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   will be loaded (can be the same) and thus also a certain set of required
 #'   column names of `x` (variables).
 #'
-#'   Available modules are: \itemize{ \item T_light: requires `"Tair"`,
-#'   `"Tsoil"` and selected `light` columns. \item VPD_Rn: requires
-#'   `"VPD"` and `"Rn"` columns. \item H_err_var: requires
-#'   `"rand_err_H"` and `"ts_var"` columns. \item blue_red: requires
-#'   columns specified by `panel_top/bottom_vars`. \item violet_orange:
-#'   requires columns specified by `panel_top/bottom_vars`.}
+#'   Available modules are:
+#'   * T_light: requires `"Tair"`, `"Tsoil"` and selected `light` columns.
+#'   * VPD_Rn: requires `"VPD"` and `"Rn"` columns.
+#'   * H_err_var: requires `"rand_err_H"` and `"ts_var"` columns.
+#'   * blue_red: requires columns specified by `panel_top/bottom_vars`.
+#'   * violet_orange: requires columns specified by `panel_top/bottom_vars`.
 #'
 #'   Modules T_light, VPD_Rn and H_err_var have predefined color combinations
 #'   and variables. Modules blue_red and violet_orange provide more flexibility
@@ -142,16 +142,22 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   `REddyProc` package is represented by positive GPP, thus, to optimize
 #'   plotting, `GPP_scor = TRUE` is taken as default.
 #'
-#' @section Abbreviations: \itemize{ \item H: Sensible heat flux \[W m-2\] \item
-#'   NEE: Net Ecosystem Exchange \[umol m-2 s-1\] \item GPP: Gross Primary
-#'   Production \[umol m-2 s-1\] \item Reco: Ecosystem Respiration \[umol m-2
-#'   s-1\] \item QC: Quality Control \item P: Precipitation \[mm\] \item PAR:
-#'   Photosynthetic Active Radiation \[umol m-2 s-1\] \item GR: Global Radiation
-#'   \[W m-2\] \item T: Temperature \[degC\] \item Tair: Air Temperature
-#'   \[degC\] \item Tsoil: Soil Temperature \[degC\] \item VPD: Vapor Pressure
-#'   Deficit \[hPa\] \item Rn: Net Radiation \[W m-2\] \item rand_err_H: random
-#'   error of H \[W m-2\]; in plots abbreviated as H_re \item ts_var: sonic
-#'   temperature variance \[K2\]}
+#' @section Abbreviations:
+#'   * H: Sensible heat flux \[W m-2\]
+#'   * NEE: Net Ecosystem Exchange \[umol m-2 s-1\]
+#'   * GPP: Gross Primary Production \[umol m-2 s-1\]
+#'   * Reco: Ecosystem Respiration \[umol m-2 s-1\]
+#'   * QC: Quality Control
+#'   * P: Precipitation \[mm\]
+#'   * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
+#'   * GR: Global Radiation \[W m-2\]
+#'   * T: Temperature \[degC\]
+#'   * Tair: Air Temperature \[degC\]
+#'   * Tsoil: Soil Temperature \[degC\]
+#'   * VPD: Vapor Pressure Deficit \[hPa\]
+#'   * Rn: Net Radiation \[W m-2\]
+#'   * rand_err_H: random error of H \[W m-2\]; in plots abbreviated as H_re
+#'   * ts_var: sonic temperature variance \[K2\]
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.

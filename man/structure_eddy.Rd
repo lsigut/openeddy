@@ -31,14 +31,16 @@ proposed workflow (\url{https://github.com/lsigut/EC_workflow}) and separate
 them into levels corresponding to the processing stage. The folder structure
 is not required to successfully apply the workflow but simplifies its use.
 
-Data processing stages \itemize{
+Data processing stages:
+\itemize{
 \item level_1: EddyPro full output files, meteo data and their merged product
 as an input for quality checking.
 \item level_2: quality checking results and documentation, and files used as
 inputs for gap-filling.
 \item level_3: gap-filling output and its documentation, summary of the
 computed fluxes and meteorological data including their aggregation and
-plotting.}
+plotting.
+}
 }
 \examples{
 xx <- structure_eddy()

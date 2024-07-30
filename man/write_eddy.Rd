@@ -112,14 +112,14 @@ write_eddy(xx, "")
 write_eddy(xx[, 1], "") # 'varnames' attribute of the vector used as column name
 write_eddy(head(xx), "") # dropped 'units' attribute
 
-\dontrun{
 # Example of using "col.names = NA"
-zz <- file("ex.data", "w")  # open an output file connection
-write_eddy(xx, zz, row.names = T, col.names = NA)
+f <- file.path(tempdir(), "ex.csv")
+zz <- file(f, "w")  # open an output file connection
+write_eddy(xx, zz, row.names = TRUE, col.names = NA)
 close(zz)
-(ex_data <- read_eddy("ex.data", row.names = 1))
+(ex_data <- read_eddy(f, row.names = 1))
 str(ex_data)
-unlink("ex.data")}
+unlink(f)
 
 }
 \seealso{

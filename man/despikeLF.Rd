@@ -150,9 +150,12 @@ detection tolerance (width of grey bands) can be modified by scale factors
 }
 
 \section{Abbreviations}{
- \itemize{\item QC: Quality Control \item PAR:
-Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-[W m-2]}
+
+\itemize{
+\item QC: Quality Control
+\item PAR: Photosynthetic Active Radiation [umol m-2 s-1]
+\item GR: Global Radiation [W m-2]
+}
 }
 
 \section{References}{

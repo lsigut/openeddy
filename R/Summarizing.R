@@ -154,8 +154,6 @@
 #'   [varnames()]
 #'
 #' @examples
-#' \dontrun{
-#'
 #' library(REddyProc)
 #' library(bigleaf)
 #'
@@ -185,6 +183,7 @@
 #' agg_fun(DETha98, "%b-%y", min, na.rm = TRUE)
 #' agg_fun(DETha98, "%b-%y", "max", na.rm = TRUE)
 #'
+#' \dontrun{
 #' # Gap-fill NEE using approximate fixed uStar threshold
 #' EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
 #'
@@ -1204,7 +1203,6 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' @seealso [spti_boot()] and [spti_coverage()].
 #'
 #' @examples
-#' \dontrun{
 #' library(REddyProc)
 #'
 #' # convert timestamp
@@ -1219,6 +1217,7 @@ calc_spti_boot <- function(df, year, targetCol, interval, conv_fac,
 #' not_filled$DateTime <- not_filled$DateTime - 900
 #' Griebel20_budgets(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 #'
+#' \dontrun{
 #' # gap-filling is not needed but illustrates processing of FLUXNET data
 #' # notice that ustar filtering of NEE should be applied before budgeting
 #' DETha98 <- filterLongRuns(DETha98, "NEE")
@@ -1412,7 +1411,6 @@ Griebel20_budgets <- function(df,
 #' @seealso [Griebel20_budgets()] and [spti_coverage()].
 #'
 #' @examples
-#' \dontrun{
 #' library(REddyProc)
 #'
 #' # convert timestamp
@@ -1427,6 +1425,7 @@ Griebel20_budgets <- function(df,
 #' not_filled$DateTime <- not_filled$DateTime - 900
 #' spti_boot(not_filled, "DateTime", "WD", "LE", NULL, flux = "energy")
 #'
+#' \dontrun{
 #' # gap-filling is not needed but illustrates processing of FLUXNET data
 #' # notice that ustar filtering of NEE should be applied before budgeting
 #' DETha98 <- filterLongRuns(DETha98, "NEE")
@@ -1678,7 +1677,6 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' @seealso [Griebel20_budgets()] and [spti_boot()].
 #'
 #' @examples
-#' \dontrun{
 #' library(REddyProc)
 #'
 #' # convert timestamp
@@ -1695,6 +1693,7 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 #' spti_coverage(not_filled, "DateTime", "WD", "LE", NULL)
 #' spti_coverage(not_filled, "DateTime", "WD", "LE", NULL, plot = TRUE)
 #'
+#' \dontrun{
 #' # gap-filling is not needed but illustrates processing of FLUXNET data
 #' # notice that ustar filtering of NEE should be applied before budgeting
 #' DETha98 <- filterLongRuns(DETha98, "NEE")

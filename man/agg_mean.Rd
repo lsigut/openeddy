@@ -221,8 +221,6 @@ Function Estimated From the Data. Metrology and Measurement Systems, 18(4),
 }
 
 \examples{
-\dontrun{
-
 library(REddyProc)
 library(bigleaf)
 
@@ -252,6 +250,7 @@ openeddy::units(zz, names = TRUE)
 agg_fun(DETha98, "\%b-\%y", min, na.rm = TRUE)
 agg_fun(DETha98, "\%b-\%y", "max", na.rm = TRUE)
 
+\dontrun{
 # Gap-fill NEE using approximate fixed uStar threshold
 EProc$sMDSGapFillAfterUstar('NEE', uStarTh = 0.3, FillAll = TRUE)
 
