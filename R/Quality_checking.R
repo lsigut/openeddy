@@ -1376,9 +1376,14 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' (half-)hourly time interval. Any missing values in `"timestamp"` are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. It also has to contain required (depends on the argument values)
-#' column names. If QC flags are not available for `var`, `qc_flag`
-#' still has to be included in `x` as a named column with all values set to
-#' `0` (i.e. all values will be checked for outliers).
+#' column names.
+#'
+#' `light` and `night_thr` are intended to separate data to night and
+#' day subsets with different statistical properties. `NA`s in
+#' `x[light]` are thus not allowed due to the subsetting. Despiking is then
+#' applied to individual subsets and combined QC flags are returned. For the
+#' purpose of day/night separation, it may be sufficient to compute potential
+#' radiation (PotRad \[W m-2\]) using [REddyProc::fCalcPotRadiation()].
 #'
 #' Only non-missing `var` values with corresponding `qc_flag` values
 #' below `2` are used to detect the outliers. Missing `var` values or
@@ -1393,11 +1398,6 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' `var_thr[2]` are marked as spikes (flag 2) in the output. Such values
 #' are further not used for computing statistics on double-differenced time
 #' series.
-#'
-#' `light` and `night_thr` are intended to separate data to night and
-#' day subsets with different statistical properties. `NA`s in
-#' `x[light]` are thus not allowed due to the subsetting. Despiking is then
-#' applied to individual subsets and combined QC flags are returned.
 #'
 #' Despiking is done within blocks of 13 consecutive days to account for
 #' seasonality of measured variable. Within each block, all records are compared
@@ -1440,8 +1440,9 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @section Abbreviations:
 #' * QC: Quality Control
-#' * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
 #' * GR: Global Radiation \[W m-2\]
+#' * PotRad: Potential Radiation \[W m-2\]
+#' * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
@@ -1473,7 +1474,8 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param var A character string. Specifies the variable name in `x` with
 #'   values to be despiked.
 #' @param qc_flag A character string. Specifies the column name in `x` with
-#'   `var` related quality control flag.
+#'   `var`-related quality control flags. If `qc_flag = NULL`, all `var` values
+#'   will be checked for outliers.
 #' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param var_thr A numeric vector with 2 non-missing values. Specifies fixed
@@ -1483,7 +1485,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param plot A logical value. If `TRUE`, list of [ggplot()]
 #'   objects visualizing the spikes is also produced.
 #' @param light A character string. Selects preferred variable for incoming
-#'   light intensity. `"PAR"` or `"GR"` is allowed. Can be
+#'   light intensity. `"GR"`, `"PotRad"` or `"PAR"` is allowed. Can be
 #'   abbreviated. If `light = NULL`, `var` values are not separated to
 #'   night/day subsets and `night_thr` is not used.
 #' @param night_thr A numeric value that defines the threshold  between night
@@ -1492,26 +1494,91 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
-#' @param c A numeric value. [mad()] scale factor. Default is `3 * [mad]
-#'   constant` (`i.e. 3 * 1.4826 = 4.4478`).
+#' @param c A numeric value. [mad()] scale factor. Default is `3 * mad
+#'   constant` (i.e. `3 * 1.4826 = 4.4478`).
 #'
 #' @seealso [combn_QC()], [extract_QC()],
 #'   [median()] and [mad()].
 #'
+#' @examples
+#' # prepare mock data
+#' set.seed(87)
+#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+#' my_var[my_var > 5] <- 5
+#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
+#' GR <- (-my_var + 5) * 50
+#' Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+#' Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
+#' VPD <- -my_var + 10
+#' VPD <- VPD[c(43:48, 0:42)]
+#' Rn <- GR - 50
+#'
+#' # combine into data frame
+#' a <- data.frame(
+#'   timestamp = t,
+#'   my_var = my_var + rnorm(48 * 14),
+#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+#'   GR = GR,
+#'   Tair = Tair,
+#'   Tsoil = Tsoil,
+#'   VPD = VPD,
+#'   Rn = Rn
+#'   )
+#'
+#' # specify units
+#' openeddy::units(a) <- c("-", "units", "-", "W m-2", "degC",
+#'                         "degC", "hPa", "W m-2")
+#'
+#' # include spikes
+#' a$my_var[c(152, 479)] <- c(21, -10)
+#'
+#' # plot time series
+#' plot_eddy(a, "my_var", "my_qc", "my_qc", skip = "monthly")
+#'
+#' # despike (plot = TRUE)
+#' xx <- despikeLF(a, "my_var", "my_qc", plot = TRUE)
+#'
+#' # add results to data frame, summarize and plot outliers
+#' a$spikesLF <- xx$SD
+#' summary_QC(a, qc_names = "spikesLF")
+#' xx$plots$`iter 1`$night$`2020-07-01 - 2020-07-13`
+#'
+#' # combine with original QC and plot
+#' a$qc_res <- combn_QC(a, qc_names = c("my_qc", "spikesLF"), "qc_res")
+#' plot_eddy(a, "my_var", "qc_res", "qc_res", skip = "monthly")
+#'
+#' # compute and use potential radiation
+#' library(REddyProc)
+#' tlist <- as.POSIXlt(a$timestamp)
+#' a$PotRad <- fCalcPotRadiation(DoY = tlist$yday + 1,
+#'                               Hour = tlist$hour + tlist$min / 60,
+#'                               LatDeg = 49.4437236,
+#'                               LongDeg = 16.6965125,
+#'                               TimeZone = +1)
+#' yy <- despikeLF(a, "my_var", "my_qc", light = "PotRad")
+#'
+#' # no outliers are detected without day/night separation
+#' zz <- despikeLF(a, "my_var", "my_qc", light = NULL)
+#'
 #' @export
-despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
-                      iter = 10, plot = FALSE, light = c("PAR", "GR"),
+despikeLF <- function(x, var, qc_flag = NULL, name_out = "-", var_thr = NULL,
+                      iter = 10, plot = FALSE, light = c("GR", "PotRad", "PAR"),
                       night_thr = 10, nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' has to be of class data.frame with colnames")
   }
-  if (any(!sapply(list(var, qc_flag, name_out), is.character))) {
-    stop("'var', 'qc_flag', 'name_out' has to be of class character")
+  test <- if (is.null(qc_flag)) list(var, name_out) else
+    list(var, qc_flag, name_out)
+  if (any(!sapply(test, is.character))) {
+    stop("'var', ",
+         if(!is.null(qc_flag)) "'qc_flag', ",
+         "'name_out' has to be of class character")
   }
   var <- var[1]
   qc_flag <- qc_flag[1]
-  req_vars <- c("timestamp", var, qc_flag)
+  req_vars <- c("timestamp", var, qc_flag) # works also with qc_flag = NULL
   if (!is.null(light)) {
     light <- match.arg(light)
     req_vars <- c(req_vars, light)
@@ -1520,8 +1587,9 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
     }
   }
   if (!all(req_vars %in% x_names)) {
-    stop(paste("missing", paste0(req_vars[!(req_vars %in% x_names)],
-                                 collapse = ", ")))
+    stop(paste("missing columns:",
+               paste0(sQuote(req_vars[!(req_vars %in% x_names)], q = FALSE),
+                      collapse = ", ")))
   }
   if (!inherits(x$timestamp, "POSIXt")) {
     stop("'x$timestamp' must be of class 'POSIXt'")
@@ -1534,7 +1602,7 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
   if (iter[1] < 1) stop("set iter = 1 or higher")
   date <- as.Date(x$timestamp)
   vals <- x[, var]
-  qc_flag <- x[, qc_flag]
+  qc_flag <- if (is.null(qc_flag)) integer(nrow(x)) else x[, qc_flag]
   # NA qc is interpreted as flag 2
   qc_flag[is.na(qc_flag)] <- 2L
   if (!is.null(light)) {
@@ -1610,8 +1678,8 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
     # It has different length for each iteration
     use <- SD_df$Spike == 0 | is.na(SD_df$Spike)
   }
-  if (plot) return(list(SD = out, plots = plots))
   attributes(out) <- list(varnames = name_out, units = "-")
+  if (plot) return(list(SD = out, plots = plots))
   return(out)
 }
 
@@ -1692,10 +1760,9 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' exclusion based on the visual inspection.
 #'
 #' Six options are available during the interactive session.
-#' 1. flag values: select interval of values to exclude or use double-click to flag
-#' single value.
-#' 1. undo last: allows to change the user flagging input back
-#' to the state before last flagging.
+#' 1. flag values: select interval of values to exclude or use double-click to
+#' flag single value.
+#' 1. undo last: allows to revert previous flagging (only one step back).
 #' 1. refresh plots: apply current user
 #' flagging input to the plots. It removes excluded points and affects y-axis
 #' range or it can show again excluded points if option 2 (undo last) was
@@ -1705,8 +1772,11 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' existing range (see as a plot title) can be selected.
 #' 1. finalize: finish the flagging and return the results.
 #'
-#' The interactive session will be finished successfully also when option 4
-#' (next plot) is executed while at the last plot.
+#' The manual flagging is finished only after it is *finalized* (option 6).
+#' The interactive session will be finished successfully also when
+#' option 4 (*next plot*) is executed while at the last plot. If `exclude()`
+#' is `Escape`d before it is finalized, the user will lose the whole progress
+#' (see *undo last* option instead).
 #'
 #' @param x A numeric vector with values to inspect.
 #' @param qc_x An integer vector in the range `0 - 2` providing quality
@@ -1727,7 +1797,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' set.seed(87)
 #' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
 #' my_var[my_var > 5] <- 5
-#' PAR <- (-my_var + 5) * 100
+#' GR <- (-my_var + 5) * 50
 #' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
 #' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
 #'
@@ -1735,7 +1805,7 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' a <- data.frame(
 #'   my_var = my_var + rnorm(48 * 14),
 #'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   PAR = PAR,
+#'   GR = GR,
 #'   Tair = Tair
 #' )
 #'
@@ -1749,12 +1819,12 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #'
 #' # flag data manually (single auxiliary variable)
 #' if (dev.interactive()) {
-#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR)
+#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR)
 #' }
 #'
 #' # flag data manually (two auxiliary variables)
 #' if (dev.interactive()) {
-#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
+#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR, z = a$Tair)
 #' }
 #'
 #' @importFrom graphics lines identify points
@@ -1963,7 +2033,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' merged with date-time information in `x` if not identical and quality
 #' control is combined with the new flags marked by user (flag 2 marks data
 #' exclusion). Proper alignment of timestamps can be assured by `shift.by`.
-#' `path` is also used for saving file (`"manual_QC"` pattern) with
+#' Argument `path` is used for saving CSV file (`"manual_QC"` pattern) with
 #' results. Actual flagging allows to run [exclude()] over all
 #' `vars`. Each variable is required to have associated quality control
 #' column in format `qc_prefix+vars+qc_suffix`.
@@ -2020,10 +2090,10 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
 #' NEE[NEE > 5] <- 5
 #' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-#' PAR <- (-NEE + 5) * 100
+#' GR <- (-NEE + 5) * 50
 #' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
 #' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#' Rn <- PAR / 2 - 50
+#' Rn <- GR - 50
 #' H <- Rn * 0.7
 #' LE <- Rn * 0.3
 #'
@@ -2036,7 +2106,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'   qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
 #'   NEE = NEE + rnorm(48 * 14),
 #'   qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   PAR = PAR,
+#'   GR = GR,
 #'   Tair = Tair,
 #'   Rn = Rn
 #' )
@@ -2057,6 +2127,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' if (dev.interactive()) {
 #'   man <- check_manually(a, vars = c("H", "LE", "NEE"),
 #'                         interactive = TRUE)
+#'   summary_QC(man, names(man)[-1])
 #' }
 #'
 #' # multiple vars provided as matrix (including auxiliary variables)
@@ -2064,7 +2135,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'   man <- check_manually(a,
 #'                         vars = cbind(
 #'                           c("H", "LE", "NEE"), # main variables (x)
-#'                           c("Rn", "Rn", "PAR") # auxiliary variables (y)
+#'                           c("Rn", "Rn", "GR") # auxiliary variables (y)
 #'                         ),
 #'                         interactive = TRUE)
 #' }
@@ -2086,7 +2157,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'   man <- check_manually(a,
 #'                         vars = data.frame(
 #'                           x = c("H", "LE", "NEE"),
-#'                           y = c("Rn", "Rn", "PAR"),
+#'                           y = c("Rn", "Rn", "GR"),
 #'                           z = c("LE", "H", "Tair")
 #'                         ),
 #'                         interactive = TRUE)

@@ -7,12 +7,12 @@
 despikeLF(
   x,
   var,
-  qc_flag,
+  qc_flag = NULL,
   name_out = "-",
   var_thr = NULL,
   iter = 10,
   plot = FALSE,
-  light = c("PAR", "GR"),
+  light = c("GR", "PotRad", "PAR"),
   night_thr = 10,
   nVals = 50,
   z = 7,
@@ -27,7 +27,8 @@ despikeLF(
 values to be despiked.}
 
 \item{qc_flag}{A character string. Specifies the column name in \code{x} with
-\code{var} related quality control flag.}
+\code{var}-related quality control flags. If \code{qc_flag = NULL}, all \code{var} values
+will be checked for outliers.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}
@@ -42,7 +43,7 @@ as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.}
 objects visualizing the spikes is also produced.}
 
 \item{light}{A character string. Selects preferred variable for incoming
-light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
+light intensity. \code{"GR"}, \code{"PotRad"} or \code{"PAR"} is allowed. Can be
 abbreviated. If \code{light = NULL}, \code{var} values are not separated to
 night/day subsets and \code{night_thr} is not used.}
 
@@ -55,7 +56,7 @@ to obtain robust statistics.}
 
 \item{z}{A numeric value. \eqn{MAD} scale factor.}
 
-\item{c}{A numeric value. \code{\link[=mad]{mad()}} scale factor. Default is \verb{3 * [mad] constant} (\verb{i.e. 3 * 1.4826 = 4.4478}).}
+\item{c}{A numeric value. \code{\link[=mad]{mad()}} scale factor. Default is \verb{3 * mad constant} (i.e. \code{3 * 1.4826 = 4.4478}).}
 }
 \value{
 If \code{plot = FALSE}, an integer vector with attributes
@@ -85,9 +86,14 @@ required that it contains column named \code{"timestamp"} of class
 (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
 allowed. Thus, if no records exist for given date-time value, it still has to
 be included. It also has to contain required (depends on the argument values)
-column names. If QC flags are not available for \code{var}, \code{qc_flag}
-still has to be included in \code{x} as a named column with all values set to
-\code{0} (i.e. all values will be checked for outliers).
+column names.
+
+\code{light} and \code{night_thr} are intended to separate data to night and
+day subsets with different statistical properties. \code{NA}s in
+\code{x[light]} are thus not allowed due to the subsetting. Despiking is then
+applied to individual subsets and combined QC flags are returned. For the
+purpose of day/night separation, it may be sufficient to compute potential
+radiation (PotRad [W m-2]) using \code{\link[REddyProc:fCalcPotRadiation]{REddyProc::fCalcPotRadiation()}}.
 
 Only non-missing \code{var} values with corresponding \code{qc_flag} values
 below \code{2} are used to detect the outliers. Missing \code{var} values or
@@ -102,11 +108,6 @@ specified, \code{var} values below \code{var_thr[1]} and above
 \code{var_thr[2]} are marked as spikes (flag 2) in the output. Such values
 are further not used for computing statistics on double-differenced time
 series.
-
-\code{light} and \code{night_thr} are intended to separate data to night and
-day subsets with different statistical properties. \code{NA}s in
-\code{x[light]} are thus not allowed due to the subsetting. Despiking is then
-applied to individual subsets and combined QC flags are returned.
 
 Despiking is done within blocks of 13 consecutive days to account for
 seasonality of measured variable. Within each block, all records are compared
@@ -153,8 +154,9 @@ detection tolerance (width of grey bands) can be modified by scale factors
 
 \itemize{
 \item QC: Quality Control
-\item PAR: Photosynthetic Active Radiation [umol m-2 s-1]
 \item GR: Global Radiation [W m-2]
+\item PotRad: Potential Radiation [W m-2]
+\item PAR: Photosynthetic Active Radiation [umol m-2 s-1]
 }
 }
 
@@ -175,6 +177,68 @@ Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
 Springer, Berlin.
 }
 
+\examples{
+# prepare mock data
+set.seed(87)
+my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
+my_var[my_var > 5] <- 5
+t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
+GR <- (-my_var + 5) * 50
+Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
+Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
+Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
+VPD <- -my_var + 10
+VPD <- VPD[c(43:48, 0:42)]
+Rn <- GR - 50
+
+# combine into data frame
+a <- data.frame(
+  timestamp = t,
+  my_var = my_var + rnorm(48 * 14),
+  my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
+  GR = GR,
+  Tair = Tair,
+  Tsoil = Tsoil,
+  VPD = VPD,
+  Rn = Rn
+  )
+
+# specify units
+openeddy::units(a) <- c("-", "units", "-", "W m-2", "degC",
+                        "degC", "hPa", "W m-2")
+
+# include spikes
+a$my_var[c(152, 479)] <- c(21, -10)
+
+# plot time series
+plot_eddy(a, "my_var", "my_qc", "my_qc", skip = "monthly")
+
+# despike (plot = TRUE)
+xx <- despikeLF(a, "my_var", "my_qc", plot = TRUE)
+
+# add results to data frame, summarize and plot outliers
+a$spikesLF <- xx$SD
+summary_QC(a, qc_names = "spikesLF")
+xx$plots$`iter 1`$night$`2020-07-01 - 2020-07-13`
+
+# combine with original QC and plot
+a$qc_res <- combn_QC(a, qc_names = c("my_qc", "spikesLF"), "qc_res")
+plot_eddy(a, "my_var", "qc_res", "qc_res", skip = "monthly")
+
+# compute and use potential radiation
+library(REddyProc)
+tlist <- as.POSIXlt(a$timestamp)
+a$PotRad <- fCalcPotRadiation(DoY = tlist$yday + 1,
+                              Hour = tlist$hour + tlist$min / 60,
+                              LatDeg = 49.4437236,
+                              LongDeg = 16.6965125,
+                              TimeZone = +1)
+yy <- despikeLF(a, "my_var", "my_qc", light = "PotRad")
+
+# no outliers are detected without day/night separation
+zz <- despikeLF(a, "my_var", "my_qc", light = NULL)
+
+}
 \seealso{
 \code{\link[=combn_QC]{combn_QC()}}, \code{\link[=extract_QC]{extract_QC()}},
 \code{\link[=median]{median()}} and \code{\link[=mad]{mad()}}.

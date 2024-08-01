@@ -149,8 +149,8 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   * Reco: Ecosystem Respiration \[umol m-2 s-1\]
 #'   * QC: Quality Control
 #'   * P: Precipitation \[mm\]
-#'   * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
 #'   * GR: Global Radiation \[W m-2\]
+#'   * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
 #'   * T: Temperature \[degC\]
 #'   * Tair: Air Temperature \[degC\]
 #'   * Tsoil: Soil Temperature \[degC\]
@@ -196,7 +196,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   "blue_red"` or `"violet_orange"`, otherwise `NULL`.
 #' @param light A character string. Required only for the `"T_light"`
 #'   module. Selects preferred variable for incoming light intensity.
-#'   `"PAR"` or `"GR"` is allowed. Can be abbreviated.
+#'   `"GR"` or `"PAR"` is allowed. Can be abbreviated.
 #' @param GPP_scor A logical value. Should sign correction of GPP be performed?
 #'   See Gap-filling and NEE separation section in Details. Ignored if
 #'   `NEE_sep = FALSE`.
@@ -213,13 +213,13 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
 #' P <- vector("numeric", 48 * 14)
 #' P[c(180:188, 250:253, 360:366, 500:505)] <- sample(1:15, 26, replace = TRUE)
-#' PAR <- (-my_var + 5) * 100
+#' GR <- (-my_var + 5) * 50
 #' Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
 #' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
 #' Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
 #' VPD <- -my_var + 10
 #' VPD <- VPD[c(43:48, 0:42)]
-#' Rn <- PAR / 2 - 50
+#' Rn <- GR - 50
 #'
 #' # combine into data frame
 #' a <- data.frame(
@@ -227,7 +227,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'   my_var = my_var + rnorm(48 * 14),
 #'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
 #'   P = P,
-#'   PAR = PAR,
+#'   GR = GR,
 #'   Tair = Tair,
 #'   Tsoil = Tsoil,
 #'   VPD = VPD,
@@ -235,7 +235,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' )
 #'
 #' # specify units
-#' openeddy::units(a) <- c("-", "units", "-", "mm", "umol m-2 s-1", "degC",
+#' openeddy::units(a) <- c("-", "units", "-", "mm", "W m-2", "degC",
 #'                         "degC", "hPa", "W m-2")
 #'
 #' # plot in weekly resolution (flux can be any variable)
@@ -244,7 +244,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #'
 #' # test can be used to distinguish up to 3 groups (0-2 flagging scheme)
 #' # - example with 2 groups:
-#' a$day <- a$PAR > 0 # 2 groups (TRUE / FALSE; i.e. 1 / 0)
+#' a$day <- a$GR > 0 # 2 groups (TRUE / FALSE; i.e. 1 / 0)
 #' plot_eddy(a, "my_var", "my_qc", "day", skip = "monthly") # daytime is green
 #' # - example with 3 groups:
 #' a$Tair_levels <- cut(a$Tair, c(13, 16, 19, 22))
@@ -255,7 +255,7 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
 #'           skip = "monthly",
 #'           panel_top = "blue_red", panel_top_vars = c("Tair", "Rn"),
-#'           panel_bottom = "violet_orange", panel_bottom_vars = c("PAR", "VPD"))
+#'           panel_bottom = "violet_orange", panel_bottom_vars = c("GR", "VPD"))
 #'
 #' # any time resolution is supported
 #' b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
@@ -283,7 +283,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                       panel_bottom = c("VPD_Rn", "T_light", "H_err_var",
                                        "blue_red", "violet_orange"),
                       panel_bottom_vars = NULL,
-                      light = c("PAR", "GR"),
+                      light = c("GR", "PAR"),
                       GPP_scor = TRUE,
                       document = TRUE) {
   x_names <- names(x)
@@ -455,7 +455,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
     # Modules ==================================================================
     modules <- list()
     if ("T_light" %in% c(panel_top, panel_bottom)) {
-      PAR <- x[, light]
+      rad <- x[, light]
       Tair <- x$Tair
       Tsoil <- x$Tsoil
       modules$T_light <- function() {
@@ -468,8 +468,8 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
         lines(time[week], Tair[week], lwd = 2, col = "dodgerblue")
         lines(time[week], Tsoil[week], lwd = 2, col = "red1")
         par(new = TRUE)
-        plot(time[week], PAR[week], xlim = range(xaxis),
-             ylim = setRange(PAR, mon), type = "l", col = "gold", lwd = 2,
+        plot(time[week], rad[week], xlim = range(xaxis),
+             ylim = setRange(rad, mon), type = "l", col = "gold", lwd = 2,
              xaxt = "n", yaxt = "n", xlab = "", ylab = "")
         axis(4, padj = -0.9, tcl = -0.3)
         mtext(paste("T", wrap(units["Tair"])), 2, line = 3.6)

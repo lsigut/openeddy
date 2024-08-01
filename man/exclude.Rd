@@ -31,10 +31,9 @@ exclusion based on the visual inspection.
 \details{
 Six options are available during the interactive session.
 \enumerate{
-\item flag values: select interval of values to exclude or use double-click to flag
-single value.
-\item undo last: allows to change the user flagging input back
-to the state before last flagging.
+\item flag values: select interval of values to exclude or use double-click to
+flag single value.
+\item undo last: allows to revert previous flagging (only one step back).
 \item refresh plots: apply current user
 flagging input to the plots. It removes excluded points and affects y-axis
 range or it can show again excluded points if option 2 (undo last) was
@@ -45,15 +44,18 @@ existing range (see as a plot title) can be selected.
 \item finalize: finish the flagging and return the results.
 }
 
-The interactive session will be finished successfully also when option 4
-(next plot) is executed while at the last plot.
+The manual flagging is finished only after it is \emph{finalized} (option 6).
+The interactive session will be finished successfully also when
+option 4 (\emph{next plot}) is executed while at the last plot. If \code{exclude()}
+is \code{Escape}d before it is finalized, the user will lose the whole progress
+(see \emph{undo last} option instead).
 }
 \examples{
 # prepare mock data
 set.seed(87)
 my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
 my_var[my_var > 5] <- 5
-PAR <- (-my_var + 5) * 100
+GR <- (-my_var + 5) * 50
 Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
 Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
 
@@ -61,7 +63,7 @@ Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
 a <- data.frame(
   my_var = my_var + rnorm(48 * 14),
   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  PAR = PAR,
+  GR = GR,
   Tair = Tair
 )
 
@@ -75,12 +77,12 @@ if (dev.interactive()) {
 
 # flag data manually (single auxiliary variable)
 if (dev.interactive()) {
-  exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR)
+  exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR)
 }
 
 # flag data manually (two auxiliary variables)
 if (dev.interactive()) {
-  exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
+  exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR, z = a$Tair)
 }
 
 }

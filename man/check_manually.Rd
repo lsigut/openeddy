@@ -80,7 +80,7 @@ including pattern \code{"manual_QC"} is attempted. If found, timestamp is
 merged with date-time information in \code{x} if not identical and quality
 control is combined with the new flags marked by user (flag 2 marks data
 exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
-\code{path} is also used for saving file (\code{"manual_QC"} pattern) with
+Argument \code{path} is used for saving CSV file (\code{"manual_QC"} pattern) with
 results. Actual flagging allows to run \code{\link[=exclude]{exclude()}} over all
 \code{vars}. Each variable is required to have associated quality control
 column in format \code{qc_prefix+vars+qc_suffix}.
@@ -96,10 +96,10 @@ set.seed(87)
 NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
 NEE[NEE > 5] <- 5
 t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-PAR <- (-NEE + 5) * 100
+GR <- (-NEE + 5) * 50
 Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
 Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-Rn <- PAR / 2 - 50
+Rn <- GR - 50
 H <- Rn * 0.7
 LE <- Rn * 0.3
 
@@ -112,7 +112,7 @@ a <- data.frame(
   qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
   NEE = NEE + rnorm(48 * 14),
   qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  PAR = PAR,
+  GR = GR,
   Tair = Tair,
   Rn = Rn
 )
@@ -133,6 +133,7 @@ if (dev.interactive()) {
 if (dev.interactive()) {
   man <- check_manually(a, vars = c("H", "LE", "NEE"),
                         interactive = TRUE)
+  summary_QC(man, names(man)[-1])
 }
 
 # multiple vars provided as matrix (including auxiliary variables)
@@ -140,7 +141,7 @@ if (dev.interactive()) {
   man <- check_manually(a,
                         vars = cbind(
                           c("H", "LE", "NEE"), # main variables (x)
-                          c("Rn", "Rn", "PAR") # auxiliary variables (y)
+                          c("Rn", "Rn", "GR") # auxiliary variables (y)
                         ),
                         interactive = TRUE)
 }
@@ -162,7 +163,7 @@ if (dev.interactive()) {
   man <- check_manually(a,
                         vars = data.frame(
                           x = c("H", "LE", "NEE"),
-                          y = c("Rn", "Rn", "PAR"),
+                          y = c("Rn", "Rn", "GR"),
                           z = c("LE", "H", "Tair")
                         ),
                         interactive = TRUE)
