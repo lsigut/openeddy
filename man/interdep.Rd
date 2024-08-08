@@ -4,18 +4,25 @@
 \alias{interdep}
 \title{Flux Interdependency}
 \usage{
-interdep(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open"))
+interdep(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open"), used_IRGA = NULL)
 }
 \arguments{
-\item{qc_LE}{An atomic type containing numeric or NA values. Combination of
-all available QC flags for LE.}
+\item{qc_LE}{An integer vector. Latent heat quality control flags combining
+all filters relevant for detection of instrument failure.}
 
-\item{qc_H}{An atomic type containing numeric or NA values. Combination of
-all available QC flags for H. Used only if \code{IRGA = "open"}.}
+\item{qc_H}{An integer vector. Sensible heat quality control flags combining
+all filters relevant for detection of instrument failure. Used only if
+\code{IRGA = "open"}.}
 
 \item{IRGA}{A character string. Specifies the type of IRGA. Allowed values
-are \code{"en_closed"} both for closed and enclosed path systems and
-\code{"open"} for open path systems. Can be abbreviated.}
+are "en_closed" both for closed and enclosed path systems and
+"open" for open path systems. Can be abbreviated.}
+
+\item{used_IRGA}{A character vector or \code{NULL}. If specified, user-provided
+IRGA type (either "en_closed" or "open"; cannot be abbreviated) used within
+each averaging period is expected if IRGA type changed throughout the data
+set. Any other \code{used_IRGA} value will be considered missing and assigned
+flag 0 (relaxed approach). \code{IRGA} is ignored if \code{used_IRGA} is specified.}
 }
 \value{
 A data frame. Each column has attributes \code{"varnames"} and
@@ -51,6 +58,11 @@ If \code{IRGA = "open"}
 \item If \code{qc_H == 2 | is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}:
 qc_NEE flags are increased by 1.
 }
+
+Input is not provided via a data frame on purpose. Required QC flags
+typically need to be computed and are not part of the original EddyPro file.
+These QC flags also serve no other purpose than for \code{interdep()} and are
+not further used.
 }
 \section{Abbreviations}{
 
@@ -71,6 +83,12 @@ Agric. For. Meteorol. 169, 122-135.
 \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
 }
 
+\examples{
+interdep(0:2, IRGA = "en_closed")
+interdep(0:2, 2:0, IRGA = "open")
+interdep(0:2, 2:0, used_IRGA = c("enclosed", "open", "en_closed"))
+
+}
 \seealso{
 \code{\link[=combn_QC]{combn_QC()}} and \code{\link[=extract_QC]{extract_QC()}}.
 }

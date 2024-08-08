@@ -21,6 +21,8 @@ extract_QC(
   RH_thr = c(95, 95),
   LI7200_signal_thr = c(90, 80),
   LI7500_signal_thr = c(90, 80),
+  max_records = FALSE,
+  used_rotation = FALSE,
   simplify = TRUE
 )
 }
@@ -76,6 +78,12 @@ non-missing values. Represents thresholds for signal strength provided by
 LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or \code{"LI7500"}.
 \code{\link[=apply_thr]{apply_thr()}} flags the records lower than the given thresholds.}
 
+\item{max_records}{A logical value. If \code{TRUE}, column "max_records" is
+expected in \code{x} (see Details).}
+
+\item{used_rotation}{A logical value. If \code{TRUE}, column "used_rotation" is
+expected in \code{x} (see Details).}
+
 \item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in EddyPro
 column name) and hard (suffix \code{"_hf"} in EddyPro column name) flags
 extracted from EddyPro coded variables combined? See \code{\link[=extract_coded]{extract_coded()}}.}
@@ -103,7 +111,19 @@ Check of missing data in averaging period (missfrac) takes into account
 number of valid records used for given averaging period. This number is
 further reduced by the sum of count of high frequency data spikes out of
 variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
-ts (H); w, h2o (LE) and w, co2 (NEE).
+ts (H); w, h2o (LE) and w, co2 (NEE). If \code{max_records = FALSE} (default),
+the number of records in averaging period is estimated as
+\code{max(x$file_records, na.rm = TRUE)}, i.e. fixed value for all records in \code{x}.
+If \code{max_records = TRUE}, column "max_records" manually inserted by user is
+expected in \code{x} instead of "file_records" that specifies the maximum amount
+of records for each averaging period if acquisition frequency changed.
+
+If \code{used_rotation = TRUE}, argument \code{rotation} is ignored and column
+"used_rotation" manually inserted by user is expected in \code{x} that specifies
+the type of rotation (either "double" or "planar fit"; cannot be abbreviated)
+used for each averaging period if rotation changed throughout the data set.
+Any other type of rotation value will be considered missing and assigned
+flag 0 (relaxed approach).
 }
 \section{Extracted QC Checks}{
  Filters from coded EddyPro columns (thresholds
@@ -317,7 +337,6 @@ y <- data.frame(
   # columns needed for 'humid' filter
   RH = 99,
   # columns needed for 'LI7200' filter
-  # - columns for either LI7200 or LI7500 expected (the other filter skipped)
   co2_signal_strength_7200_mean = 85, h2o_signal_strength_7200_mean = 86,
   # columns needed for 'LI7500' filter
   co2_signal_strength_7500_mean = 95
@@ -327,6 +346,25 @@ y <- data.frame(
 # - user is informed about skipped filters but no error or warning is issued
 extract_QC(y)
 
+# missfrac filter with max_records = TRUE
+z <- data.frame(
+  # columns needed for 'missfrac' filter
+  max_records = c(18000, 36000),
+  used_records = c(18000, 36000),
+  w_spikes = 0,
+  u_spikes = 0,
+  ts_spikes = 0,
+  h2o_spikes = 0,
+  co2_spikes = 0
+)
+extract_QC(z, filters = "missfrac", max_records = TRUE)
+
+# wresid filter with used_rotation = TRUE
+extract_QC(data.frame(
+  w_unrot = c(NA, 0.1, 0.4, 0.1, 0.4),
+  w_rot = c(NA, 0.001, 0.2, 0.001, 0.2),
+  used_rotation = c("wrong name", rep("double", 2), rep("planar fit", 2))),
+  filters = "wresid", used_rotation = TRUE)
 }
 \seealso{
 \code{\link[=extract_coded]{extract_coded()}} and \code{\link[=apply_thr]{apply_thr()}}.

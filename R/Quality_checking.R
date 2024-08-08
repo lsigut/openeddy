@@ -554,7 +554,19 @@ mf <- function(x, ur, mfr) {
 #' number of valid records used for given averaging period. This number is
 #' further reduced by the sum of count of high frequency data spikes out of
 #' variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
-#' ts (H); w, h2o (LE) and w, co2 (NEE).
+#' ts (H); w, h2o (LE) and w, co2 (NEE). If `max_records = FALSE` (default),
+#' the number of records in averaging period is estimated as
+#' `max(x$file_records, na.rm = TRUE)`, i.e. fixed value for all records in `x`.
+#' If `max_records = TRUE`, column "max_records" manually inserted by user is
+#' expected in `x` instead of "file_records" that specifies the maximum amount
+#' of records for each averaging period if acquisition frequency changed.
+#'
+#' If `used_rotation = TRUE`, argument `rotation` is ignored and column
+#' "used_rotation" manually inserted by user is expected in `x` that specifies
+#' the type of rotation (either "double" or "planar fit"; cannot be abbreviated)
+#' used for each averaging period if rotation changed throughout the data set.
+#' Any other type of rotation value will be considered missing and assigned
+#' flag 0 (relaxed approach).
 #'
 #' @section Extracted QC Checks: Filters from coded EddyPro columns (thresholds
 #'   are set within EddyPro software). All of the filters extracted from coded
@@ -722,6 +734,10 @@ mf <- function(x, ur, mfr) {
 #'   non-missing values. Represents thresholds for signal strength provided by
 #'   LI-COR 7200 or 7500 if `filters` include `"LI7200"` or `"LI7500"`.
 #'   [apply_thr()] flags the records lower than the given thresholds.
+#' @param max_records A logical value. If `TRUE`, column "max_records" is
+#'   expected in `x` (see Details).
+#' @param used_rotation A logical value. If `TRUE`, column "used_rotation" is
+#'   expected in `x` (see Details).
 #' @param simplify A logical value. Should be soft (suffix `"_sf"` in EddyPro
 #'   column name) and hard (suffix `"_hf"` in EddyPro column name) flags
 #'   extracted from EddyPro coded variables combined? See [extract_coded()].
@@ -799,7 +815,6 @@ mf <- function(x, ur, mfr) {
 #'   # columns needed for 'humid' filter
 #'   RH = 99,
 #'   # columns needed for 'LI7200' filter
-#'   # - columns for either LI7200 or LI7500 expected (the other filter skipped)
 #'   co2_signal_strength_7200_mean = 85, h2o_signal_strength_7200_mean = 86,
 #'   # columns needed for 'LI7500' filter
 #'   co2_signal_strength_7500_mean = 95
@@ -809,6 +824,25 @@ mf <- function(x, ur, mfr) {
 #' # - user is informed about skipped filters but no error or warning is issued
 #' extract_QC(y)
 #'
+#' # missfrac filter with max_records = TRUE
+#' z <- data.frame(
+#'   # columns needed for 'missfrac' filter
+#'   max_records = c(18000, 36000),
+#'   used_records = c(18000, 36000),
+#'   w_spikes = 0,
+#'   u_spikes = 0,
+#'   ts_spikes = 0,
+#'   h2o_spikes = 0,
+#'   co2_spikes = 0
+#' )
+#' extract_QC(z, filters = "missfrac", max_records = TRUE)
+#'
+#' # wresid filter with used_rotation = TRUE
+#' extract_QC(data.frame(
+#'   w_unrot = c(NA, 0.1, 0.4, 0.1, 0.4),
+#'   w_rot = c(NA, 0.001, 0.2, 0.001, 0.2),
+#'   used_rotation = c("wrong name", rep("double", 2), rep("planar fit", 2))),
+#'   filters = "wresid", used_rotation = TRUE)
 #' @export
 extract_QC <- function(x,
                        filters = c("spikesHF", "ampres", "dropout",
@@ -825,6 +859,7 @@ extract_QC <- function(x,
                        lowcov_thr = c(-0.005, 0.005), ts_var_thr = c(2, 2),
                        RH_thr = c(95, 95), LI7200_signal_thr = c(90, 80),
                        LI7500_signal_thr = c(90, 80),
+                       max_records = FALSE, used_rotation = FALSE,
                        simplify = TRUE) {
   # Basic check of input =======================================================
   x_names <- colnames(x)
@@ -900,8 +935,9 @@ extract_QC <- function(x,
   # checks the fraction of missing high frequency records against missfrac_thr
   if ("missfrac" %in% filters) {
     message("Extracting 'missfrac' filters")
-    mf_vars <- c("file_records", "used_records", "w_spikes", "u_spikes",
-                 "ts_spikes", "h2o_spikes", "co2_spikes")
+    mf_vars <- c(if (max_records) "max_records" else "file_records",
+                 "used_records", "w_spikes", "u_spikes", "ts_spikes",
+                 "h2o_spikes", "co2_spikes")
     mf_avail <- mf_vars %in% x_names
     if (any(!mf_avail)) {
       message("- missing EddyPro columns: ",
@@ -909,7 +945,8 @@ extract_QC <- function(x,
     }
     if (all(mf_avail)) {
       ur <- x$used_records
-      mfr <- max(x$file_records, na.rm = TRUE) # maximum file records (mfr)
+      mfr <- if (max_records) x[, "max_records"] else
+        max(x$file_records, na.rm = TRUE) # maximum file records (mfr)
       mf_Tau  <- mf(x[c("w_spikes", "u_spikes")], ur, mfr)
       mf_H    <- mf(x[c("w_spikes", "ts_spikes")], ur, mfr)
       mf_LE   <- mf(x[c("w_spikes", "h2o_spikes")], ur, mfr)
@@ -954,22 +991,76 @@ extract_QC <- function(x,
   # probable advection
   if ("wresid" %in% filters) {
     message("Extracting 'wresid' filter")
-    rotation <- match.arg(rotation)
-    wr_var <- ifelse(rotation == "double", "w_unrot", "w_rot")
-    message(paste("-", rotation, "rotation -> using",
-                  ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
-    # double rotation: abs(w_unrot) should be < 0.35 m/s
-    # planar fit: flag correction according to residual absolute w
-    # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
-    wr_avail <- wr_var %in% x_names
-    if (!wr_avail) {
-      message("- missing EddyPro column: ", wr_var)
-      message("-> skipped")
+    rotation <- if (!used_rotation) match.arg(rotation)
+    if (used_rotation) {
+      rtypes <- c("double", "planar fit")
+      wr_avail <- "used_rotation" %in% x_names
+      if (!wr_avail) {
+        message("- missing 'x' column: used_rotation")
+        message("-> skipped")
+      } else {
+        urot <- x[, "used_rotation"]
+        wr_var <- NULL
+        if ("double" %in% urot) wr_var <- c(wr_var, "w_unrot")
+        if ("planar fit" %in% urot) wr_var <- c(wr_var, "w_rot")
+        if (is.null(wr_var)) {
+          message("- no recognized type of rotation in 'x$used_rotation'")
+          message("-> skipped")
+        } else {
+          message("- applied rotation: ",
+                  paste0(rtypes[rtypes %in% urot], collapse = ", "),
+                  " -> using ", paste0(c(
+                    if ("double" %in% urot) "w_unrot_thr",
+                    if ("planar fit" %in% urot) "w_rot_thr"),
+                    collapse = ", "))
+          if (!all(urot %in% rtypes)) {
+            message("- unrecognized rotation types: ",
+                    paste0(unique(urot[!urot %in% rtypes]), collapse = ", "))
+          }
+          urot[!urot %in% rtypes] <- "missing"
+          wr_avail <- wr_var %in% x_names
+          if (!all(wr_avail)) {
+            message("- missing EddyPro column: ",
+                    paste0(wr_var[!wr_avail], collapse = ", "))
+            message("-> skipped")
+          } else {
+            # actual computation of wresid filter for custom setup
+            # max 3 cases (double, planar fit, missing)
+            l <- split(x[wr_var], urot)
+            if ("double" %in% urot) {
+              # absw_d <- abs(x$w_unrot)
+              l$double <- apply_thr(abs(l$double$w_unrot), w_unrot_thr)
+            }
+            if ("planar fit" %in% urot) {
+              l$`planar fit` <- apply_thr(abs(l$`planar fit`$w_rot), w_rot_thr)
+            }
+            if ("missing" %in% urot) {
+              l$missing <- integer(nrow(l$missing)) # relaxed approach
+            }
+            out$qc_ALL_wresid <- unsplit(l, urot)
+            varnames(out$qc_ALL_wresid) <- "qc_ALL_wresid"
+            units(out$qc_ALL_wresid) <- "-"
+            message("-> success")
+          }
+        }
+      }
     } else {
-      thr <- if (rotation == "double") w_unrot_thr else w_rot_thr
-      absw <- abs(if (rotation == "double") x$w_unrot else x$w_rot)
-      out$qc_ALL_wresid <- apply_thr(absw, thr, "qc_ALL_wresid")
-      message("-> success")
+      wr_var <- ifelse(rotation == "double", "w_unrot", "w_rot")
+      message(paste("-", rotation, "rotation -> using",
+                    ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
+      # double rotation: abs(w_unrot) should be < 0.35 m/s
+      # planar fit: flag correction according to residual absolute w
+      # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
+      wr_avail <- wr_var %in% x_names
+      if (!wr_avail) {
+        message("- missing EddyPro column: ", wr_var)
+        message("-> skipped")
+      } else {
+        thr <- if (rotation == "double") w_unrot_thr else w_rot_thr
+        absw <- abs(if (rotation == "double") x$w_unrot else x$w_rot)
+        out$qc_ALL_wresid <- apply_thr(absw, thr, "qc_ALL_wresid")
+        message("-> success")
+      }
     }
   }
 
@@ -1080,7 +1171,7 @@ extract_QC <- function(x,
   if ("LI7200" %in% filters) {
     message("Extracting 'LI7200' filter")
     LI_vars <- c("co2_signal_strength_7200_mean",
-                "h2o_signal_strength_7200_mean")
+                 "h2o_signal_strength_7200_mean")
     nout <- "qc_GA_LI7200"
     LI7200_avail <- LI_vars %in% x_names
     if (any(!LI7200_avail)) {
@@ -1147,6 +1238,11 @@ extract_QC <- function(x,
 #' * If `qc_H == 2 | is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE`:
 #' qc_NEE flags are increased by 1.
 #'
+#' Input is not provided via a data frame on purpose. Required QC flags
+#' typically need to be computed and are not part of the original EddyPro file.
+#' These QC flags also serve no other purpose than for `interdep()` and are
+#' not further used.
+#'
 #' @section Abbreviations:
 #' * QC: Quality Control
 #' * H: Sensible heat flux \[W m-2\]
@@ -1163,59 +1259,83 @@ extract_QC <- function(x,
 #' @return A data frame. Each column has attributes `"varnames"` and
 #'   `"units"`.
 #'
-#' @param qc_LE An atomic type containing numeric or NA values. Combination of
-#'   all available QC flags for LE.
-#' @param qc_H An atomic type containing numeric or NA values. Combination of
-#'   all available QC flags for H. Used only if `IRGA = "open"`.
+#' @param qc_LE An integer vector. Latent heat quality control flags combining
+#' all filters relevant for detection of instrument failure.
+#' @param qc_H An integer vector. Sensible heat quality control flags combining
+#' all filters relevant for detection of instrument failure. Used only if
+#'  `IRGA = "open"`.
 #' @param IRGA A character string. Specifies the type of IRGA. Allowed values
-#'   are `"en_closed"` both for closed and enclosed path systems and
-#'   `"open"` for open path systems. Can be abbreviated.
+#'   are "en_closed" both for closed and enclosed path systems and
+#'   "open" for open path systems. Can be abbreviated.
+#' @param used_IRGA A character vector or `NULL`. If specified, user-provided
+#'  IRGA type (either "en_closed" or "open"; cannot be abbreviated) used within
+#'  each averaging period is expected if IRGA type changed throughout the data
+#'  set. Any other `used_IRGA` value will be considered missing and assigned
+#'  flag 0 (relaxed approach). `IRGA` is ignored if `used_IRGA` is specified.
 #'
 #' @seealso [combn_QC()] and [extract_QC()].
 #'
+#' @examples
+#' interdep(0:2, IRGA = "en_closed")
+#' interdep(0:2, 2:0, IRGA = "open")
+#' interdep(0:2, 2:0, used_IRGA = c("enclosed", "open", "en_closed"))
+#'
 #' @export
-interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
-  if (!is.atomic(qc_LE) || !is.atomic(qc_H)) {
-    stop("'qc_LE' and 'qc_H' must be an atomic type")
+interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open"),
+                     used_IRGA = NULL) {
+  if (is.null(used_IRGA)) {
+    IRGA <- match.arg(IRGA)
+    includes_open <- IRGA == "open"
+  } else {
+    includes_open <- "open" %in% used_IRGA
   }
-  IRGA <- match.arg(IRGA)
-  if (!is.null(qc_LE) && !is.numeric(qc_LE) && !all(is.na(qc_LE))) {
-    stop("'qc_LE' must contain numeric or NA values")
-  }
-  if (IRGA == "open") {
-    if (!is.null(qc_H) && !is.numeric(qc_H) && !all(is.na(qc_H))) {
-      stop("'qc_H' must contain numeric or NA values")
-    }
-  }
+  gatypes <- c("en_closed", "open")
   len <- length(qc_LE)
-  if (IRGA == "open" && len != length(qc_H)) {
-    stop("length(qc_LE) and length(qc_H) must be equal")
+  if (includes_open && len != length(qc_H)) {
+    stop("length of 'qc_LE' and 'qc_H' is not equal")
+  }
+  if (!is.null(used_IRGA) && len != length(used_IRGA)) {
+    stop("length of 'qc_LE' and 'used_IRGA' is not equal")
   }
   # qc_H is influencing variable only for open path system
   nout <- c("qc_H_interdep", "qc_LE_interdep", "qc_NEE_interdep")
-  out <- data.frame(rep(NA, len), rep(NA, len), rep(NA, len))
-  names(out) <- nout
-  for (i in nout) {
-    attributes(out[, i]) <- list(varnames = i, units = "-")
-  }
+  out <- data.frame(integer(len), integer(len), integer(len))
+  names(out) <- varnames(out) <- nout
+  units(out) <- rep("-", 3)
   if (length(qc_LE) == 0) {
     if (IRGA != "open") out$qc_LE_interdep <- NULL
     return(out)
   }
-  qc_LE[is.na(qc_LE)] <- 2L
-  out$qc_H_interdep[qc_LE <  2] <- 0L
-  out$qc_H_interdep[qc_LE >= 2] <- 1L
-  if (IRGA == "open") {
-    qc_H[is.na(qc_H)] <- 2L
-    out$qc_LE_interdep[qc_H <  2] <- 0L
-    out$qc_LE_interdep[qc_H >= 2] <- 1L
-    out$qc_NEE_interdep[qc_LE <  2 & qc_H <  2] <- 0L
-    out$qc_NEE_interdep[qc_LE >= 2 | qc_H >= 2] <- 1L
-  } else {
-    out$qc_LE_interdep <- NULL
-    out$qc_NEE_interdep[qc_LE <  2] <- 0L
-    out$qc_NEE_interdep[qc_LE >= 2] <- 1L
+  if (!is.null(used_IRGA)) {
+    # any supported IRGA type?
+    # which types included?
+    # which not recognized
+    if (!any(gatypes %in% used_IRGA)) {
+      stop("no recognized type of IRGA in 'used_IRGA'")
+    } else {
+      message("- recognized IRGA types: ",
+              paste0(gatypes[gatypes %in% used_IRGA], collapse = ", "))
+    }
+    if (!all(used_IRGA %in% gatypes)) {
+      message("- unrecognized IRGA types: ",
+              paste0(unique(used_IRGA[!used_IRGA %in% gatypes]),
+                     collapse = ", "))
+    }
   }
+  if (is.null(used_IRGA)) used_IRGA <- rep(IRGA, len)
+  used_IRGA[!used_IRGA %in% gatypes] <- "missing"
+  # at this point all used_IRGA cannot be "missing"
+  # qc_interdep values initialized with flag 0 (no exclusion)
+  qc_LE[is.na(qc_LE)] <- 2L
+  out$qc_H_interdep[qc_LE == 2 & used_IRGA != "missing"] <- 1L
+  # only for IRGA = "open" cases
+  qc_H[used_IRGA == "open" & is.na(qc_H)] <- 2L
+  out$qc_LE_interdep[used_IRGA == "open" & qc_H == 2] <- 1L
+  out$qc_NEE_interdep[used_IRGA == "open" & (qc_LE == 2 | qc_H == 2)] <- 1L
+  # only if no IRGA = "open" detected
+  if (!includes_open) out$qc_LE_interdep <- NULL
+  # only for IRGA = "en_closed" cases
+  out$qc_NEE_interdep[used_IRGA == "en_closed" & qc_LE == 2] <- 1L
   return(out)
 }
 
