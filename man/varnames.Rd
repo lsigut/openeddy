@@ -16,12 +16,12 @@ units(x, names = FALSE)
 units(x) <- value
 }
 \arguments{
-\item{x}{A data frame or an atomic type.}
+\item{x}{A data frame or an \link{atomic} type.}
 
 \item{names}{A logical value. Applies only in case of data frames. If
 \code{TRUE}, attributes are extracted with corresponding column names.}
 
-\item{value}{An atomic type that represents \code{varnames} or \code{units}.
+\item{value}{An \link{atomic} type that represents \code{varnames} or \code{units}.
 The length must be \code{1} if \code{x} is an atomic type or equal to
 number of columns in \code{x} if \code{x} is a data frame.}
 }

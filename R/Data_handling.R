@@ -187,10 +187,10 @@ allNA <- function(x, margin) {
 #'
 #'   For `varnames<-` and `units<-`, the updated object `x`.
 #'
-#' @param x A data frame or an atomic type.
+#' @param x A data frame or an [atomic] type.
 #' @param names A logical value. Applies only in case of data frames. If
 #'   `TRUE`, attributes are extracted with corresponding column names.
-#' @param value An atomic type that represents `varnames` or `units`.
+#' @param value An [atomic] type that represents `varnames` or `units`.
 #'   The length must be `1` if `x` is an atomic type or equal to
 #'   number of columns in `x` if `x` is a data frame.
 #'
@@ -317,7 +317,7 @@ units <- function(x, names = FALSE) {
 #' @return A vector or data frame with `varnames` and `units`
 #'   attributes.
 #'
-#' @param x An atomic type or a data frame. Object from which to extract
+#' @param x An [atomic] type or a data frame. Object from which to extract
 #'   element(s).
 #' @param i,j Indices specifying elements to extract as specified in
 #'   [Extract()].

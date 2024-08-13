@@ -13,7 +13,7 @@ apply_thr(
 )
 }
 \arguments{
-\item{x}{A numeric atomic type with \code{NULL} \code{\link[=dim]{dim()}}ensions.}
+\item{x}{A numeric \link{atomic} type with \code{NULL} \code{\link[=dim]{dim()}}ensions.}
 
 \item{thr}{A numeric vector of length two or list with two numeric vectors of
 length two. If vector, first (second) element provides lower (upper)

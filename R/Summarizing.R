@@ -1565,6 +1565,8 @@ calc_spti_cov <- function(df, targetCol, year, nInt, plot) {
 
   # Spatial, temporal and spatio-temporal sampling coverage
   SSC <- round(A_space / A_uni, 3)
+  # see how Gini relates to spatial coverage stat
+  # all.equal(1-SSC, DescTools::Gini(space_sums, unbiased = FALSE))
   TSC <- round(A_time / A_uni, 3)
   STSC <- round(mean(c(SSC, TSC)), 3)
 

@@ -7,7 +7,7 @@
 ex(x, i, j, drop = TRUE)
 }
 \arguments{
-\item{x}{An atomic type or a data frame. Object from which to extract
+\item{x}{An \link{atomic} type or a data frame. Object from which to extract
 element(s).}
 
 \item{i, j}{Indices specifying elements to extract as specified in

@@ -90,5 +90,5 @@ interdep(0:2, 2:0, used_IRGA = c("enclosed", "open", "en_closed"))
 
 }
 \seealso{
-\code{\link[=combn_QC]{combn_QC()}} and \code{\link[=extract_QC]{extract_QC()}}.
+\code{\link[=label_periods]{label_periods()}}, \code{\link[=combn_QC]{combn_QC()}} and \code{\link[=extract_QC]{extract_QC()}}.
 }

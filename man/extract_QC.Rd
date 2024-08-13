@@ -367,5 +367,5 @@ extract_QC(data.frame(
   filters = "wresid", used_rotation = TRUE)
 }
 \seealso{
-\code{\link[=extract_coded]{extract_coded()}} and \code{\link[=apply_thr]{apply_thr()}}.
+\code{\link[=label_periods]{label_periods()}}, \code{\link[=extract_coded]{extract_coded()}} and \code{\link[=apply_thr]{apply_thr()}}.
 }

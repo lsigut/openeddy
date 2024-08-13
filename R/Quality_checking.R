@@ -45,7 +45,7 @@
 #'   `varnames` and `units` attributes are set to  `name_out` and
 #'   `"-"` values, respectively.
 #'
-#' @param x A numeric atomic type with `NULL` [dim()]ensions.
+#' @param x A numeric [atomic] type with `NULL` [dim()]ensions.
 #' @param thr A numeric vector of length two or list with two numeric vectors of
 #'   length two. If vector, first (second) element provides lower (upper)
 #'   boundary threshold for quality control flag 2. If list, first (second)
@@ -119,6 +119,15 @@ apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower"),
                       angles = FALSE) {
   flag <- match.arg(flag)
+  name_out <- as.character(name_out)[1]
+  # support NULL value input
+  if (is.null(x)) {
+    out <- integer(0)
+    varnames(out) <- name_out
+    units(out) <- "-"
+    return(out)
+  }
+  # data frame, list or matrix would not provide sensible output (without error)
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
@@ -137,10 +146,6 @@ apply_thr <- function(x, thr, name_out = "-",
       stop("'thr' supplied incorrectly")
     }
   }
-  if (!is.atomic(name_out) || length(name_out) != 1) {
-    stop("atomic type 'name_out' must have length 1")
-  }
-  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   # initiate with flag 0
   out <- vector("integer", length(x))
   # thr cannot contain NAs, thus NA flags only if x NA
@@ -242,7 +247,8 @@ apply_thr <- function(x, thr, name_out = "-",
     out[x <  thr[1]] <- 1L
     out[x <  thr[2]] <- 2L
   }
-  attributes(out) <- list(varnames = name_out, units = "-")
+  varnames(out) <- name_out
+  units(out) <- "-"
   return(out)
 }
 
@@ -254,7 +260,7 @@ apply_thr <- function(x, thr, name_out = "-",
 #' not interrupt runs. Flagging is done according to the 0 - 2 quality control
 #' flag scheme.
 #'
-#' @param x A numeric atomic type with NULL dimensions.
+#' @param x A numeric [atomic] type with `NULL` dimensions.
 #' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param length A numeric value. The minimum number of repeating values to
@@ -337,6 +343,12 @@ flag_periods <- function(x, start, end, name_out = "-") {
   if (length(start) != length(end)) {
     stop("lengths of 'start' and 'end' must be equal")
   }
+  if (any(diff(start) <= 0) | any(diff(end) <= 0)) {
+    stop("'start' and 'end' must be in ascending order")
+  }
+  if (any(start > end)) {
+    stop("'start' value higher than 'end' value")
+  }
   name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   out <- vector("integer", length(x))
   for (i in seq_along(start)) {
@@ -346,32 +358,113 @@ flag_periods <- function(x, start, end, name_out = "-") {
   return(out)
 }
 
+#' Label Periods
+#'
+#' Annotate selected periods with custom labels.
+#'
+#' Labels are always only in the extent of `x`, although the range of labeled
+#' period provided by `start` and `end` can surpass it.
+#'
+#' If `end = NULL` (default), `end` is inferred from the `start` argument. In
+#' that case `start` provides the break points between the labelled periods and
+#' the last period extends to the last timestamp in `x`. If `end` is specified,
+#' gaps between periods with no labels can exist.
+#'
+#' @param x A POSIXt vector providing timestamp of measurements.
+#' @param labels An [atomic] type.
+#' @param start,end A POSIXt vector marking the start (end) of the periods to
+#'   be labelled. If `end` is specified, they must be of the same length.
+#' @param name_out A character string providing `varnames` attribute value
+#'   of the output.
+#'
+#' @return An atomic type with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
+#'
+#' @seealso [extract_QC()], [interdep()].
+#'
+#' @examples
+#' # alternative style: as.POSIXct("2000-01-01 12:15:00", tz = "GMT")
+#' timestamp <- seq(ISOdatetime(2000, 1, 1, 12, 15, 0, tz = "GMT"),
+#'                  ISOdatetime(2000, 1, 1, 18, 15, 0, tz = "GMT"),
+#'                  by = "30 mins")
+#'
+#' start <- c(ISOdatetime(2000, 1, 1, 12, 15, 0, tz = "GMT"),
+#'            ISOdatetime(2000, 1, 1, 15, 15, 0, tz = "GMT"))
+#'
+#' # specify labels that can be useful for extract_QC() or interdep()
+#' rec <- label_periods(timestamp, c(18000, 36000), start,
+#'                      name_out = "max_records")
+#' rot <- label_periods(timestamp, c("double", "planar fit"), start,
+#'                      name_out = "used_rotation")
+#' IRGA <- label_periods(timestamp, c("open", "en_closed"), start,
+#'                       name_out = "used_IRGA")
+#' data.frame(timestamp, max_records = rec, used_rotation = rot,
+#'            used_IRGA = IRGA)
+#'
+#' @export
+label_periods <- function(x, labels, start, end = NULL, name_out = "-") {
+  if (is.null(end)) {
+    if (!inherits(x, "POSIXt") | !inherits(start, "POSIXt")) {
+      stop("'x' and 'start' must be of class 'POSIXt'")
+    }
+    end <- c(start[-1], if (start[length(start)] > x[length(x)]) {
+      start[length(start)] + 1
+    } else {
+      x[length(x)]
+    })
+    if (any(diff(start) <= 0)) {
+      stop("'start' must be in ascending order")
+    }
+    if (any(start > end)) {
+      stop("'start' value cannot go outside of 'x' range if 'end = NULL'")
+    }
+  } else {
+    if (!inherits(x, "POSIXt") | !inherits(start, "POSIXt") |
+        !inherits(end, "POSIXt")) {
+      stop("'x', 'start' and 'end' must be of class 'POSIXt'")
+    }
+    if (any(diff(start) <= 0) | any(diff(end) <= 0)) {
+      stop("'start' and 'end' must be in ascending order")
+    }
+    if (length(start) != length(end)) {
+      stop("lengths of 'start' and 'end' must be equal")
+    }
+    if (any(start > end)) {
+      stop("'start' value higher than 'end' value")
+    }
+  }
+  if (length(start) != length(labels)) {
+    stop("lengths of 'start' and 'labels' must be equal")
+  }
+  name_out <- as.character(name_out)[1]
+  out <- rep(NA, length(x))
+  class(out) <- class(labels)
+  for (i in seq_along(start)) {
+    out[x >= start[i] & x <= end[i]] <- labels[i]
+  }
+  varnames(out) <- name_out
+  units(out) <- "-"
+  return(out)
+}
+
 #' Separate columns
 #'
 #' Helper function utilized in [extract_coded()] for coded variables
 #' that controls column splitting.
 #'
-#' @keywords internal
-#' @noRd
-separate <- function(x, ...) {
-  strsplit(as.character(gsub(...,"", x)), NULL)
-}
-
-#' Handle NA values
+#' It substitutes a regexp pattern provided by "..." by `split` and splits
+#' provided string to single characters. Output is a list with single element
+#' including vector of characters.
 #'
-#' Helper function utilized in [extract_coded()] for abslim and spikesHF
-#' - controls NAs in splitted columns
-#' - 9 is EddyPro code for NA
-#' - in case of missing half hour inserts NAs according to number of variables
-#'   in 'units'
+#' @examples
+#' openeddy:::separate(x = 800000099, "8")
+#' openeddy:::separate(x = "8u/v/w/ts/co2/h2o/ch4/none", "8", split = "/")
 #'
 #' @keywords internal
 #' @noRd
-handleNA <- function(x, variables) {
-  out <- as.numeric(unlist(x))
-  out[out == 9]  <- NA
-  length(out) <- length(variables)
-  return(out)
+separate <- function(x, ..., split = NULL) {
+  strsplit(as.character(gsub(...,"", x)), split = split)
 }
 
 #' Extract Quality Control Information from Coded Values
@@ -430,7 +523,7 @@ handleNA <- function(x, variables) {
 #'   `name_out_ALL`. Each column has attributes `"varnames"` and
 #'   `"units"` and length equal to that of `x`.
 #'
-#' @param x An atomic type.
+#' @param x An [atomic] type.
 #' @param name_out_SA,name_out_GA,name_out_SAGA,name_out_ALL A character string.
 #'   Name of the output column with QC related to SA, GA, SAGA or ALL.
 #' @param prefix Character string containing a [regular expression]
@@ -468,10 +561,18 @@ extract_coded <- function(x,
     stop("missing units containing the format of coded variable",
          call. = FALSE)
   # extract the units as vector
-  vars <- unlist(strsplit(gsub(prefix, "", units),
-                          split = split))
+  vars <- unlist(separate(x = units, split = split, prefix))
+  # to simplify, convert single NAs to char strings of 9s without prefix
+  x[is.na(x)] <- paste(rep(9L, length(vars)), collapse = "")
   # separate coded variables within the column into a list
-  l <- lapply(x, separate, prefix)
+  l <- separate(x, prefix)
+  # convert each list element from char vector to int vector
+  ln <- lapply(l, as.integer)
+  # all elements of ln are expected to have the same length so can be rbind()ed
+  df <- as.data.frame(do.call(rbind, ln))
+  # search for implicit NAs (code 9) and exchange for explicit NAs
+  df[df == 9] <- NA_integer_
+  names(df) <- vars
 
   # support Angle of attack and Non-steady wind filters
   if ("aa" %in% vars || "U" %in% vars) {
@@ -483,10 +584,6 @@ extract_coded <- function(x,
     units(out) <- "-"
     return(out)
   }
-
-  # make data frame with variables in each column from the list
-  df <- as.data.frame(t(sapply(l, handleNA, vars)))
-  names(df) <- vars
 
   # support Timelag filters (only vars c("h2o", "co2") expected)
   if (!all(c("u", "v", "w", "ts") %in% vars)) {
@@ -521,6 +618,9 @@ extract_coded <- function(x,
 #'
 #' Computes missing fraction of high frequency records for particular flux.
 #'
+#' Cases when `ur > mfr` cause error as they can result only from wrong user
+#' input and would be overlooked
+#'
 #' @param x A data frame. Contains two columns with the count of high frequency
 #'   spikes detected for the pair of variables used to compute covariance.
 #' @param ur An integer vector. Number of used records for computation of
@@ -531,6 +631,7 @@ extract_coded <- function(x,
 #' @keywords internal
 #' @noRd
 mf <- function(x, ur, mfr) {
+  if (any(ur > mfr)) stop("used_records higher than max_records", call. = FALSE)
   1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
 }
 
@@ -742,7 +843,7 @@ mf <- function(x, ur, mfr) {
 #'   column name) and hard (suffix `"_hf"` in EddyPro column name) flags
 #'   extracted from EddyPro coded variables combined? See [extract_coded()].
 #'
-#' @seealso [extract_coded()] and [apply_thr()].
+#' @seealso [label_periods()], [extract_coded()] and [apply_thr()].
 #'
 #' @examples
 #' # filters are obtained by comparing thresholds directly with EddyPro column(s)
@@ -1273,7 +1374,7 @@ extract_QC <- function(x,
 #'  set. Any other `used_IRGA` value will be considered missing and assigned
 #'  flag 0 (relaxed approach). `IRGA` is ignored if `used_IRGA` is specified.
 #'
-#' @seealso [combn_QC()] and [extract_QC()].
+#' @seealso [label_periods()], [combn_QC()] and [extract_QC()].
 #'
 #' @examples
 #' interdep(0:2, IRGA = "en_closed")

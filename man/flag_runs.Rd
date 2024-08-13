@@ -7,7 +7,7 @@
 flag_runs(x, name_out = "-", length = 4)
 }
 \arguments{
-\item{x}{A numeric atomic type with NULL dimensions.}
+\item{x}{A numeric \link{atomic} type with \code{NULL} dimensions.}
 
 \item{name_out}{A character string providing \code{varnames} attribute value
 of the output.}

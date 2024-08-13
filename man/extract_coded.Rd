@@ -16,7 +16,7 @@ extract_coded(
 )
 }
 \arguments{
-\item{x}{An atomic type.}
+\item{x}{An \link{atomic} type.}
 
 \item{name_out_SA, name_out_GA, name_out_SAGA, name_out_ALL}{A character string.
 Name of the output column with QC related to SA, GA, SAGA or ALL.}
