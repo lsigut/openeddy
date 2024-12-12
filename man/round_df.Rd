@@ -15,7 +15,7 @@ round_df(x, digits = 6)
 A data frame with \code{varnames} and \code{units} attributes.
 }
 \description{
-Round the columns of numeric mode type double to specified (default = 6)
+Round the columns of numeric mode type \code{"double"} to specified (default = 6)
 significant digits.
 }
 \details{

@@ -11,7 +11,8 @@ merge_eddy(
   check_dupl = TRUE,
   interval = NULL,
   format = "\%Y-\%m-\%d \%H:\%M",
-  tz = "GMT"
+  tz = "GMT",
+  storage.mode = "integer"
 )
 }
 \arguments{
@@ -42,30 +43,29 @@ is \code{"\%Y-\%m-\%d \%H:\%M"}.}
 \item{tz}{A time zone (see \link{time zones}) specification to be used
 for the conversion of \code{start} (\code{end}) if provided as a character
 string.}
+
+\item{storage.mode}{A character string. Either \code{"integer"} (default) or
+\code{"double"} (see Details).}
 }
 \value{
 A data frame with attributes \code{varnames} and \code{units} for
 each column, containing date-time information in column \code{"timestamp"}.
 }
 \description{
-Merge generated regular date-time sequence with single or multiple data
-frames.
+Merge generated regular date-time sequence (timestamp) with single or
+multiple data frames containing timestamp.
 }
 \details{
-The primary purpose of \code{merge_eddy} is to combine chunks of data
-vertically along their column \code{"timestamp"} with date-time information.
-This \code{"timestamp"} is expected to be regular with given time
-\code{interval}. Resulting data frame contains added rows with expected
-date-time values that were missing in \code{"timestamp"} column, followed by
-\code{NA}s. In case that \code{check_dupl = TRUE} and \code{"timestamp"}
-values across \code{x} elements overlap, detected duplicated rows are removed
-(the order in which duplicates are evaluated depends on the order of \code{x}
-elements). A special case when \code{x} has only one element allows to fill
-missing date-time values in \code{"timestamp"} column of given data frame.
-Storage mode of \code{"timestamp"} column is set to be integer instead
-of double. This simplifies application of \code{\link[=round_df]{round_df()}} but could
-lead to unexpected behavior if the date-time information is expected to
-resolve fractional seconds.
+The primary purpose of \code{merge_eddy()} is to combine chunks of data vertically
+along their column \code{"timestamp"} with date-time information. This timestamp
+is expected to be regular with given time \code{interval}. The resulting data
+frame contains added rows with expected date-time values missing in
+timestamp, followed by \code{NA}s across respective rows. In case that
+\code{check_dupl = TRUE} and timestamp values across \code{x} elements overlap,
+detected duplicated rows are removed (the order in which duplicates are
+evaluated depends on the order of \code{x} elements). A special case when \code{x} has
+only one element allows to fill missing date-time values in \code{"timestamp"}
+column of given data frame.
 
 The list of data frames, each with column \code{"timestamp"}, is sequentially
 \code{\link[=merge]{merge()}}d using \code{\link[=Reduce]{Reduce()}}. A \emph{(full) outer join},
@@ -81,6 +81,19 @@ Combination of vertical and horizontal merging should be avoided as it
 depends on the order of \code{x} elements and can lead to row duplication.
 Instead, data chunks from different data sources should be first separately
 vertically merged and then merged horizontally in a following step.
+
+If \code{interval = NULL}, automated recognition of \code{interval} is applied. This is
+preferred to setting \code{interval} value manually. Only in rare cases when
+original time interval is not present in \code{x} due to gaps, it is not possible
+to infer the original time interval from the timestamps. The inferred
+interval represents the shortest time interval present among \code{x} records.
+Thus if the expected interval is shorter, it needs to be set manually.
+
+The default \code{\link{storage.mode}} of \code{"timestamp"} column is set to be
+\code{"integer"} instead of \code{"double"}. This simplifies the application of
+\code{\link[=round_df]{round_df()}} (it avoids rounding) but could lead to an unexpected behavior
+if the date-time information is expected to resolve fractional seconds (it
+\code{\link[=trunc]{trunc()}}ates decimals).
 }
 \examples{
 set.seed(123)

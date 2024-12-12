@@ -87,7 +87,7 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
 
 #' Round Numeric Columns in Data Frame
 #'
-#' Round the columns of numeric mode type double to specified (default = 6)
+#' Round the columns of numeric mode type `"double"` to specified (default = 6)
 #' significant digits.
 #'
 #' Actual [signif()] function is used for rounding. Note that other
@@ -542,13 +542,79 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
   return(data)
 }
 
+#' Infer Interval
+#'
+#' It selects the smallest number (representing a time interval in seconds) in
+#' absolute terms from the numerical vector `x` with additional checks.
+#'
+#' Input values represent time interval in seconds and are expected to be the
+#' result of `diff()` applied over ascending or descending date-time sequence
+#' and stripped of its `"difftime"` class.
+#'
+#' Automated inference of interval is required both by `strptime_eddy()` and
+#' `merge_eddy()`. Application in `merge_eddy()` is more complex as there are
+#' more data frames to check and timestamp `diff()`s are more practical for
+#' that. I.e. providing single vector of `diff()`s from multiple data frames is
+#' valid, while concatenating "POSIXt" info from different tables to compute
+#' `diff()`s is not.
+#'
+#' Returning the shortest time interval available seems to be the only practical
+#' solution for automated inference, especially in cases when gaps are more
+#' frequent than the actual time interval. If the shortest interval was not
+#' selected, higher order functions (see above) would fail.
+#'
+#' Previously tested `median()` and modus estimations would work for large
+#' samples, but they had their limitations. While median is simpler (and
+#' implemented in R), it can select a time interval that is not present in the
+#' data (see e.g. `median(c(1, 2, 4, 5))`). Modus was implemented (now removed)
+#' to better estimate the most common time interval (preferred over median).
+#' However, both modus and median fail to provide correct estimate if gaps
+#' prevail in the input.
+#'
+#' @param x A numeric vector.
+#'
+#' @return A single numeric value specifying the time interval (in seconds).
+#'
+#' @examples
+#' openeddy:::infer_interval(c(1:5))
+#' openeddy:::infer_interval(-c(1:5))
+#' try(openeddy:::infer_interval(-1:1))
+#' openeddy:::infer_interval(c(2, 1, 1, 2))
+#' openeddy:::infer_interval(NULL)
+#' openeddy:::infer_interval(NA)
+#'
+#' @keywords internal
+#' @noRd
+infer_interval <- function(x) {
+  if (length(x) == 0) return(NULL)
+  # choose the smallest interval in absolute terms (descending series possible)
+  # works for `x` with or without gaps; higher level functions should check:
+  # - for presence of gaps
+  # - for validity of obtained interval (and correctly report issues)
+  #   - other than this one will throw error for sure
+  #   - even this interval might be invalid
+  res <- x[which.min(abs(x))]
+  # NA would make issues in the following checks
+  # - this case should not occur due to checks in higher level functions
+  if (length(res) == 0) return(NA_real_)
+  # interval of timestamp should be non-zero (ascending or descending)
+  if (res == 0) {
+    stop("date-time sequence includes duplicated timestamp")
+  }
+  # interval can be positive or negative (not both)
+  # this condition might be relaxed (removed) as it needs to be checked anyway in strptime_eddy() for manual intervals and unordered timestamp can be valid in merge_eddy() ----
+  # - what about merge_eddy() with duplicated records?
+  if (any(x < 0) & any(x > 0)) {
+    stop("date-time sequence is both ascending and descending")
+  }
+  return(res)
+}
+
 #' Conversion of Regular Date-time Sequence from Character
 #'
 #' Converts character vector to class `"POSIXct"` using
-#' [strptime()] and validates the result. The input has to represent a
-#' regular date-time sequence with given time interval. Additional attributes
-#' `varnames` and `units` are assigned to returned vector with fixed
-#' strings `"timestamp"` and `"-"`, respectively.
+#' [strptime()] and validates the result. The input has to represent an
+#' ascending or descending regular date-time sequence with given time interval.
 #'
 #' Eddy covariance related measurements are usually stored with a timestamp
 #' representing the end of the averaging period (typically 1800 s) in standard
@@ -561,7 +627,7 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' Any unsuccessful attempt to convert date-time information is considered to be
 #' unexpected behavior and returns an error message instead of `NA` value.
 #' In case that multiple formats are present in the timestamp, it has to be
-#' corrected prior using `strptime_eddy`. It is expected that time series
+#' corrected prior using `strptime_eddy()`. It is expected that time series
 #' are continuous even if no valid measurements are available for given time
 #' interval. Therefore `interval` value is checked against the lagged
 #' differences ([diff()]) applied to the converted date-time vector
@@ -569,27 +635,40 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' TRUE`, date-time information does not have to be regular but time differences
 #' must be multiples of `interval`.
 #'
-#' The storage mode of returned POSIXct vector is forced to be integer instead
-#' of double. This simplifies application of [round_df()] but could
-#' lead to unexpected behavior if the date-time information is expected to
-#' resolve fractional seconds. Similarly `as.integer` is applied to
-#' `shift.by` before it is added to the POSIXct vector to assure integer
-#' storage mode of returned vector.
+#' If `interval = NULL`, automated recognition of `interval` is applied. This is
+#' preferred to setting `interval` value manually. Only in rare cases when
+#' `allow_gaps = TRUE` and original time interval is not present in `x`, it is
+#' not possible to infer the original time interval. Even in that case,
+#' `strptime_eddy()` will execute successfully. The inferred interval represents
+#' the shortest time interval present among `x` records.
+#'
+#' The default [`storage.mode`] of returned `"POSIXct"` vector is set to be
+#' `"integer"` instead of `"double"`. This simplifies the application of
+#' [`round_df()`] (it avoids rounding) but could lead to an unexpected behavior
+#' if the date-time information is expected to resolve fractional seconds (it
+#' [`trunc()`]ates decimals).
+#'
+#' @return A `"POSIXct"` vector with assigned attributes `varnames` and `units`
+#'   specified as `"timestamp"` and `"-"`, respectively.
 #'
 #' @param x A character vector containing date-time information to be converted
 #'   to class `"POSIXct"`.
 #' @param format A character string. The default `format` is
 #'   `"%Y-%m-%d %H:%M"`
-#' @param interval A numeric value specifying the time interval (in seconds) of
-#'   the input date-time vector.
-#' @param shift.by An integer value specifying the time shift (in seconds) to be
+#' @param interval A numeric value specifying the time interval (in seconds)
+#'   valid for all values of the input date-time vector. If `NULL` (default),
+#'   `interval` is inferred from the data (see Details).
+#' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
 #' @param allow_gaps A logical value. If `TRUE`, date-time information does
 #'   not have to be regular but time differences must be multiples of
 #'   `interval`.
 #' @param tz A time zone (see [time zones]) specification to be used
 #'   for the conversion.
+#' @param storage.mode A character string. Either `"integer"` (default) or
+#'   `"double"` (see Details).
 #' @param ... Further arguments to be passed from or to other methods.
+#'
 #' @seealso [strptime()] provides the details about conversions
 #'   between date-time character representation and `"POSIXct"` or
 #'   `"POSIXlt"` classes. It also includes information about `format`
@@ -616,31 +695,63 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' ## This is not a regular date-time sequence
 #' try(strptime_eddy(zz, "%d.%m.%Y %H:%M")) # error returned
 #' ## interval argument provided incorrectly
-#' try(strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)) # error returned
+#' try(strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)) # error returned
 #'
 #' @export
-strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
+strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = NULL,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
-                          ...) {
+                          storage.mode = "integer", ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
-  out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
-  # Force storage mode of timestamp to integer to simplify data frame rounding
-  storage.mode(out) <- "integer"
-  if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
-  tdiff <- diff(as.integer(out))
-  if (!allow_gaps && any(tdiff != interval)) {
-    stop("timestamp does not form regular sequence with specified 'interval'")
-  } else {
-    # timestamp without gaps should have only one unique tdiff value
-    if (length(unique(tdiff)) > 1) {
-      message("timestamp in 'x' contains gaps")
-      # gaps should be allowed only if they are multiples of interval
-      if (any(tdiff %% interval != 0)) {
-        stop("timestamp does not form regular sequence with 'interval' multiples")
-      }
-    }
+  if (!is.null(interval) && (interval == 0 | is.na(interval))) {
+    stop("wrong value of 'interval'")
   }
-  if (!is.null(shift.by)) out <- out + as.integer(shift.by)
+  out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
+  # anyNA(NULL) is false
+  if (anyNA(out)) {
+    # provide info where first issue arose
+    i <- which(is.na(out))[1]
+    stop("incorrect 'format' or multiple formats present in 'x'\n",
+         "  - first issue for x[", i, "]: ", x[i], " (expected ", format, ")")
+  }
+  tdiff <- diff(as.numeric(out)) # strip POSIXt class to get numeric diff()s
+  if (any(tdiff < 0) & any(tdiff > 0)) {
+    stop("date-time sequence is both ascending and descending")
+  }
+  if (is.null(interval)) {
+    # the only need for manual interval seems explicit validity check for given
+    # allow_gaps setting
+    interval <- infer_interval(tdiff)
+  }
+  # if x has length 0 or 1 (no interval), skip further testing conditions
+  # - interval can be set by user so test on tdiff
+  # - 0 length of output is also covered by il0
+  il0 <- ifelse(length(tdiff) == 0, TRUE, FALSE)
+  # first test that timestamp forms regular sequence with 'interval' multiples
+  # - needed both for manually set interval and inferred one
+  # - gaps should be allowed only if they are multiples of interval
+  if (!il0 && any(tdiff %% interval != 0)) {
+    stop("intervals among timestamps are not multiples of set 'interval' ",
+         "(interval = ", interval, ")\n",
+         "  - intervals present in 'x': ",
+         paste0(unique(tdiff), collapse = ", "))
+  }
+  # catch cases when timestamp gaps are present but allow_gaps = FALSE
+  # - gaps can be explicit (multiple tdiff values) or implicit (lower manually
+  #   set interval than actual one)
+  if (!il0 && !allow_gaps &&
+      (length(unique(tdiff)) > 1 | interval != infer_interval(tdiff))) {
+    i <- which(tdiff != interval)[1]
+    stop("timestamp in 'x' contains gaps (interval = ", interval, ")\n",
+         "  - first gap for x[", i, ":", i + 1, "]: ", x[i], " - ", x[(i + 1)])
+  }
+  # catch cases when timestamp gaps are allowed and present
+  # - timestamp without gaps should have only one unique tdiff value
+  if (!il0 && allow_gaps && length(unique(tdiff)) > 1) {
+    message("timestamp in 'x' contains gaps (interval = ", interval, ")")
+  }
+  if (!is.null(shift.by)) out <- out + shift.by
+  # Set storage mode of timestamp to integer to simplify data frame rounding
+  storage.mode(out) <- storage.mode
   varnames(out) <- "timestamp"
   units(out) <- "-"
   return(out)
@@ -1655,23 +1766,19 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 
 #' Merge Regular Date-Time Sequence and Data Frames
 #'
-#' Merge generated regular date-time sequence with single or multiple data
-#' frames.
+#' Merge generated regular date-time sequence (timestamp) with single or
+#' multiple data frames containing timestamp.
 #'
-#' The primary purpose of `merge_eddy` is to combine chunks of data
-#' vertically along their column `"timestamp"` with date-time information.
-#' This `"timestamp"` is expected to be regular with given time
-#' `interval`. Resulting data frame contains added rows with expected
-#' date-time values that were missing in `"timestamp"` column, followed by
-#' `NA`s. In case that `check_dupl = TRUE` and `"timestamp"`
-#' values across `x` elements overlap, detected duplicated rows are removed
-#' (the order in which duplicates are evaluated depends on the order of `x`
-#' elements). A special case when `x` has only one element allows to fill
-#' missing date-time values in `"timestamp"` column of given data frame.
-#' Storage mode of `"timestamp"` column is set to be integer instead
-#' of double. This simplifies application of [round_df()] but could
-#' lead to unexpected behavior if the date-time information is expected to
-#' resolve fractional seconds.
+#' The primary purpose of `merge_eddy()` is to combine chunks of data vertically
+#' along their column `"timestamp"` with date-time information. This timestamp
+#' is expected to be regular with given time `interval`. The resulting data
+#' frame contains added rows with expected date-time values missing in
+#' timestamp, followed by `NA`s across respective rows. In case that
+#' `check_dupl = TRUE` and timestamp values across `x` elements overlap,
+#' detected duplicated rows are removed (the order in which duplicates are
+#' evaluated depends on the order of `x` elements). A special case when `x` has
+#' only one element allows to fill missing date-time values in `"timestamp"`
+#' column of given data frame.
 #'
 #' The list of data frames, each with column `"timestamp"`, is sequentially
 #' [merge()]d using [Reduce()]. A *(full) outer join*,
@@ -1688,6 +1795,19 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' depends on the order of `x` elements and can lead to row duplication.
 #' Instead, data chunks from different data sources should be first separately
 #' vertically merged and then merged horizontally in a following step.
+#'
+#' If `interval = NULL`, automated recognition of `interval` is applied. This is
+#' preferred to setting `interval` value manually. Only in rare cases when
+#' original time interval is not present in `x` due to gaps, it is not possible
+#' to infer the original time interval from the timestamps. The inferred
+#' interval represents the shortest time interval present among `x` records.
+#' Thus if the expected interval is shorter, it needs to be set manually.
+#'
+#' The default [`storage.mode`] of `"timestamp"` column is set to be
+#' `"integer"` instead of `"double"`. This simplifies the application of
+#' [`round_df()`] (it avoids rounding) but could lead to an unexpected behavior
+#' if the date-time information is expected to resolve fractional seconds (it
+#' [`trunc()`]ates decimals).
 #'
 #' @param x List of data frames, each with `"timestamp"` column of class
 #'   `"POSIXt"`. Optionally with attributes `varnames` and
@@ -1711,6 +1831,8 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' @param tz A time zone (see [time zones]) specification to be used
 #'   for the conversion of `start` (`end`) if provided as a character
 #'   string.
+#' @param storage.mode A character string. Either `"integer"` (default) or
+#'   `"double"` (see Details).
 #'
 #' @return A data frame with attributes `varnames` and `units` for
 #'   each column, containing date-time information in column `"timestamp"`.
@@ -1746,12 +1868,13 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #' @importFrom utils relist
 #' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
-                       interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
+                       interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT",
+                       storage.mode = "integer") {
   sq <- seq_len(length(x))
   check_x <- lapply(x, function(x) any(!is.data.frame(x),
                                        !inherits(x$timestamp, "POSIXt")))
   if (any(unlist(check_x)))
-    stop(strwrap("'x' must be list of data frames with 'timestamp'
+    stop(strwrap("'x' must be a list of data frames with 'timestamp'
          column of POSIXt class", prefix = " ", initial = ""))
   if (any(sapply(x, function(x) anyNA(x$timestamp))))
     stop("'timestamp' includes NA value(s)")
@@ -1772,13 +1895,12 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
       units(x[[i]]) <- u
     }
   }
-
   # check if x has duplicated rows
   # treatment is optional and done across elements before merging
   if (check_dupl) {
     # x elements are reduced from data frames to vectors (required by relist)
     ts <- lapply(x, function(x) x$timestamp)
-    # identify (row) position with duplicated timestamp across data frames
+    # identify position (row) with duplicated timestamp across data frames
     dupl <- duplicated(unlist(ts)) # conversion from POSIXt to integer is OK
     if (any(dupl)) {
       # relist the dupl vector so it can be matched against the original list 'x'
@@ -1797,7 +1919,6 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
       for (i in sq) x[[i]] <- ex(x[[i]], !l_dupl[[i]], )
     }
   }
-
   # handle single data frame (timestamp correction applied)
   if (length(x) == 1L) {
     out <- x[[1]]
@@ -1823,12 +1944,15 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     # - first row seems to correspond fully to varnames, last row to units
     out_vu <- out_vu[c(1, nrow(out_vu)), ]
   }
-
   range <- range(out$timestamp)
+
+
+
+  # test above code formally and correct code below (use infer_interval(), tdiff())
   if (is.null(interval)) {
     # automated estimation of interval
     # working on list is more reliable due to possible gaps among its elements
-    interval <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))
+    interval <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))  #### use infer_interval() + further checks from strptime_eddy()
     if (!length(interval)) {
       stop("not possible to automatically extract 'interval' from 'x'")
     } else {
@@ -1837,11 +1961,10 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     }
   } else {
     # convert 'interval' to class 'difftime'
-    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
+    interval <- as.difftime(interval, units = "secs")
   }
-  if (diff(range) < interval)
+  if (diff(range) < interval) # this should be removed?? -------------------------------
     stop("'interval' is larger than 'timestamp' range")
-
   # For both start and end arguments:
   # if NULL - get value automatically from x input
   # if numeric - the value represents start/end of given year
@@ -1853,7 +1976,6 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   } else {
     start <- strptime(start, format = format, tz = tz)
   }
-
   if (is.null(end)) {
     end <- range[2]
   } else if (is.numeric(end)) {
@@ -1861,94 +1983,106 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   } else {
     end <- strptime(end, format = format, tz = tz)
   }
-
   # seq.POSIXt converts to POSIXct so strptime POSIXlt product does not matter
   # timestamp should not have missing values or reversed order
     if (start > end) stop("generated 'timestamp' would have reversed order")
   full_ts <- data.frame(timestamp = seq(start, end, by = interval))
-
   # It is not possible to reduce both EP and full_ts in one step
   # First step with Reduce aims to keep all rows and columns of 'x' data frames
   # Second step trims them according to the specified timestamp range (all.x)
   out <- merge(full_ts, out, by = "timestamp", all.x = TRUE)
-
   # Is resulting time series regular? Tested independently on check_dupl
   if (length(unique(diff(out$timestamp))) > 1) {
     warning("resulting timestamp does not form regular sequence")
   }
-
   # Last merge could move timestamp so names need to be matched
   pos <- match(names(out), names(out_vu))
   varnames(out) <- t(out_vu)[pos, 1] # t() to extract as vector
   units(out) <- t(out_vu)[pos, 2]
-
-  # Force storage mode of timestamp to integer to simplify data frame rounding
-  storage.mode(out$timestamp) <- "integer"
-
+  # Set storage mode of timestamp to integer to simplify data frame rounding
+  storage.mode(out$timestamp) <- storage.mode
   return(out)
 }
 
 #' Read Meteorological Data with Units
 #'
-#' Read single or multiple CSV meteorological data files at Czechglobe MeteoDBS
-#' format at given path and merge them together.
+#' Read single or multiple meteorological data files at Czechglobe MeteoDBS
+#' format at given path and merge them together along generated regular
+#' date-time sequence.
 #'
 #' This utility function is adapted to Czechglobe MeteoDBS file structure but
 #' allows to change selected useful arguments that have preset default values.
 #' It also assures that date-time sequence is regular and equidistant.
 #'
-#' In case that multiple files are present in the `path`, the expectation
-#' is that files represent meteorological variables for given site and different
+#' In case that multiple files are present in the `path`, the expectation is
+#' that files represent meteorological variables for given site and different
 #' periods. Function merges them vertically (along generated complete
 #' timestamp). All original columns across all files excluding the last empty
 #' one are kept. The order of variables keeps that of the first file loaded
-#' (note that file ordering in `path` is alphabetical not chronological)
-#' and additional variables are appended if present in the following files. The
+#' (note that file ordering in `path` is alphabetical not chronological) and
+#' additional variables are appended if present in the following files. The
 #' output "date/time" column is converted into class `POSIXct`.
 #'
-#' If you want to specify `start` and `end` arguments as strings and
-#' you change also default `shift.by` value, `start` and `end`
-#' arguments need to be adopted accordingly to account for that change. E.g. if
-#' `shift.by = -900`, then `start = "2019-12-31 21:15:00", end =
-#' "2019-12-31 23:15:00"` instead of `start = "2019-12-31 21:30:00", end =
-#' "2019-12-31 23:30:00"`.
+#' If you want to specify `start` and `end` arguments as strings and you change
+#' also default `shift.by` value, `start` and `end` arguments need to be adopted
+#' accordingly to account for that change. E.g. if `shift.by = -900`, then
+#' `start = "2019-12-31 21:15:00", end = "2019-12-31 23:15:00"` instead of
+#' `start = "2019-12-31 21:30:00", end = "2019-12-31 23:30:00"` for half-hourly
+#' data.
 #'
 #' Function introduces additional column "timestamp" for purposes of merging
-#' with `merge_eddy()`. This column is then removed as it is not included
-#' in the original data.
+#' with `merge_eddy()`. This column is then removed as it is not included in the
+#' original data.
 #'
-#' @return A data frame is produced with additional attributes `varnames`
-#'   and `units` assigned to each respective column.
+#' @return A data frame is produced with additional attributes `varnames` and
+#'   `units` assigned to each respective column.
 #'
 #' @param path A string. The path to directory with CSV file(s) in Czechglobe
 #'   MeteoDBS format. Other than CSV files are ignored.
 #' @param start,end A value specifying the first (last) value of the generated
-#'   date-time sequence in temporary column "timestamp". If `NULL`,
-#'   [min()] ([max()]) of date-time values from "date/time"
-#'   column across all files is used. If numeric, the value specifies the year
-#'   for which the first (last) date-time value will be generated, considering
-#'   given time interval (automatically detected from "date/time" column) and
-#'   convention of assigning of measured records to the end of the time
-#'   interval. Otherwise, character representation of specific date-time value
-#'   is expected in given `format` and timezone "GMT".
-#' @param format A character string. Format of `start` (`end`) if
-#'   provided as a character string.
+#'   date-time sequence in temporary column "timestamp". If `NULL`, [min()]
+#'   ([max()]) of date-time values from "date/time" column across all files is
+#'   used. If numeric, the value specifies the year for which the first (last)
+#'   date-time value will be generated, considering given time interval
+#'   (automatically detected from "date/time" column) and convention of
+#'   assigning of measured records to the end of the time interval. Otherwise,
+#'   character representation of specific date-time value is expected in given
+#'   `format` and timezone "GMT".
+#' @param format A character string. Format of `start` (`end`) if provided as a
+#'   character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
-#' @param allow_gaps A logical value. If `TRUE`, date-time information does
-#'   not have to be regular but time differences must be multiples of
-#'   automatically detected time interval.
+#' @param allow_gaps A logical value. If `TRUE`, date-time information does not
+#'   have to be regular but time differences must be multiples of automatically
+#'   detected time interval.
 #' @param verbose A logical value. Should additional statistics about presence
 #'   of `NA` values in resulting data frame be printed to console?
+#' @param pattern A character string. A [regular expression][regexp] [grep()]
+#' `pattern` identifying MeteoDBS files in the `path` folder.
+#'
+#' @examples
+#' # examples of different patterns for file selection
+#' xx <- c("CZ-BK1_2024_meteo.csv", "data.CSV", "CZ-BK1.txt")
+#'
+#' # select file names ending with ".csv" (case insensitive)
+#' grep("\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
+#' # select file names starting with CZ-BK1 site abbreviation
+#' grep("^CZ-BK1", xx, value = TRUE)
+#'
+#' # select CSV file names starting with CZ-BK1 site abbreviation
+#' # - note the usage of ".*" to combine above patterns
+#' grep("^CZ-BK1.*\\.[Cc][Ss][Vv]$", xx, value = TRUE)
 #'
 #' @importFrom utils read.table
 #' @export
 read_MeteoDBS <- function(path, start = NULL, end = NULL,
                           format = "%d.%m.%Y %H:%M", shift.by = NULL,
-                          allow_gaps = TRUE, verbose = TRUE) {
+                          allow_gaps = TRUE, verbose = TRUE,
+                          pattern = "\\.[Cc][Ss][Vv]$") {
   lf <- list.files(path, full.names = TRUE)
-  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
-  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  lf <- grep(pattern, lf, value = TRUE) # "\\." is literal dot
+  if (length(lf) == 0) stop("no file matching 'pattern' in folder 'path'")
   l <- vector("list", length(lf))
   names(l) <- lf
   for (i in seq_along(lf)) {
@@ -2061,8 +2195,8 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 
 #' Read EddyPro Files with Units
 #'
-#' Read single or multiple CSV EddyPro full output files at given path and merge
-#' them together.
+#' Read single or multiple EddyPro full output files at given path and merge
+#' them together along generated regular date-time sequence.
 #'
 #' This utility function is adapted to EddyPro full output file structure but
 #' allows to change selected useful arguments that have preset default values.
@@ -2073,7 +2207,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #' In case that multiple files are present in the `path`, function merges
 #' them vertically (along generated complete timestamp) and discards rows with
 #' duplicated date-time values. All original columns across all files are kept.
-#' The order of variables keeps that of the first file loaded (note that file
+#' The order of variables follows that of the first file loaded (note that file
 #' ordering in `path` is alphabetical not chronological) and additional
 #' variables are appended if present in the following files. To assure
 #' compatibility with older EddyPro versions, old column name "max_speed" is
@@ -2084,7 +2218,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #' arguments need to be adopted accordingly to account for that change. E.g. if
 #' `shift.by = -900`, then `start = "2019-12-31 21:15:00", end =
 #' "2019-12-31 23:15:00"` instead of `start = "2019-12-31 21:30:00", end =
-#' "2019-12-31 23:30:00"`.
+#' "2019-12-31 23:30:00"` for half-hourly data.
 #'
 #' Note that `skip` and `fileEncoding` arguments must be valid across
 #' all files, otherwise the function will not execute correctly.
@@ -2115,14 +2249,32 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 #' @param allow_gaps A logical value. If `TRUE`, date-time information does
 #'   not have to be regular but time differences must be multiples of
 #'   automatically detected time interval.
+#' @param pattern A character string. A [regular expression][regexp] [grep()]
+#' `pattern` identifying EddyPro full output files in the `path` folder.
+#'
+#' @examples
+#' # examples of different patterns for file selection
+#' xx <- c("CZ-BK1_2024_eddy.csv", "data.CSV", "CZ-BK1.txt")
+#'
+#' # select file names ending with ".csv" (case insensitive)
+#' grep("\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
+#' # select file names starting with CZ-BK1 site abbreviation
+#' grep("^CZ-BK1", xx, value = TRUE)
+#'
+#' # select CSV file names starting with CZ-BK1 site abbreviation
+#' # - note the usage of ".*" to combine above patterns
+#' grep("^CZ-BK1.*\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
 #'
 #' @export
 read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
                          fileEncoding = "UTF-8", format = "%Y-%m-%d %H:%M",
-                         shift.by = NULL, allow_gaps = TRUE) {
+                         shift.by = NULL, allow_gaps = TRUE,
+                         pattern = "\\.[Cc][Ss][Vv]$", ...) {
   lf <- list.files(path, full.names = TRUE)
-  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
-  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  lf <- grep(pattern, lf, value = TRUE) # "\\." is a literal dot
+  if (length(lf) == 0) stop("no file matching 'pattern' in folder 'path'")
   l <- vector("list", length(lf))
   names(l) <- lf
   for (i in seq_along(lf)) {
