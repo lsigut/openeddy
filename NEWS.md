@@ -11,7 +11,7 @@
 -   agg_fun() added: you can use arbitrary function for data
     aggregations (e.g. extracting daily temperature minimum, maximum,
     etc.)
--   added filter for LI7200 signal strength in extract_QC()
+-   added filter for LI7200 and LI7500 signal strength in extract_QC()
 -   added humidity filter in extract_QC()
 -   fix bug: correct logic of messages and order of names in
     choose_avail()

@@ -588,7 +588,9 @@ mf <- function(x, ur, mfr) {
 #'   check of fluxes too close to zero (assuming issues during covariance
 #'   computation) \item var: check of variances against thresholds. \item humid:
 #'   check of relative humidity against thresholds. \item LI7200: check of CO2
-#'   and H2O signal strength against thresholds.}
+#'   and H2O signal strength against thresholds. \item LI7500: check of CO2
+#'   signal strength against thresholds (H2O signal not provided by the
+#'   instrument).}
 #'
 #' @section Content and Format of Columns: \itemize{ \item For details
 #'   concerning coded variables see \code{\link{extract_coded}}. \item
@@ -684,10 +686,11 @@ mf <- function(x, ur, mfr) {
 #' @param RH_thr A numeric vector with 2 non-missing values. Represents
 #'   thresholds for relative humidity if \code{filters} include \code{"humid"}.
 #'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
-#' @param LI7200_signal_thr A numeric vector with 2 non-missing values.
-#'   Represents thresholds for CO2 and H2O signal strength provided by LI-COR
-#'   7200 if \code{filters} include \code{"LI7200"}. \code{\link{apply_thr}}
-#'   flags the records lower than the given thresholds.
+#' @param LI7200_signal_thr,LI7500_signal_thr A numeric vector with 2
+#'   non-missing values. Represents thresholds for signal strength provided by
+#'   LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
+#'   \code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
+#'   given thresholds.
 #' @param simplify A logical value. Should be soft (suffix \code{"_sf"} in
 #'   EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
 #'   flags extracted from EddyPro coded variables combined? See
@@ -702,14 +705,15 @@ extract_QC <- function(x,
                                    "discont_hf", "discont_sf", "timelag_hf",
                                    "timelag_sf", "attangle", "nonsteady",
                                    "missfrac", "scf", "wresid", "runs",
-                                   "lowcov", "var", "humid", "LI7200"),
+                                   "lowcov", "var", "humid", "LI7200",
+                                   "LI7500"),
                        rotation = c("double", "planar fit"),
                        prefix = "[8]", split = "[/]",
                        missfrac_thr = c(0.1, 0.1), scf_thr = c(2, 3),
                        w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15),
                        lowcov_thr = c(-0.005, 0.005), ts_var_thr = c(2, 2),
                        RH_thr = c(95, 95), LI7200_signal_thr = c(90, 80),
-                       simplify = TRUE) {
+                       LI7500_signal_thr = c(90, 80), simplify = TRUE) {
   # Basic check of input =======================================================
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -973,6 +977,28 @@ extract_QC <- function(x,
       signal <- apply(x[LI_vars], 1, function(x) if (all(is.na(x))) NA else
         min(x, na.rm = TRUE))
       out[, nout] <- apply_thr(signal, LI7200_signal_thr, nout, flag = "lower")
+      message("-> success")
+    } else message("-> skipped")
+  }
+
+  ### Extract LI7500 filter ====================================================
+
+  # LE and NEE fluxes are not reliable if signal strength is too low
+  # - h2o signal strength is not measured in the LI7500
+  # - co2 SS is preferred to RSSI (measured vs calculated from diagnostic value)
+  # - <90 flag 1, <80 flag 2
+  if ("LI7500" %in% filters) {
+    message("Extracting 'LI7500' filter")
+    LI_vars <- "co2_signal_strength_7500_mean"
+    nout <- "qc_GA_LI7500"
+    LI7500_avail <- LI_vars %in% x_names
+    if (any(!LI7500_avail)) {
+      message("- missing EddyPro columns: ",
+              paste0(LI_vars[!LI7500_avail], collapse = ", "))
+    }
+    if (all(LI7500_avail)) {
+      signal <- x[, LI_vars]
+      out[, nout] <- apply_thr(signal, LI7500_signal_thr, nout, flag = "lower")
       message("-> success")
     } else message("-> skipped")
   }

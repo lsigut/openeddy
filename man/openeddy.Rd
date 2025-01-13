@@ -2,6 +2,7 @@
 % Please edit documentation in R/openeddy.R
 \docType{package}
 \name{openeddy}
+\alias{openeddy-package}
 \alias{openeddy}
 \title{Post-process eddy covariance data with ease}
 \description{
@@ -20,3 +21,34 @@ post-processing chain. Learn more at <https://github.com/lsigut/EC_workflow>.
   Agric. For. Meteorol. 169, 122-135. doi:10.1016/j.agrformet.2012.09.006
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/lsigut/openeddy}
+  \item Report bugs at \url{https://github.com/lsigut/openeddy/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Ladislav Sigut \email{sigut.l@czechglobe.cz}
+
+Other contributors:
+\itemize{
+  \item Matthias Mauder \email{matthias.mauder@kit.edu} [contributor]
+  \item Milan Fischer \email{fischer.milan@gmail.com} [contributor]
+  \item Thomas Wutzler \email{twutz@bgc-jena.mpg.de} [contributor]
+  \item Pavel Sedlak \email{sedlak@ufa.cas.cz} [contributor]
+  \item Lenka Mzourkova Macalkova \email{mzourkova.l@gmail.com} [contributor]
+  \item Radek Czerny \email{czerny.r@czechglobe.cz} [contributor]
+  \item Ryan Patrick McGloin \email{mcgloin.r@czechglobe.cz} [contributor]
+  \item Jiri Dusek \email{dusek.j@czechglobe.cz} [contributor]
+  \item Natalia Kowalska \email{kowalska.n@czechglobe.cz} [contributor]
+  \item Georg Jocher \email{jocher.g@czechglobe.cz} [contributor]
+  \item Lenka Foltynova \email{foltynova.l@czechglobe.cz} [contributor]
+  \item Marian Pavelka \email{pavelka.m@czechglobe.cz} [contributor]
+  \item Gerardo Fratini \email{Gerardo.Fratini@licor.com} [contributor]
+  \item Global Change Research Institute CAS [copyright holder]
+  \item University of Ostrava [copyright holder]
+}
+
+}

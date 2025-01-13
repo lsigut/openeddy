@@ -8,7 +8,7 @@ extract_QC(
   x,
   filters = c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf", "skewkurt_sf",
     "discont_hf", "discont_sf", "timelag_hf", "timelag_sf", "attangle", "nonsteady",
-    "missfrac", "scf", "wresid", "runs", "lowcov", "var", "humid", "LI7200"),
+    "missfrac", "scf", "wresid", "runs", "lowcov", "var", "humid", "LI7200", "LI7500"),
   rotation = c("double", "planar fit"),
   prefix = "[8]",
   split = "[/]",
@@ -20,6 +20,7 @@ extract_QC(
   ts_var_thr = c(2, 2),
   RH_thr = c(95, 95),
   LI7200_signal_thr = c(90, 80),
+  LI7500_signal_thr = c(90, 80),
   simplify = TRUE
 )
 }
@@ -73,10 +74,11 @@ given thresholds.}
 thresholds for relative humidity if \code{filters} include \code{"humid"}.
 \code{\link{apply_thr}} flags the records higher than the given thresholds.}
 
-\item{LI7200_signal_thr}{A numeric vector with 2 non-missing values.
-Represents thresholds for CO2 and H2O signal strength provided by LI-COR
-7200 if \code{filters} include \code{"LI7200"}. \code{\link{apply_thr}}
-flags the records lower than the given thresholds.}
+\item{LI7200_signal_thr, LI7500_signal_thr}{A numeric vector with 2
+non-missing values. Represents thresholds for signal strength provided by
+LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
+\code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
+given thresholds.}
 
 \item{simplify}{A logical value. Should be soft (suffix \code{"_sf"} in
 EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
@@ -155,7 +157,9 @@ ts (H); w, h2o (LE) and w, co2 (NEE).
   check of fluxes too close to zero (assuming issues during covariance
   computation) \item var: check of variances against thresholds. \item humid:
   check of relative humidity against thresholds. \item LI7200: check of CO2
-  and H2O signal strength against thresholds.}
+  and H2O signal strength against thresholds. \item LI7500: check of CO2
+  signal strength against thresholds (H2O signal not provided by the
+  instrument).}
 }
 
 \section{Content and Format of Columns}{
