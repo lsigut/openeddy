@@ -168,6 +168,8 @@ test_that("timestamp cannot be both ascending and descending - manual int", {
 })
 
 # Test merge_eddy() ====
+# use eddy_data as a test data set
+
 # - check that it does not fail with single value (simplify arg in sapply)
 #   if (any(sapply(x, function(x) anyNA(x$timestamp))))
 #      stop("'timestamp' includes NA value(s)")

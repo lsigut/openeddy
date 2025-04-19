@@ -6,7 +6,7 @@
 -   fix bug: NA instead of 9 in extract_coded() for "attangle" and
     "nonsteady"
 -   check_manually() now displays also two additional meteo variables
-    (requested by Milan and useful when deciding about outliers)
+    (useful when deciding about outliers)
 -   apply_QC() was added: removes flux values with QC flag = 2
 -   agg_fun() added: you can use arbitrary function for data
     aggregations (e.g. extracting daily temperature minimum, maximum,
