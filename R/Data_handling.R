@@ -1,7 +1,10 @@
 #' Folder Structure Setup
 #'
 #' Folder structure recommended for eddy covariance data processing and
-#' archivation.
+#' archiving.
+#'
+#' `make_paths()` superseded `structure_eddy()` (kept only to assure backward
+#' compatibility).
 #'
 #' The purpose is to standardize the locations for data and metadata used in the
 #' proposed workflow (<https://github.com/lsigut/EC_workflow>) and separate
@@ -9,13 +12,13 @@
 #' is not required to successfully apply the workflow but simplifies its use.
 #'
 #' Data processing stages:
-#' * level_1: EddyPro full output files, meteo data and their merged product
-#' as an input for quality checking.
+#' * level_1: EddyPro full output files, meteorological data and their merged
+#' product as an input for quality checking.
 #' * level_2: quality checking results and documentation, and files used as
 #' inputs for gap-filling.
-#' * level_3: gap-filling output and its documentation, summary of the
-#' computed fluxes and meteorological data including their aggregation and
-#' plotting.
+#' * level_3: gap-filling and flux partitioning output and its documentation,
+#' summary of the computed fluxes and meteorological data including their
+#' aggregation and plotting.
 #'
 #' @param root A character string defining the root of created folder structure.
 #' @param create_dirs A logical value. Indicates whether directories should be
@@ -30,13 +33,13 @@
 #' @seealso [file.path()]
 #'
 #' @examples
-#' xx <- structure_eddy()
+#' xx <- make_paths()
 #' xx
-#' xx$Input_for_GF
+#' xx$input_for_gf
 #'
 #' @export
-structure_eddy <- function(root = ".", create_dirs = FALSE,
-                           fsep = .Platform$file.sep, ...) {
+make_paths <- function(root = ".", create_dirs = FALSE,
+                       fsep = .Platform$file.sep, ...) {
   # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
   # but needed in order to make the dir accessible with path in the list
   l <- list(
@@ -80,6 +83,67 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
     ),
     png = file.path(
       root, "level_3", "summary", "png", fsep = fsep
+    ))
+  if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
+  return(l)
+}
+
+#' @rdname make_paths
+#' @export
+structure_eddy <- function(root = ".", create_dirs = FALSE,
+                           fsep = .Platform$file.sep, ...) {
+  # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
+  # but needed in order to make the dir accessible with path in the list
+  l <- list(
+    Processing_setup = file.path(
+      root, "Level 0", "EddyPro setup", fsep = fsep
+    ),
+    IRGA_setup = file.path(
+      root, "Level 0", "IRGA setup", fsep = fsep
+    ),
+    Raw_data = file.path(
+      root, "Level 0", "Raw data", fsep = fsep
+    ),
+    Logbook = file.path(
+      root, "Level 1", "Logbook", fsep = fsep
+    ),
+    Processing = file.path(
+      root, "Level 1", "Post-processing", "EddyProOutput", fsep = fsep
+    ),
+    Quality_checking = file.path(
+      root, "Level 2", "Quality checking", fsep = fsep
+    ),
+    Precheck = file.path(
+      root, "Level 2", "Quality checking", "Precheck", fsep = fsep
+    ),
+    WD_dependency = file.path(
+      root, "Level 2", "Quality checking", "Precheck", "WD_dependency",
+      fsep = fsep
+    ),
+    QC_summary = file.path(
+      root, "Level 2", "Quality checking", "QC_summary", fsep = fsep
+    ),
+    Storage_flux = file.path(
+      root, "Level 2", "Storage flux", fsep = fsep
+    ),
+    Input_for_GF = file.path(
+      root, "Level 2", "Input for gap-filling", fsep = fsep
+    ),
+    Gap_filling = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", fsep = fsep
+    ),
+    Plots = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", "Plots", fsep = fsep
+    ),
+    Ustar_filtering = file.path(
+      root, "Level 3", "Gap-filling", "REddyProc", "Ustar filtering",
+      fsep = fsep
+    ),
+    Summary = file.path(
+      root, "Level 3", "Summary", "REddyProc", fsep = fsep
+    ),
+    png = file.path(
+      root, "Level 3", "Summary", "REddyProc", "png", fsep = fsep
     ))
   if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
   return(l)
