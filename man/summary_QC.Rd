@@ -99,5 +99,5 @@ xx + theme(text = element_text(size = 20))
 
 }
 \seealso{
-\code{\link[=combn_QC]{combn_QC()}}, \code{\link[=ggplot]{ggplot()}}.
+\code{\link[=combn_QC]{combn_QC()}}, \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}}.
 }

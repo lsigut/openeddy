@@ -578,7 +578,8 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 #' @examples
 #' openeddy:::infer_interval(c(1:5))
 #' openeddy:::infer_interval(-c(1:5))
-#' try(openeddy:::infer_interval(-1:1))
+#' try(openeddy:::infer_interval(0))
+#' try(openeddy:::infer_interval(c(-1,1)))
 #' openeddy:::infer_interval(c(2, 1, 1, 2))
 #' openeddy:::infer_interval(NULL)
 #' openeddy:::infer_interval(NA)
@@ -588,12 +589,13 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
 infer_interval <- function(x) {
   if (length(x) == 0) return(NULL)
   # choose the smallest interval in absolute terms (descending series possible)
-  # works for `x` with or without gaps; higher level functions should check:
+  # works for `x` with or without gaps
+  # higher level functions should check:
   # - for presence of gaps
   # - for validity of obtained interval (and correctly report issues)
   #   - other than this one will throw error for sure
   #   - even this interval might be invalid
-  res <- x[which.min(abs(x))]
+  res <- x[which.min(abs(x))] # it does not distinguish ascending/descending
   # NA would make issues in the following checks
   # - this case should not occur due to checks in higher level functions
   if (length(res) == 0) return(NA_real_)
@@ -603,7 +605,8 @@ infer_interval <- function(x) {
   }
   # interval can be positive or negative (not both)
   # this condition might be relaxed (removed) as it needs to be checked anyway in strptime_eddy() for manual intervals and unordered timestamp can be valid in merge_eddy() ----
-  # - what about merge_eddy() with duplicated records?
+  # what about merge_eddy() with duplicated records?
+  # - likely no issue as duplications would still have valid diffs in each data frame
   if (any(x < 0) & any(x > 0)) {
     stop("date-time sequence is both ascending and descending")
   }
@@ -680,21 +683,22 @@ infer_interval <- function(x) {
 #' @examples
 #' xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 #' "01.01.2014  01:30:00", "01.01.2014  02:00:00")
-#' varnames(xx) <- "timestamp"
-#' units(xx) <- "-"
 #' str(xx)
 #' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", shift.by = -900L))
 #' attributes(yy)
 #' typeof(yy)
 #'
 #' ## Convert to original format
-#' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
+#' format(yy + 900, format = "%d.%m.%Y %H:%M:%S", tz = "GMT")
+#'
+#' ## Handle gaps in timestamp
 #' zz <- xx[-3]
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M", allow_gaps = TRUE)
 #'
 #' ## This is not a regular date-time sequence
 #' try(strptime_eddy(zz, "%d.%m.%Y %H:%M")) # error returned
-#' ## interval argument provided incorrectly
+#'
+#' ## Interval argument provided incorrectly
 #' try(strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)) # error returned
 #'
 #' @export
@@ -1423,7 +1427,7 @@ set_OT_input <- function(x,
 #'   of flags with additive effect.
 #' @param no_messages A logical value.
 #'
-#' @seealso [combn_QC()], [ggplot()].
+#' @seealso [combn_QC()], [ggplot2::ggplot()].
 #'
 #' @examples
 #' set.seed(6)
@@ -2271,7 +2275,7 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
                          fileEncoding = "UTF-8", format = "%Y-%m-%d %H:%M",
                          shift.by = NULL, allow_gaps = TRUE,
-                         pattern = "\\.[Cc][Ss][Vv]$", ...) {
+                         pattern = "\\.[Cc][Ss][Vv]$") {
   lf <- list.files(path, full.names = TRUE)
   lf <- grep(pattern, lf, value = TRUE) # "\\." is a literal dot
   if (length(lf) == 0) stop("no file matching 'pattern' in folder 'path'")

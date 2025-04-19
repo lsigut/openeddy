@@ -91,31 +91,8 @@ flag data manually in interactive session and save (merged) results. If you
 just want to reload previously saved results, use \code{interactive = FALSE}.
 }
 \examples{
-# prepare mock data
-set.seed(87)
-NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-NEE[NEE > 5] <- 5
-t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-GR <- (-NEE + 5) * 50
-Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-Rn <- GR - 50
-H <- Rn * 0.7
-LE <- Rn * 0.3
-
-# combine into data frame
-a <- data.frame(
-  timestamp = t,
-  H = H + rnorm(48 * 14),
-  qc_H = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  LE = LE + rnorm(48 * 14),
-  qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  NEE = NEE + rnorm(48 * 14),
-  qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  GR = GR,
-  Tair = Tair,
-  Rn = Rn
-)
+a <- eddy_data[c("timestamp", "H", "qc_H_SSITC", "LE", "qc_LE_SSITC", "NEE",
+                 "qc_NEE_SSITC", "GR", "Tair", "Rn")]
 
 # introduce outliers
 a$H[c(97, 210, 450, 650)] <- c(-300, 2000, -800, 3200)
@@ -124,7 +101,8 @@ a$NEE[c(10, 152, 400, 500)] <- c(50, -100, 70, -250)
 
 # single variable example without auxiliary variables
 if (dev.interactive()) {
-  man <- check_manually(a, vars = "H", interactive = TRUE,
+  man <- check_manually(a, vars = "H", qc_prefix = "qc_",
+                        qc_suffix = "_SSITC", interactive = TRUE,
                         siteyear = "MySite2022")
   summary_QC(man, names(man)[-1])
 }
@@ -132,6 +110,7 @@ if (dev.interactive()) {
 # multiple vars provided as vector (without auxiliary variables)
 if (dev.interactive()) {
   man <- check_manually(a, vars = c("H", "LE", "NEE"),
+                        qc_prefix = "qc_", qc_suffix = "_SSITC",
                         interactive = TRUE)
   summary_QC(man, names(man)[-1])
 }
@@ -143,18 +122,21 @@ if (dev.interactive()) {
                           c("H", "LE", "NEE"), # main variables (x)
                           c("Rn", "Rn", "GR") # auxiliary variables (y)
                         ),
+                        qc_prefix = "qc_", qc_suffix = "_SSITC",
                         interactive = TRUE)
 }
 
 # two sets of auxiliary variables
 # - "missing_var" not present in "a", thus handled as if NA was provided
+# - example shows two sets only for H flux, LE flux has one, NEE none
 if (dev.interactive()) {
   man <- check_manually(a,
                         vars = cbind(
-                          c("H", "LE", "NEE"),      # main variables (x)
-                          c("Rn", "Rn", NA),        # auxiliary variables (y)
-                          c("missing_var", "H", NA) # auxiliary variables (z)
+                          c("H", "LE", "NEE"),       # main variables (x)
+                          c("Rn", "Rn", NA),         # auxiliary variables (y)
+                          c("LE", "missing_var", NA) # auxiliary variables (z)
                         ),
+                        qc_prefix = "qc_", qc_suffix = "_SSITC",
                         interactive = TRUE)
 }
 
@@ -166,6 +148,7 @@ if (dev.interactive()) {
                           y = c("Rn", "Rn", "GR"),
                           z = c("LE", "H", "Tair")
                         ),
+                        qc_prefix = "qc_", qc_suffix = "_SSITC",
                         interactive = TRUE)
 }
 

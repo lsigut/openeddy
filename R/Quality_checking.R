@@ -1502,7 +1502,7 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #' @param z A numeric value. \eqn{MAD} scale factor.
 #' @param c A numeric value. [mad()] scale factor. Default is `3
 #'   * [mad] constant` (`i.e. 3 * 1.4826 = 4.4478`).
-#' @param plot A logical value. If `TRUE`, list of [ggplot()]
+#' @param plot A logical value. If `TRUE`, list of [ggplot2::ggplot()]
 #'   objects visualizing the spikes is also produced.
 #'
 #' @return If `plot = FALSE`, an updated data frame `SD_sub` with
@@ -1703,7 +1703,7 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   thresholds for `var` values. Values outside this range will be flagged
 #'   as spikes (flag 2). If `var_thr = NULL`, thresholds are not applied.
 #' @param iter An integer value. Defines number of despiking iterations.
-#' @param plot A logical value. If `TRUE`, list of [ggplot()]
+#' @param plot A logical value. If `TRUE`, list of [ggplot2::ggplot()]
 #'   objects visualizing the spikes is also produced.
 #' @param light A character string. Selects preferred variable for incoming
 #'   light intensity. `"GR"`, `"PotRad"` or `"PAR"` is allowed. Can be
@@ -1722,65 +1722,40 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'   [median()] and [mad()].
 #'
 #' @examples
-#' # prepare mock data
-#' set.seed(87)
-#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' my_var[my_var > 5] <- 5
-#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-#' GR <- (-my_var + 5) * 50
-#' Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#' Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
-#' VPD <- -my_var + 10
-#' VPD <- VPD[c(43:48, 0:42)]
-#' Rn <- GR - 50
-#'
-#' # combine into data frame
-#' a <- data.frame(
-#'   timestamp = t,
-#'   my_var = my_var + rnorm(48 * 14),
-#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   GR = GR,
-#'   Tair = Tair,
-#'   Tsoil = Tsoil,
-#'   VPD = VPD,
-#'   Rn = Rn
-#'   )
-#'
-#' # specify units
-#' openeddy::units(a) <- c("-", "units", "-", "W m-2", "degC",
-#'                         "degC", "hPa", "W m-2")
+#' a <- eddy_data
 #'
 #' # include spikes
-#' a$my_var[c(152, 479)] <- c(21, -10)
+#' a$NEE[c(152, 479)] <- c(26, -20)
 #'
 #' # plot time series
-#' plot_eddy(a, "my_var", "my_qc", "my_qc", skip = "monthly")
+#' plot_eddy(a, "NEE", "qc_NEE_SSITC", "qc_NEE_SSITC", skip = "monthly")
 #'
 #' # despike (plot = TRUE)
-#' xx <- despikeLF(a, "my_var", "my_qc", plot = TRUE)
+#' xx <- despikeLF(a, "NEE", "qc_NEE_SSITC", plot = TRUE)
 #'
 #' # add results to data frame, summarize and plot outliers
 #' a$spikesLF <- xx$SD
 #' summary_QC(a, qc_names = "spikesLF")
-#' xx$plots$`iter 1`$night$`2020-07-01 - 2020-07-13`
+#' xx$plots$`iter 1`$night$`2023-07-23 - 2023-08-04`
 #'
 #' # combine with original QC and plot
-#' a$qc_res <- combn_QC(a, qc_names = c("my_qc", "spikesLF"), "qc_res")
-#' plot_eddy(a, "my_var", "qc_res", "qc_res", skip = "monthly")
+#' a$qc_res <- combn_QC(a,
+#'                      qc_names = c("qc_NEE_SSITC", "spikesLF"),
+#'                      name_out = "qc_res")
+#' plot_eddy(a, "NEE", "qc_res", "qc_res", skip = "monthly")
 #'
 #' # compute and use potential radiation
 #' library(REddyProc)
 #' tlist <- as.POSIXlt(a$timestamp)
 #' a$PotRad <- fCalcPotRadiation(DoY = tlist$yday + 1,
 #'                               Hour = tlist$hour + tlist$min / 60,
-#'                               LatDeg = 49.4437236,
-#'                               LongDeg = 16.6965125,
+#'                               LatDeg = 48.68,
+#'                               LongDeg = 16.95,
 #'                               TimeZone = +1)
-#' yy <- despikeLF(a, "my_var", "my_qc", light = "PotRad")
+#' yy <- despikeLF(a, "NEE", "qc_NEE_SSITC", light = "PotRad")
 #'
 #' # no outliers are detected without day/night separation
-#' zz <- despikeLF(a, "my_var", "my_qc", light = NULL)
+#' zz <- despikeLF(a, "NEE", "qc_NEE_SSITC", light = NULL)
 #'
 #' @export
 despikeLF <- function(x, var, qc_flag = NULL, name_out = "-", var_thr = NULL,
@@ -2014,38 +1989,24 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' @seealso [check_manually()]
 #'
 #' @examples
-#' # prepare mock data
-#' set.seed(87)
-#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' my_var[my_var > 5] <- 5
-#' GR <- (-my_var + 5) * 50
-#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#'
-#' # combine into data frame
-#' a <- data.frame(
-#'   my_var = my_var + rnorm(48 * 14),
-#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   GR = GR,
-#'   Tair = Tair
-#' )
+#' a <- eddy_data[c("NEE", "qc_NEE_SSITC", "GR", "Tair")]
 #'
 #' # include spikes
-#' a$my_var[c(152, 479)] <- c(231, -2000)
+#' a$NEE[c(152, 479)] <- c(231, -2000)
 #'
 #' # flag data manually (no auxiliary data)
 #' if (dev.interactive()) {
-#'   exclude(x = a$my_var, qc_x = a$my_qc)
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC)
 #' }
 #'
 #' # flag data manually (single auxiliary variable)
 #' if (dev.interactive()) {
-#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR)
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR)
 #' }
 #'
 #' # flag data manually (two auxiliary variables)
 #' if (dev.interactive()) {
-#'   exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR, z = a$Tair)
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR, z = a$Tair)
 #' }
 #'
 #' @importFrom graphics lines identify points
@@ -2306,31 +2267,8 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'   [combn_QC()], [strptime_eddy()], [merge()].
 #'
 #' @examples
-#' # prepare mock data
-#' set.seed(87)
-#' NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' NEE[NEE > 5] <- 5
-#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-#' GR <- (-NEE + 5) * 50
-#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#' Rn <- GR - 50
-#' H <- Rn * 0.7
-#' LE <- Rn * 0.3
-#'
-#' # combine into data frame
-#' a <- data.frame(
-#'   timestamp = t,
-#'   H = H + rnorm(48 * 14),
-#'   qc_H = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   LE = LE + rnorm(48 * 14),
-#'   qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   NEE = NEE + rnorm(48 * 14),
-#'   qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   GR = GR,
-#'   Tair = Tair,
-#'   Rn = Rn
-#' )
+#' a <- eddy_data[c("timestamp", "H", "qc_H_SSITC", "LE", "qc_LE_SSITC", "NEE",
+#'                  "qc_NEE_SSITC", "GR", "Tair", "Rn")]
 #'
 #' # introduce outliers
 #' a$H[c(97, 210, 450, 650)] <- c(-300, 2000, -800, 3200)
@@ -2339,7 +2277,8 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'
 #' # single variable example without auxiliary variables
 #' if (dev.interactive()) {
-#'   man <- check_manually(a, vars = "H", interactive = TRUE,
+#'   man <- check_manually(a, vars = "H", qc_prefix = "qc_",
+#'                         qc_suffix = "_SSITC", interactive = TRUE,
 #'                         siteyear = "MySite2022")
 #'   summary_QC(man, names(man)[-1])
 #' }
@@ -2347,6 +2286,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' # multiple vars provided as vector (without auxiliary variables)
 #' if (dev.interactive()) {
 #'   man <- check_manually(a, vars = c("H", "LE", "NEE"),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
 #'                         interactive = TRUE)
 #'   summary_QC(man, names(man)[-1])
 #' }
@@ -2358,18 +2298,21 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'                           c("H", "LE", "NEE"), # main variables (x)
 #'                           c("Rn", "Rn", "GR") # auxiliary variables (y)
 #'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
 #'                         interactive = TRUE)
 #' }
 #'
 #' # two sets of auxiliary variables
 #' # - "missing_var" not present in "a", thus handled as if NA was provided
+#' # - example shows two sets only for H flux, LE flux has one, NEE none
 #' if (dev.interactive()) {
 #'   man <- check_manually(a,
 #'                         vars = cbind(
-#'                           c("H", "LE", "NEE"),      # main variables (x)
-#'                           c("Rn", "Rn", NA),        # auxiliary variables (y)
-#'                           c("missing_var", "H", NA) # auxiliary variables (z)
+#'                           c("H", "LE", "NEE"),       # main variables (x)
+#'                           c("Rn", "Rn", NA),         # auxiliary variables (y)
+#'                           c("LE", "missing_var", NA) # auxiliary variables (z)
 #'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
 #'                         interactive = TRUE)
 #' }
 #'
@@ -2381,6 +2324,7 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #'                           y = c("Rn", "Rn", "GR"),
 #'                           z = c("LE", "H", "Tair")
 #'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
 #'                         interactive = TRUE)
 #' }
 #'

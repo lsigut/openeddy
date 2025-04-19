@@ -28,7 +28,8 @@ Description: The openeddy package is a software infrastructure for eddy
     combined use of openeddy and REddyProc allows to run the whole eddy 
     covariance post-processing chain. Learn more at 
     <https://github.com/lsigut/EC_workflow>.
-Depends: R (>= 3.0.0)
+Depends: 
+    R (>= 3.5)
 License: GPL (>= 2)
 URL: https://github.com/lsigut/openeddy
 BugReports: https://github.com/lsigut/openeddy/issues

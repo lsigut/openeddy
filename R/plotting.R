@@ -206,69 +206,43 @@ setRange <- function(x = NA, filter = TRUE, man = c(0, 0)) {
 #' @seealso [read_eddy()] and [strptime_eddy()].
 #'
 #' @examples
-#' # prepare mock data
-#' set.seed(87)
-#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' my_var[my_var > 5] <- 5
-#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-#' P <- vector("numeric", 48 * 14)
-#' P[c(180:188, 250:253, 360:366, 500:505)] <- sample(1:15, 26, replace = TRUE)
-#' GR <- (-my_var + 5) * 50
-#' Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#' Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
-#' VPD <- -my_var + 10
-#' VPD <- VPD[c(43:48, 0:42)]
-#' Rn <- GR - 50
+#' # plot in weekly resolution
+#' plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+#' test = "qc_NEE_forGF_UF", skip = "monthly")
 #'
-#' # combine into data frame
-#' a <- data.frame(
-#'   timestamp = t,
-#'   my_var = my_var + rnorm(48 * 14),
-#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   P = P,
-#'   GR = GR,
-#'   Tair = Tair,
-#'   Tsoil = Tsoil,
-#'   VPD = VPD,
-#'   Rn = Rn
-#' )
-#'
-#' # specify units
-#' openeddy::units(a) <- c("-", "units", "-", "mm", "W m-2", "degC",
-#'                         "degC", "hPa", "W m-2")
-#'
-#' # plot in weekly resolution (flux can be any variable)
-#' plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
+#' # not distinguishing test flags (show used and excluded data)
+#' plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
 #' skip = "monthly")
 #'
-#' # test can be used to distinguish up to 3 groups (0-2 flagging scheme)
-#' # - example with 2 groups:
-#' a$day <- a$GR > 0 # 2 groups (TRUE / FALSE; i.e. 1 / 0)
-#' plot_eddy(a, "my_var", "my_qc", "day", skip = "monthly") # daytime is green
-#' # - example with 3 groups:
-#' a$Tair_levels <- cut(a$Tair, c(13, 16, 19, 22))
-#' a$Tair_levels <- as.numeric(a$Tair_levels) - 1 # only flags 0-2 supported
-#' plot_eddy(a, "my_var", "my_qc", "Tair_levels", skip = "monthly")
+#' # show gap-filling results
+#' plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+#' test = "qc_NEE_forGF_UF", flux_gf = "NEE_uStar_f", skip = "monthly")
+#'
+#' # show flux partitioning results
+#' eddy_FP <- eddy_data
+#' names(eddy_FP)[names(eddy_FP) %in% c("Reco_uStar", "GPP_uStar_f")] <-
+#'   c("Reco", "GPP")
+#' plot_eddy(x = eddy_FP, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+#' test = "qc_NEE_forGF_UF", NEE_sep = TRUE, skip = "monthly")
 #'
 #' # make a custom setup of top and bottom panels
-#' plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
-#'           skip = "monthly",
-#'           panel_top = "blue_red", panel_top_vars = c("Tair", "Rn"),
-#'           panel_bottom = "violet_orange", panel_bottom_vars = c("GR", "VPD"))
+#' plot_eddy(x = eddy_data, flux = "LE", qc_flag = "qc_LE_forGF",
+#'           test = "qc_LE_forGF", skip = "monthly",
+#'           panel_top = "blue_red", panel_top_vars = c("ustar", "Rn"),
+#'           panel_bottom = "violet_orange", panel_bottom_vars = c("G", "SWC"))
 #'
-#' # any time resolution is supported
-#' b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
-#' plot_eddy(b, "my_var", "my_qc", "my_qc", skip = "monthly")
+#' # any time resolution is supported (two-hourly time resolution example)
+#' eddy_sub <- ex(eddy_data, c(TRUE, FALSE, FALSE, FALSE))
+#' plot_eddy(eddy_sub, "Tau", "qc_Tau_forGF", "qc_Tau_forGF", skip = "monthly")
 #'
 #' # precipitation is treated specifically and can be missing
-#' d <- a
-#' d["P"] <- NULL
-#' plot_eddy(d, "my_var", "my_qc", "my_qc", skip = "monthly")
+#' eddy_no_P <- eddy_data
+#' eddy_no_P["P"] <- NULL
+#' plot_eddy(eddy_no_P, "H", "qc_H_forGF", "qc_H_forGF", skip = "monthly")
 #'
 #' # missing variables will be initialized with NAs
 #' # - valid timestamp is still required
-#' plot_eddy(a[1], "my_var", skip = "monthly")
+#' plot_eddy(eddy_data[1], "my_var", skip = "monthly")
 #'
 #' @importFrom graphics lines points par grid axis.POSIXct axis abline mtext
 #'   legend layout barplot
@@ -558,17 +532,18 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
       }
     }
     # Graphical display of data in weekly periods===============================
+
     # Number of intervals with right side closure (+1)
-    nInt <- length(seq(from = day1, to = date[nrow(x)], by = "1 week")) + 1L
+    # - do not enforce start of week (start of month is enforced by day1 var)
+    nInt <- length(seq(from = date[1], to = date[nrow(x)], by = "1 week")) + 1L
     # Create weekly intervals for plotting
-    int <- seq(from = day1, length.out = nInt, by = "1 week")
+    int <- seq(from = date[1], length.out = nInt, by = "1 week")
     # Compute xlim for barplot (60 * 24 = 1440: minutes in day; 7 days in week)
     tdiff <- as.numeric(time[2] - time[1])
     barxaxis <- 1440 / tdiff * 7
     # Only 6 plots are printed, slots 7 and 8 reserved for margins
     panels <- c(1, 1, 1, 2, 2, 2, 3, 3, 3, 7, 7, 4, 4, 4, 5, 5, 5, 6, 6, 6, 8)
-    def_par <- par(no.readonly = TRUE)
-    par(mar = c(0, 0, 0, 0), oma = c(2.5, 6, 1, 6))
+    op <- par(mar = c(0, 0, 0, 0), oma = c(2.5, 6, 1, 6))
     for (i in 1:(nInt - 1L)) {
       if (i %% 2 == 1) layout(panels)
       week <- date >= int[i] & date < int[i + 1L]
@@ -662,7 +637,7 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
                    format = "%Y/%m/%d", padj = -0.5)
       if (i %% 2 == 0) mtext("Day of year", 1, line = 3, cex = 1.2)
     }
-    par(def_par)
+    par(op)
   }
 }
 
@@ -704,15 +679,17 @@ plot_eddy <- function(x, flux, qc_flag = "none", test = "none",
 #'   x-axis.see [strptime()].
 #'
 #' @examples
-#' set.seed(123)
-#' n <- 17520 # number of half-hourly records in one non-leap year
-#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
-#' x <- data.frame(timestamp = tstamp, H = rf(n, 1, 2, 1))
-#' openeddy::units(x) <- c("", "W m-2")
+#' \dontrun{
+#' library(REddyProc)
+#' x <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+#'                          Day = 'DoY', Hour = 'Hour')
+#' names(x)[names(x) == "DateTime"] <- "timestamp"
+#' x[c(5000, 10000), "H"] <- c(10000, -6000)
 #' plot(H ~ timestamp, x)
 #' plot_hh(x, "H")
 #' plot_precheck(x, "H")
-#' plot_precheck(x, "H", units = "days", interval = "2 months", format = "%d-%b")
+#' plot_precheck(x, "H", units = "days", interval = "2 months",
+#'               format = "%d-%b")}
 #'
 #' @importFrom graphics axis.POSIXct
 #' @importFrom grDevices adjustcolor

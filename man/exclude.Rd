@@ -51,38 +51,24 @@ is \code{Escape}d before it is finalized, the user will lose the whole progress
 (see \emph{undo last} option instead).
 }
 \examples{
-# prepare mock data
-set.seed(87)
-my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-my_var[my_var > 5] <- 5
-GR <- (-my_var + 5) * 50
-Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-
-# combine into data frame
-a <- data.frame(
-  my_var = my_var + rnorm(48 * 14),
-  my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  GR = GR,
-  Tair = Tair
-)
+a <- eddy_data[c("NEE", "qc_NEE_SSITC", "GR", "Tair")]
 
 # include spikes
-a$my_var[c(152, 479)] <- c(231, -2000)
+a$NEE[c(152, 479)] <- c(231, -2000)
 
 # flag data manually (no auxiliary data)
 if (dev.interactive()) {
-  exclude(x = a$my_var, qc_x = a$my_qc)
+  exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC)
 }
 
 # flag data manually (single auxiliary variable)
 if (dev.interactive()) {
-  exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR)
+  exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR)
 }
 
 # flag data manually (two auxiliary variables)
 if (dev.interactive()) {
-  exclude(x = a$my_var, qc_x = a$my_qc, y = a$GR, z = a$Tair)
+  exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR, z = a$Tair)
 }
 
 }

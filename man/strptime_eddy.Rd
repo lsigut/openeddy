@@ -85,21 +85,22 @@ if the date-time information is expected to resolve fractional seconds (it
 \examples{
 xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 "01.01.2014  01:30:00", "01.01.2014  02:00:00")
-varnames(xx) <- "timestamp"
-units(xx) <- "-"
 str(xx)
 (yy <- strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", shift.by = -900L))
 attributes(yy)
 typeof(yy)
 
 ## Convert to original format
-format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M", tz = "GMT")
+format(yy + 900, format = "\%d.\%m.\%Y \%H:\%M:\%S", tz = "GMT")
+
+## Handle gaps in timestamp
 zz <- xx[-3]
 strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M", allow_gaps = TRUE)
 
 ## This is not a regular date-time sequence
 try(strptime_eddy(zz, "\%d.\%m.\%Y \%H:\%M")) # error returned
-## interval argument provided incorrectly
+
+## Interval argument provided incorrectly
 try(strptime_eddy(xx, "\%d.\%m.\%Y \%H:\%M", interval = 3600)) # error returned
 
 }

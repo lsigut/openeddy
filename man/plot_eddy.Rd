@@ -193,69 +193,43 @@ plotting, \code{GPP_scor = TRUE} is taken as default.
 }
 
 \examples{
-# prepare mock data
-set.seed(87)
-my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-my_var[my_var > 5] <- 5
-t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-P <- vector("numeric", 48 * 14)
-P[c(180:188, 250:253, 360:366, 500:505)] <- sample(1:15, 26, replace = TRUE)
-GR <- (-my_var + 5) * 50
-Tair <- Tsoil <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-Tsoil <- Tsoil * 1.2 + 10 + seq(0, 3, length = 48 * 14)
-VPD <- -my_var + 10
-VPD <- VPD[c(43:48, 0:42)]
-Rn <- GR - 50
+# plot in weekly resolution
+plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+test = "qc_NEE_forGF_UF", skip = "monthly")
 
-# combine into data frame
-a <- data.frame(
-  timestamp = t,
-  my_var = my_var + rnorm(48 * 14),
-  my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-  P = P,
-  GR = GR,
-  Tair = Tair,
-  Tsoil = Tsoil,
-  VPD = VPD,
-  Rn = Rn
-)
-
-# specify units
-openeddy::units(a) <- c("-", "units", "-", "mm", "W m-2", "degC",
-                        "degC", "hPa", "W m-2")
-
-# plot in weekly resolution (flux can be any variable)
-plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
+# not distinguishing test flags (show used and excluded data)
+plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
 skip = "monthly")
 
-# test can be used to distinguish up to 3 groups (0-2 flagging scheme)
-# - example with 2 groups:
-a$day <- a$GR > 0 # 2 groups (TRUE / FALSE; i.e. 1 / 0)
-plot_eddy(a, "my_var", "my_qc", "day", skip = "monthly") # daytime is green
-# - example with 3 groups:
-a$Tair_levels <- cut(a$Tair, c(13, 16, 19, 22))
-a$Tair_levels <- as.numeric(a$Tair_levels) - 1 # only flags 0-2 supported
-plot_eddy(a, "my_var", "my_qc", "Tair_levels", skip = "monthly")
+# show gap-filling results
+plot_eddy(x = eddy_data, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+test = "qc_NEE_forGF_UF", flux_gf = "NEE_uStar_f", skip = "monthly")
+
+# show flux partitioning results
+eddy_FP <- eddy_data
+names(eddy_FP)[names(eddy_FP) \%in\% c("Reco_uStar", "GPP_uStar_f")] <-
+  c("Reco", "GPP")
+plot_eddy(x = eddy_FP, flux = "NEE", qc_flag = "qc_NEE_forGF_UF",
+test = "qc_NEE_forGF_UF", NEE_sep = TRUE, skip = "monthly")
 
 # make a custom setup of top and bottom panels
-plot_eddy(x = a, flux = "my_var", qc_flag = "my_qc", test = "my_qc",
-          skip = "monthly",
-          panel_top = "blue_red", panel_top_vars = c("Tair", "Rn"),
-          panel_bottom = "violet_orange", panel_bottom_vars = c("GR", "VPD"))
+plot_eddy(x = eddy_data, flux = "LE", qc_flag = "qc_LE_forGF",
+          test = "qc_LE_forGF", skip = "monthly",
+          panel_top = "blue_red", panel_top_vars = c("ustar", "Rn"),
+          panel_bottom = "violet_orange", panel_bottom_vars = c("G", "SWC"))
 
-# any time resolution is supported
-b <- ex(a, c(TRUE, FALSE, FALSE, FALSE)) # two-hourly time resolution
-plot_eddy(b, "my_var", "my_qc", "my_qc", skip = "monthly")
+# any time resolution is supported (two-hourly time resolution example)
+eddy_sub <- ex(eddy_data, c(TRUE, FALSE, FALSE, FALSE))
+plot_eddy(eddy_sub, "Tau", "qc_Tau_forGF", "qc_Tau_forGF", skip = "monthly")
 
 # precipitation is treated specifically and can be missing
-d <- a
-d["P"] <- NULL
-plot_eddy(d, "my_var", "my_qc", "my_qc", skip = "monthly")
+eddy_no_P <- eddy_data
+eddy_no_P["P"] <- NULL
+plot_eddy(eddy_no_P, "H", "qc_H_forGF", "qc_H_forGF", skip = "monthly")
 
 # missing variables will be initialized with NAs
 # - valid timestamp is still required
-plot_eddy(a[1], "my_var", skip = "monthly")
+plot_eddy(eddy_data[1], "my_var", skip = "monthly")
 
 }
 \seealso{

@@ -74,14 +74,16 @@ y-axis, set \code{qrange = NULL} or \code{qrange = c(0, 1)} or use
 variable.
 }
 \examples{
-set.seed(123)
-n <- 17520 # number of half-hourly records in one non-leap year
-tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
-x <- data.frame(timestamp = tstamp, H = rf(n, 1, 2, 1))
-openeddy::units(x) <- c("", "W m-2")
+\dontrun{
+library(REddyProc)
+x <- fConvertTimeToPosix(Example_DETha98, 'YDH', Year = 'Year',
+                         Day = 'DoY', Hour = 'Hour')
+names(x)[names(x) == "DateTime"] <- "timestamp"
+x[c(5000, 10000), "H"] <- c(10000, -6000)
 plot(H ~ timestamp, x)
 plot_hh(x, "H")
 plot_precheck(x, "H")
-plot_precheck(x, "H", units = "days", interval = "2 months", format = "\%d-\%b")
+plot_precheck(x, "H", units = "days", interval = "2 months",
+              format = "\%d-\%b")}
 
 }

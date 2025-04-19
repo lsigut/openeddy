@@ -13,8 +13,7 @@ read_EddyPro(
   format = "\%Y-\%m-\%d \%H:\%M",
   shift.by = NULL,
   allow_gaps = TRUE,
-  pattern = "\\\\.[Cc][Ss][Vv]$",
-  ...
+  pattern = "\\\\.[Cc][Ss][Vv]$"
 )
 }
 \arguments{
