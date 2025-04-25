@@ -96,29 +96,28 @@ if the date-time information is expected to resolve fractional seconds (it
 \code{\link[=trunc]{trunc()}}ates decimals).
 }
 \examples{
-set.seed(123)
-n <- 20 # number of half-hourly records in one non-leap year
-tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
-x <- data.frame(
-timestamp = tstamp,
-H = rf(n, 1, 2, 1),
-LE = rf(n, 1, 2, 1),
-qc_flag = sample(c(0:2, NA), n, replace = TRUE)
-)
-openeddy::varnames(x) <- c("timestamp", "sensible heat", "latent heat",
-                           "quality flag")
-openeddy::units(x) <- c("-", "W m-2", "W m-2", "-")
-str(x)
-y1 <- ex(x, 1:10)
-y2 <- ex(x, 11:20)
-y <- merge_eddy(list(y1, y2))
-str(y)
-attributes(y$timestamp)
-typeof(y$timestamp)
+str(ex(eddy_data, 1:6, 1:6))
 
-# Duplicated rows and different number of columns
-z1 <- ex(x, 8:20, 1:3)
-z <- merge_eddy(list(y1, z1))
+# fill gaps in timestamp of single data frame
+a <- ex(eddy_data, c(1:3, 6), 1:6)
+merge_eddy(list(a))
+
+# merge overlapping data frames
+(b1 <- ex(eddy_data, 1:5, 1:6))
+(b2 <- ex(eddy_data, 4:6, 1:6))
+(b <- merge_eddy(list(b1, b2)))
+str(b)
+attributes(b$timestamp)
+typeof(b$timestamp)
+
+# merge data frames with different number of columns
+(c1 <- ex(eddy_data, 8:20, 1:3))
+(c <- merge_eddy(list(b1, c1)))
+
+# horizontal merging
+(d1 <- ex(eddy_data, 1:6, 1:5))
+(d2 <- ex(eddy_data, c(2:4, 6:8), c(1, 4:7)))
+(d <- merge_eddy(list(d1, d2), check_dupl = FALSE))
 
 }
 \seealso{

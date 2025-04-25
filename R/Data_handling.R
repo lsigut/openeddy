@@ -770,6 +770,7 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = NULL,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
                           storage.mode = "integer", ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
+  interval <- interval[1]
   if (!is.null(interval) && (interval == 0 | is.na(interval))) {
     stop("wrong value of 'interval'")
   }
@@ -783,11 +784,13 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = NULL,
   }
   tdiff <- diff(as.numeric(out)) # strip POSIXt class to get numeric diff()s
   if (any(tdiff < 0) & any(tdiff > 0)) {
+    # this is needed because infer_interval() checks might be skipped below
+    # if interval is provided by user
     stop("date-time sequence is both ascending and descending")
   }
   if (is.null(interval)) {
-    # the only need for manual interval seems explicit validity check for given
-    # allow_gaps setting
+    # setting manual interval is relevant especially for allow_gaps = TRUE cases
+    # - e.g. inferred interval would by hourly but user wants half-hourly
     interval <- infer_interval(tdiff)
   }
   # if x has length 0 or 1 (no interval), skip further testing conditions
@@ -1909,35 +1912,38 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 #'   [time zones], [make.unique()]
 #'
 #' @examples
-#' set.seed(123)
-#' n <- 20 # number of half-hourly records in one non-leap year
-#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
-#' x <- data.frame(
-#' timestamp = tstamp,
-#' H = rf(n, 1, 2, 1),
-#' LE = rf(n, 1, 2, 1),
-#' qc_flag = sample(c(0:2, NA), n, replace = TRUE)
-#' )
-#' openeddy::varnames(x) <- c("timestamp", "sensible heat", "latent heat",
-#'                            "quality flag")
-#' openeddy::units(x) <- c("-", "W m-2", "W m-2", "-")
-#' str(x)
-#' y1 <- ex(x, 1:10)
-#' y2 <- ex(x, 11:20)
-#' y <- merge_eddy(list(y1, y2))
-#' str(y)
-#' attributes(y$timestamp)
-#' typeof(y$timestamp)
+#' str(ex(eddy_data, 1:6, 1:6))
 #'
-#' # Duplicated rows and different number of columns
-#' z1 <- ex(x, 8:20, 1:3)
-#' z <- merge_eddy(list(y1, z1))
+#' # fill gaps in timestamp of single data frame
+#' a <- ex(eddy_data, c(1:3, 6), 1:6)
+#' merge_eddy(list(a))
+#'
+#' # merge overlapping data frames
+#' (b1 <- ex(eddy_data, 1:5, 1:6))
+#' (b2 <- ex(eddy_data, 4:6, 1:6))
+#' (b <- merge_eddy(list(b1, b2)))
+#' str(b)
+#' attributes(b$timestamp)
+#' typeof(b$timestamp)
+#'
+#' # merge data frames with different number of columns
+#' (c1 <- ex(eddy_data, 8:20, 1:3))
+#' (c <- merge_eddy(list(b1, c1)))
+#'
+#' # horizontal merging
+#' (d1 <- ex(eddy_data, 1:6, 1:5))
+#' (d2 <- ex(eddy_data, c(2:4, 6:8), c(1, 4:7)))
+#' (d <- merge_eddy(list(d1, d2), check_dupl = FALSE))
 #'
 #' @importFrom utils relist
 #' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
                        interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT",
                        storage.mode = "integer") {
+  interval <- interval[1]
+  if (!is.null(interval) && (interval == 0 | is.na(interval))) {
+    stop("wrong value of 'interval'")
+  }
   sq <- seq_len(length(x))
   check_x <- lapply(x, function(x) any(!is.data.frame(x),
                                        !inherits(x$timestamp, "POSIXt")))
@@ -1997,42 +2003,50 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     # normal case of merging multiple data frames in list 'x'
     out <- Reduce(function(x, y)
       merge(x, y, by = intersect(names(x), names(y)), all = TRUE), x)
-
     # extract variables and units and bind within each list element as data frame
     vu <- lapply(x, function(x) as.data.frame(do.call(
       rbind,
       list(varnames(x, names = TRUE), units(x, names = TRUE)))))
-
     # merge to get the same order and number of variables as in 'out'
     out_vu <- Reduce(function(x, y)
       merge(x, y, by = intersect(names(x), names(y)), all = TRUE, sort = FALSE),
       vu) # 'sort = TRUE' switches order of rows
-    # needs to be tested:
+    # needs to be further tested:
     # - merge produces data frame with combinations of varnames and units
     # - first row seems to correspond fully to varnames, last row to units
-    out_vu <- out_vu[c(1, nrow(out_vu)), ]
+    out_vu <- out_vu[c(1, nrow(out_vu)), , drop = FALSE]
   }
-  range <- range(out$timestamp)
-
-
-
-  # test above code formally and correct code below (use infer_interval(), tdiff())
+  # range() for descending timestamp would create ascending range
+  range <- c(out$timestamp[1], out$timestamp[nrow(out)])
+  # strip POSIXt class to get numeric diff()s
+  tdiff <- unlist(lapply(x, function(x) diff(as.numeric(x$timestamp))))
+  if (any(tdiff < 0) & any(tdiff > 0)) {
+    # this is needed because infer_interval() checks might be skipped below
+    # if interval is provided by user
+    stop("date-time sequence is both ascending and descending")
+  }
   if (is.null(interval)) {
     # automated estimation of interval
-    # working on list is more reliable due to possible gaps among its elements
-    interval <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))  #### use infer_interval() + further checks from strptime_eddy()
-    if (!length(interval)) {
+    # - providing chunks as list helps to separately evaluate their tdiff
+    # - tdiffs provide intervals from each element, not among elements
+    interval <- infer_interval(tdiff)
+    if (!length(tdiff)) {
+      # could be the case if each x element has only single timestamp (no diff)
       stop("not possible to automatically extract 'interval' from 'x'")
     } else {
-      message("'interval' set to '", format(interval),
-              "' - specify manually if incorrect")
+      message("'interval' set to ", interval,
+              " - specify manually if incorrect")
     }
-  } else {
-    # convert 'interval' to class 'difftime'
-    interval <- as.difftime(interval, units = "secs")
   }
-  if (diff(range) < interval) # this should be removed?? -------------------------------
-    stop("'interval' is larger than 'timestamp' range")
+  # test that timestamp forms regular sequence with 'interval' multiples
+  # - needed both for manually set interval and inferred one
+  # - gaps should be allowed only if they are multiples of interval
+  if (any(tdiff %% interval != 0)) {
+    stop("intervals among timestamps are not multiples of set 'interval' ",
+         "(interval = ", interval, ")\n",
+         "  - intervals present in 'x': ",
+         paste0(unique(tdiff), collapse = ", "))
+  }
   # For both start and end arguments:
   # if NULL - get value automatically from x input
   # if numeric - the value represents start/end of given year
@@ -2040,7 +2054,7 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   if (is.null(start)) {
     start <- range[1]
   } else if (is.numeric(start)) {
-    start <- ISOdate(start, 1, 1, 0) + as.numeric(interval, units = "secs")
+    start <- ISOdate(start, 1, 1, 0) + interval
   } else {
     start <- strptime(start, format = format, tz = tz)
   }
@@ -2051,17 +2065,29 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   } else {
     end <- strptime(end, format = format, tz = tz)
   }
+  # make sure it works also for desceding timestamp (negative diffs)
+  if (abs(diff(as.numeric(c(start, end)))) < abs(interval))
+    stop("'interval' is larger than 'timestamp' range")
   # seq.POSIXt converts to POSIXct so strptime POSIXlt product does not matter
-  # timestamp should not have missing values or reversed order
-    if (start > end) stop("generated 'timestamp' would have reversed order")
   full_ts <- data.frame(timestamp = seq(start, end, by = interval))
   # It is not possible to reduce both EP and full_ts in one step
-  # First step with Reduce aims to keep all rows and columns of 'x' data frames
-  # Second step trims them according to the specified timestamp range (all.x)
+  # - first step with Reduce aims to keep all rows and columns of 'x' data frames
+  # - second step trims them according to the specified timestamp range (all.x)
+  # merge(..., sort = FALSE) not helpful for supporting descending timestamp
+  # - sort = TRUE forces ascending timestamp
+  # - but sort = FALSE produces random order (timestamp does not form regular
+  #   sequence)
   out <- merge(full_ts, out, by = "timestamp", all.x = TRUE)
-  # Is resulting time series regular? Tested independently on check_dupl
-  if (length(unique(diff(out$timestamp))) > 1) {
-    warning("resulting timestamp does not form regular sequence")
+  if (!check_dupl && length(unique(diff(out$timestamp))) > 1) {
+    warning("overlapping parts of data frames do not have identical data\n",
+            "- duplicated timestamps after merge() were removed",
+            call. = FALSE)
+    out <- out[!duplicated(out$timestamp), ]
+    row.names(out) <- NULL
+  }
+    if (interval < 0) {
+    out <- out[nrow(out):1, ]
+    row.names(out) <- NULL
   }
   # Last merge could move timestamp so names need to be matched
   pos <- match(names(out), names(out_vu))
