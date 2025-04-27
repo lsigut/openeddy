@@ -619,7 +619,7 @@ extract_coded <- function(x,
 #' Computes missing fraction of high frequency records for particular flux.
 #'
 #' Cases when `ur > mfr` cause error as they can result only from wrong user
-#' input and would be overlooked
+#' input and would be overlooked.
 #'
 #' @param x A data frame. Contains two columns with the count of high frequency
 #'   spikes detected for the pair of variables used to compute covariance.
@@ -631,7 +631,10 @@ extract_coded <- function(x,
 #' @keywords internal
 #' @noRd
 mf <- function(x, ur, mfr) {
-  if (any(ur > mfr)) stop("used_records higher than max_records", call. = FALSE)
+  # in case all ur are NA add FALSE (NAs are not an issue for the evaluation)
+  if (any(c(na.omit(ur), FALSE) > mfr)) {
+    stop("used_records higher than max_records", call. = FALSE)
+  }
   1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
 }
 

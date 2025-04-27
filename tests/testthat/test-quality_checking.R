@@ -347,6 +347,12 @@ test_that("test that missing fraction works", {
     c(0, 0.5, 0.8))
 })
 
+test_that("test that missing fraction works with NAs in used records", {
+  expect_equal(
+    openeddy:::mf(data.frame(0, 0), NA, 36000),
+    NA_real_)
+})
+
 test_that("test that used_records is not higher than max_records", {
   expect_error(
     openeddy:::mf(data.frame(0, 0), 36000, 18000),

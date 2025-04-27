@@ -1,7 +1,7 @@
 Package: openeddy
 Type: Package
 Title: Post-process eddy covariance data with ease
-Version: 0.0.0.9008
+Version: 0.0.0.9009
 Authors@R: c(
     person("Ladislav", "Sigut",, "sigut.l@czechglobe.cz", c("aut", "cre")),
     person("Matthias", "Mauder",, "matthias.mauder@kit.edu", "ctb"),
