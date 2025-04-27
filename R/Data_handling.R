@@ -1,40 +1,94 @@
 #' Folder Structure Setup
 #'
 #' Folder structure recommended for eddy covariance data processing and
-#' archivation.
+#' archiving.
 #'
-#' The purpose is to standardize the locations for metadata and post-processing
-#' inputs required to run the proposed workflow
-#' (\url{https://github.com/lsigut/EC_workflow}) as well as to store data and
-#' metadata in levels corresponding to processing stage. The folder structure is
-#' not required to successfully apply the workflow but simplifies its use.
+#' `make_paths()` superseded `structure_eddy()` (kept only to assure backward
+#' compatibility).
 #'
-#' Data processing stages \itemize{\item Level 0: Raw files with measured high
-#' frequency eddy covariance data and relevant metadata or instrument setup
-#' files. \item Level 1: Processing software setup and output files and a
-#' logbook. \item Level 2: Quality checking results and documentation,
-#' definition of ecosystem boundary, storage flux processing and files used as
-#' inputs for Level 3 data. \item Level 3: gap-filling output and its
-#' documentation, summary of the computed fluxes and meteorological data
-#' including their aggregation.}
+#' The purpose is to standardize the locations for data and metadata used in the
+#' proposed workflow (<https://github.com/lsigut/EC_workflow>) and separate
+#' them into levels corresponding to the processing stage. The folder structure
+#' is not required to successfully apply the workflow but simplifies its use.
+#'
+#' Data processing stages:
+#' * level_1: EddyPro full output files, meteorological data and their merged
+#' product as an input for quality checking.
+#' * level_2: quality checking results and documentation, and files used as
+#' inputs for gap-filling.
+#' * level_3: gap-filling and flux partitioning output and its documentation,
+#' summary of the computed fluxes and meteorological data including their
+#' aggregation and plotting.
 #'
 #' @param root A character string defining the root of created folder structure.
 #' @param create_dirs A logical value. Indicates whether directories should be
 #'   created.
 #' @param fsep A character. The path separator to use (assumed to be ASCII).
-#' @param ... Further arguments to be passed to \code{dir.create} function.
+#' @param ... Further arguments to be passed to `dir.create` function.
 #'
 #' @return A named list with paths to folder structure directories.
 #'   Corresponding directories are created as a function side effect if
-#'   \code{create_dirs = TRUE}.
+#'   `create_dirs = TRUE`.
 #'
-#' @seealso \code{\link{file.path}}
+#' @seealso [file.path()]
 #'
 #' @examples
-#' xx <- structure_eddy()
+#' xx <- make_paths()
 #' xx
-#' xx$Input_for_GF
+#' xx$input_for_gf
 #'
+#' @export
+make_paths <- function(root = ".", create_dirs = FALSE,
+                       fsep = .Platform$file.sep, ...) {
+  # With dir.create(recursive = TRUE, ...) all paths not needed to create dirs
+  # but needed in order to make the dir accessible with path in the list
+  l <- list(
+    qc_input_eddypro = file.path(
+      root, "level_1", "qc_input_eddypro", fsep = fsep
+    ),
+    qc_input_meteo = file.path(
+      root, "level_1", "qc_input_meteo", fsep = fsep
+    ),
+    input_for_qc = file.path(
+      root, "level_1", "input_for_qc", fsep = fsep
+    ),
+    quality_checking = file.path(
+      root, "level_2", "quality_checking", fsep = fsep
+    ),
+    precheck = file.path(
+      root, "level_2", "quality_checking", "precheck", fsep = fsep
+    ),
+    wd_dependency = file.path(
+      root, "level_2", "quality_checking", "precheck", "wd_dependency",
+      fsep = fsep
+    ),
+    qc_summary = file.path(
+      root, "level_2", "quality_checking", "qc_summary", fsep = fsep
+    ),
+    input_for_gf = file.path(
+      root, "level_2", "input_for_gf", fsep = fsep
+    ),
+    gap_filling = file.path(
+      root, "level_3", "gap_filling", fsep = fsep
+    ),
+    plots = file.path(
+      root, "level_3", "gap_filling", "plots", fsep = fsep
+    ),
+    ustar_filtering = file.path(
+      root, "level_3", "gap_filling", "ustar_filtering",
+      fsep = fsep
+    ),
+    summary = file.path(
+      root, "level_3", "summary", fsep = fsep
+    ),
+    png = file.path(
+      root, "level_3", "summary", "png", fsep = fsep
+    ))
+  if (create_dirs) invisible(lapply(l, dir.create, recursive = TRUE, ...))
+  return(l)
+}
+
+#' @rdname make_paths
 #' @export
 structure_eddy <- function(root = ".", create_dirs = FALSE,
                            fsep = .Platform$file.sep, ...) {
@@ -97,20 +151,20 @@ structure_eddy <- function(root = ".", create_dirs = FALSE,
 
 #' Round Numeric Columns in Data Frame
 #'
-#' Round the columns of numeric mode type double to specified (default = 6)
+#' Round the columns of numeric mode type `"double"` to specified (default = 6)
 #' significant digits.
 #'
-#' Actual \code{\link{signif}} function is used for rounding. Note that other
+#' Actual [signif()] function is used for rounding. Note that other
 #' classes might be internally stored as numeric types. Particularly
-#' \code{\link{POSIXct}} class is by default stored as integer (rounding does
+#' [POSIXct()] class is by default stored as integer (rounding does
 #' not apply) but in case of adding (subtracting) double or if displaying
 #' fractional seconds, such date-time information will be internally converted
 #' to the type double (rounding applies). See examples.
 #'
 #' @param x A data frame.
-#' @param digits An integer. See \code{\link{signif}} for details.
+#' @param digits An integer. See [signif()] for details.
 #'
-#' @return A data frame with \code{varnames} and \code{units} attributes.
+#' @return A data frame with `varnames` and `units` attributes.
 #'
 #' @examples
 #' set.seed(123)
@@ -153,58 +207,58 @@ round_df <- function(x, digits = 6) {
 
 #' Find Rows or Columns with Only NAs Over Array Margins
 #'
-#' \code{allNA} returns a logical vector or array or list indicating whether
-#' there are only \code{NA} values in selected margins and therefore e.g.
-#' statistics like \code{max} or \code{min} do not produce useful results.
+#' `allNA` returns a logical vector or array or list indicating whether
+#' there are only `NA` values in selected margins and therefore e.g.
+#' statistics like `max` or `min` do not produce useful results.
 #' @param x An array, including a matrix.
 #' @param margin A vector giving the subscripts which the function will be
-#'   applied over. E.g., for a matrix \code{1} indicates rows, \code{2}
-#'   indicates columns, \code{c(1, 2)} indicates rows and columns. Where
-#'   \code{x} has named dimnames, it can be a character vector selecting
+#'   applied over. E.g., for a matrix `1` indicates rows, `2`
+#'   indicates columns, `c(1, 2)` indicates rows and columns. Where
+#'   `x` has named dimnames, it can be a character vector selecting
 #'   dimension names.
 #' @family NA handlers
-#' @seealso \code{\link{NA}} for general information about NAs and
-#'   \code{\link{apply}} for \code{apply} description.
+#' @seealso [NA] for general information about NAs and
+#'   [apply()] for `apply` description.
 #' @examples
-#' \dontrun{
 #' xx <- matrix(1:20, nrow = 4)
 #' xx[2, ] <- NA
 #' allNA(xx, 2) # All columns have at least one non-missing value
 #' allNA(xx, 1) # Second row has all values missing
-#' apply(xx, 1, max, na.rm = TRUE)
+#' try(apply(xx, 1, max, na.rm = TRUE))
 #' ## returns c(17, -Inf, 19, 20) and a warning message
 #' ## Skip the allNA row in apply()
 #' apply(xx[!allNA(xx, 1), ], 1, max, na.rm = TRUE)
-#' }
+#'
 #' @keywords internal
+#' @noRd
 allNA <- function(x, margin) {
   apply(x, margin, function(x) all(is.na(x)))
 }
 
 #' Object Attributes Varnames and Units
 #'
-#' \code{varnames} and \code{units} are useful attributes that can store
-#' original variable names (\code{varnames}) and units of measurement
-#' (\code{units}) of each column in a data frame or of an atomic type. These
+#' `varnames` and `units` are useful attributes that can store
+#' original variable names (`varnames`) and units of measurement
+#' (`units`) of each column in a data frame or of an atomic type. These
 #' attributes can be extracted or assigned by following functions.
 #'
 #' Functions check whether the extracted or assigned attributes contain elements
-#' with \code{NULL}, \code{NA}, \code{""} values or if length of each element is
-#' higher than \code{1}. In these cases, such elements are substituted with
-#' \code{"-"}.
+#' with `NULL`, `NA`, `""` values or if length of each element is
+#' higher than `1`. In these cases, such elements are substituted with
+#' `"-"`.
 #'
-#' @return For \code{varnames} and \code{units}, a character vector.
+#' @return For `varnames` and `units`, a character vector.
 #'
-#'   For \code{varnames<-} and \code{units<-}, the updated object \code{x}.
+#'   For `varnames<-` and `units<-`, the updated object `x`.
 #'
-#' @param x A data frame or an atomic type.
+#' @param x A data frame or an [atomic] type.
 #' @param names A logical value. Applies only in case of data frames. If
-#'   \code{TRUE}, attributes are extracted with corresponding column names.
-#' @param value An atomic type that represents \code{varnames} or \code{units}.
-#'   The length must be \code{1} if \code{x} is an atomic type or equal to
-#'   number of columns in \code{x} if \code{x} is a data frame.
+#'   `TRUE`, attributes are extracted with corresponding column names.
+#' @param value An [atomic] type that represents `varnames` or `units`.
+#'   The length must be `1` if `x` is an atomic type or equal to
+#'   number of columns in `x` if `x` is a data frame.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#' @seealso [read_eddy()] and [write_eddy()].
 #'
 #' @examples
 #' xx <- data.frame(a = 1, b = 2, c = 3, d = 4)
@@ -317,25 +371,25 @@ units <- function(x, names = FALSE) {
 
 #' Extract Parts of an Object with Varnames and Units Attributes
 #'
-#' Conserves \code{varnames} and \code{units} attributes of vectors and data
+#' Conserves `varnames` and `units` attributes of vectors and data
 #' frames during extraction.
 #'
-#' Extraction from atomic types is done as \code{x[i]} ignoring \code{j} and
-#' \code{drop} (applies also to matrices and arrays). Extraction from data
-#' frames is done as \code{x[i, j, drop]}.
+#' Extraction from atomic types is done as `x[i]` ignoring `j` and
+#' `drop` (applies also to matrices and arrays). Extraction from data
+#' frames is done as `x[i, j, drop]`.
 #'
-#' @return A vector or data frame with \code{varnames} and \code{units}
+#' @return A vector or data frame with `varnames` and `units`
 #'   attributes.
 #'
-#' @param x An atomic type or a data frame. Object from which to extract
+#' @param x An [atomic] type or a data frame. Object from which to extract
 #'   element(s).
 #' @param i,j Indices specifying elements to extract as specified in
-#'   \code{\link{Extract}}.
-#' @param drop A logical value. If \code{TRUE} (default), the result is coerced
+#'   [Extract()].
+#' @param drop A logical value. If `TRUE` (default), the result is coerced
 #'   to the lowest possible dimension.
 #'
-#' @seealso \code{\link{Extract}}, \code{\link{drop}} and
-#'   \code{\link{varnames}}.
+#' @seealso [Extract()], [drop()] and
+#'   [varnames()].
 #'
 #' @examples
 #' xx <- data.frame(lengths = 1:3, areas = 4:6)
@@ -377,21 +431,21 @@ ex <- function(x, i, j, drop = TRUE) {
 #' Data Input with Units
 #'
 #' Reads tabular data from a file and represents them as data frame. Attributes
-#' \code{varnames} (representing variable names) and \code{units} (representing
+#' `varnames` (representing variable names) and `units` (representing
 #' units of measurement or space efficient metadata) are assigned to each
 #' column.
 #'
-#' \code{read_eddy} extends the possibilities of \code{\link{read.table}} so it
+#' `read_eddy` extends the possibilities of [read.table()] so it
 #' can also read units of measurement. However, it uses default arguments of
-#' \code{\link{read.csv}} to accomodate loading of data for the most common
-#' input type. \code{read_eddy} also sets useful defaults common for eddy
-#' covariance (\emph{eddy}) data. Missing values are often reported as
-#' \code{"-9999.0"} or \code{"-9999"} by post-processing software, therefore
-#' \code{na.strings = c("NA", "-9999.0", "-9999")} is used as default.
+#' [read.csv()] to accomodate loading of data for the most common
+#' input type. `read_eddy` also sets useful defaults common for eddy
+#' covariance (*eddy*) data. Missing values are often reported as
+#' `"-9999.0"` or `"-9999"` by post-processing software, therefore
+#' `na.strings = c("NA", "-9999.0", "-9999")` is used as default.
 #'
-#' Attribute \code{varnames} contains original variable name of respective
+#' Attribute `varnames` contains original variable name of respective
 #' column without automated conversion that is done for column name. The main
-#' purpose of \code{varnames} attribute is to provide control over conversion of
+#' purpose of `varnames` attribute is to provide control over conversion of
 #' original column names and keep variable name of a vector when it is separated
 #' from the original data frame.
 #'
@@ -401,63 +455,63 @@ ex <- function(x, i, j, drop = TRUE) {
 #' timestamp or structure of coded variable. One line below units and further in
 #' the input file is the region with data. Any missing values or blank fields
 #' (converted to empty strings) in the line interpreted as units will be
-#' substituted by \code{units_fill} string instead.
+#' substituted by `units_fill` string instead.
 #'
-#' The automated check for \code{"-10000"} values in the data region is provided
-#' by \code{check_input = TRUE} (default) and produces error message if the
-#' value is found. The \code{"-10000"} values can be introduced to the dataset
-#' by rounding \code{"-9999"} values due to the incorrect file conversion or
-#' data manipulation. Using  \code{check_input = FALSE} will skip the check
+#' The automated check for `"-10000"` values in the data region is provided
+#' by `check_input = TRUE` (default) and produces error message if the
+#' value is found. The `"-10000"` values can be introduced to the dataset
+#' by rounding `"-9999"` values due to the incorrect file conversion or
+#' data manipulation. Using  `check_input = FALSE` will skip the check
 #' (this could improve the performance for large input files).
 #'
-#' @return A data frame is produced with additional attributes \code{varnames}
-#'   and \code{units} assigned to each respective column.
+#' @return A data frame is produced with additional attributes `varnames`
+#'   and `units` assigned to each respective column.
 #'
 #' @param file The file name with input data to be read. It can be a file name
-#'   inside the current working directory, \emph{relative} or \emph{absolute}
-#'   path or \code{\link{connection}}. See \code{\link{read.table}} for more
+#'   inside the current working directory, *relative* or *absolute*
+#'   path or [connection]. See [read.table()] for more
 #'   detailed description. Connections to anonymous file or clipboard are not
-#'   allowed. To read from clipboard use \code{"clipboard"} string instead of
+#'   allowed. To read from clipboard use `"clipboard"` string instead of
 #'   connection.
 #' @param header A logical value indicating whether the names of variables are
-#'   included as the first line of the input file. If \code{FALSE}, column names
-#'   and variable names of attribute \code{varnames} will be automatically
+#'   included as the first line of the input file. If `FALSE`, column names
+#'   and variable names of attribute `varnames` will be automatically
 #'   generated.
 #' @param units A logical value indicating whether the units for respective
 #'   variables are included one line above the data region in the input file. If
-#'   \code{FALSE}, the \code{units} attribute of each column will be set to
-#'   \code{units_fill} string representing missing values.
+#'   `FALSE`, the `units` attribute of each column will be set to
+#'   `units_fill` string representing missing values.
 #' @param sep A character that separates the fields of input. Default separator
-#'   for CSV files is \code{","}. See \code{\link{read.table}} for other
+#'   for CSV files is `","`. See [read.table()] for other
 #'   options.
 #' @param quote A character string that contains the quoting characters.
 #' @param dec A character that specifies decimal mark used in the input.
 #' @param units_fill A character string that represents missing value of
-#'   \code{units} attribute.
-#' @param na.strings A character vector of strings representing \code{NA} values
+#'   `units` attribute.
+#' @param na.strings A character vector of strings representing `NA` values
 #'   in the input file. Blank fields are also considered to be missing values in
 #'   logical, integer, numeric and complex fields.
 #' @param colClasses A character vector of classes to be assumed for the columns
-#'   and recycled as necessary. See \code{\link{read.table}} for more detailed
+#'   and recycled as necessary. See [read.table()] for more detailed
 #'   description.
 #' @param nrows An integer specifying the maximum number of rows to read in.
 #'   Negative and other invalid values are ignored.
 #' @param skip An integer. The number of lines to skip in the input file before
 #'   reading data.
-#' @param fill A logical value. If set to \code{TRUE} (default), the rows that
+#' @param fill A logical value. If set to `TRUE` (default), the rows that
 #'   have unequal length will be corrected with blank fields.
 #' @param comment.char A character that is interpreted as comment or empty
 #'   string to turn off this behaviour.
 #' @param check_input A logical value that determines if values in the input
-#'   will be checked for erroneous \code{"-10000"} value. If \code{TRUE}
-#'   (default), any encountered \code{"-10000"} value in the data will trigger
+#'   will be checked for erroneous `"-10000"` value. If `TRUE`
+#'   (default), any encountered `"-10000"` value in the data will trigger
 #'   an error message.
-#' @param ... Further arguments to be passed to the internal \code{read.table}
+#' @param ... Further arguments to be passed to the internal `read.table`
 #'   function
-#' @seealso \code{\link{read.table}} for information about further arguments
-#'   passed to \code{read.table}.
+#' @seealso [read.table()] for information about further arguments
+#'   passed to `read.table`.
 #'
-#'   \code{\link{write_eddy}} to save data frame with \code{units} attributes
+#'   [write_eddy()] to save data frame with `units` attributes
 #'   specified for each column.
 #' @examples
 #' ## Storing timestamp metadata (format) and unit of height.
@@ -552,107 +606,223 @@ read_eddy <- function(file, header = TRUE, units = TRUE, sep = ",",
   return(data)
 }
 
+#' Infer Interval
+#'
+#' It selects the smallest number (representing a time interval in seconds) in
+#' absolute terms from the numerical vector `x` with additional checks.
+#'
+#' Input values represent time interval in seconds and are expected to be the
+#' result of `diff()` applied over ascending or descending date-time sequence
+#' and stripped of its `"difftime"` class.
+#'
+#' Automated inference of interval is required both by `strptime_eddy()` and
+#' `merge_eddy()`. Application in `merge_eddy()` is more complex as there are
+#' more data frames to check and timestamp `diff()`s are more practical for
+#' that. I.e. providing single vector of `diff()`s from multiple data frames is
+#' valid, while concatenating "POSIXt" info from different tables to compute
+#' `diff()`s is not.
+#'
+#' Returning the shortest time interval available seems to be the only practical
+#' solution for automated inference, especially in cases when gaps are more
+#' frequent than the actual time interval. If the shortest interval was not
+#' selected, higher order functions (see above) would fail.
+#'
+#' Previously tested `median()` and modus estimations would work for large
+#' samples, but they had their limitations. While median is simpler (and
+#' implemented in R), it can select a time interval that is not present in the
+#' data (see e.g. `median(c(1, 2, 4, 5))`). Modus was implemented (now removed)
+#' to better estimate the most common time interval (preferred over median).
+#' However, both modus and median fail to provide correct estimate if gaps
+#' prevail in the input.
+#'
+#' @param x A numeric vector.
+#'
+#' @return A single numeric value specifying the time interval (in seconds).
+#'
+#' @examples
+#' openeddy:::infer_interval(c(1:5))
+#' openeddy:::infer_interval(-c(1:5))
+#' try(openeddy:::infer_interval(0))
+#' try(openeddy:::infer_interval(c(-1,1)))
+#' openeddy:::infer_interval(c(2, 1, 1, 2))
+#' openeddy:::infer_interval(NULL)
+#' openeddy:::infer_interval(NA)
+#'
+#' @keywords internal
+#' @noRd
+infer_interval <- function(x) {
+  if (length(x) == 0) return(NULL)
+  # choose the smallest interval in absolute terms (descending series possible)
+  # works for `x` with or without gaps
+  # higher level functions should check:
+  # - for presence of gaps
+  # - for validity of obtained interval (and correctly report issues)
+  #   - other than this one will throw error for sure
+  #   - even this interval might be invalid
+  res <- x[which.min(abs(x))] # it does not distinguish ascending/descending
+  # NA would make issues in the following checks
+  # - this case should not occur due to checks in higher level functions
+  if (length(res) == 0) return(NA_real_)
+  # interval of timestamp should be non-zero (ascending or descending)
+  if (res == 0) {
+    stop("date-time sequence includes duplicated timestamp")
+  }
+  # interval can be positive or negative (not both)
+  # this condition might be relaxed (removed) as it needs to be checked anyway in strptime_eddy() for manual intervals and unordered timestamp can be valid in merge_eddy() ----
+  # what about merge_eddy() with duplicated records?
+  # - likely no issue as duplications would still have valid diffs in each data frame
+  if (any(x < 0) & any(x > 0)) {
+    stop("date-time sequence is both ascending and descending")
+  }
+  return(res)
+}
+
 #' Conversion of Regular Date-time Sequence from Character
 #'
-#' Converts character vector to class \code{"POSIXct"} using
-#' \code{\link{strptime}} and validates the result. The input has to represent a
-#' regular date-time sequence with given time interval. Additional attributes
-#' \code{varnames} and \code{units} are assigned to returned vector with fixed
-#' strings \code{"timestamp"} and \code{"-"}, respectively.
+#' Converts character vector to class `"POSIXct"` using
+#' [strptime()] and validates the result. The input has to represent an
+#' ascending or descending regular date-time sequence with given time interval.
 #'
 #' Eddy covariance related measurements are usually stored with a timestamp
 #' representing the end of the averaging period (typically 1800 s) in standard
 #' time. This can however cause difficulties during data aggregation or
 #' plotting. Therefore it is recommended to shift the date-time information
-#' using \code{shift.by} to represent the center of averaging period prior to
+#' using `shift.by` to represent the center of averaging period prior to
 #' any computations. It is also recommended to change the date-time information
 #' to its original state before saving to a file (see Examples section).
 #'
 #' Any unsuccessful attempt to convert date-time information is considered to be
-#' unexpected behavior and returns an error message instead of \code{NA} value.
+#' unexpected behavior and returns an error message instead of `NA` value.
 #' In case that multiple formats are present in the timestamp, it has to be
-#' corrected prior using \code{strptime_eddy}. It is expected that time series
+#' corrected prior using `strptime_eddy()`. It is expected that time series
 #' are continuous even if no valid measurements are available for given time
-#' interval. Therefore \code{interval} value is checked against the lagged
-#' differences (\code{\link{diff}}) applied to the converted date-time vector
-#' and returns an error message if mismatch is found. If \code{allow_gaps =
-#' TRUE}, date-time information does not have to be regular but time differences
-#' must be multiples of \code{interval}.
+#' interval. Therefore `interval` value is checked against the lagged
+#' differences ([diff()]) applied to the converted date-time vector
+#' and returns an error message if mismatch is found. If `allow_gaps =
+#' TRUE`, date-time information does not have to be regular but time differences
+#' must be multiples of `interval`.
 #'
-#' The storage mode of returned POSIXct vector is forced to be integer instead
-#' of double. This simplifies application of \code{\link{round_df}} but could
-#' lead to unexpected behavior if the date-time information is expected to
-#' resolve fractional seconds. Similarly \code{as.integer} is applied to
-#' \code{shift.by} before it is added to the POSIXct vector to assure integer
-#' storage mode of returned vector.
+#' If `interval = NULL`, automated recognition of `interval` is applied. This is
+#' preferred to setting `interval` value manually. Only in rare cases when
+#' `allow_gaps = TRUE` and original time interval is not present in `x`, it is
+#' not possible to infer the original time interval. Even in that case,
+#' `strptime_eddy()` will execute successfully. The inferred interval represents
+#' the shortest time interval present among `x` records.
+#'
+#' The default [`storage.mode`] of returned `"POSIXct"` vector is set to be
+#' `"integer"` instead of `"double"`. This simplifies the application of
+#' [`round_df()`] (it avoids rounding) but could lead to an unexpected behavior
+#' if the date-time information is expected to resolve fractional seconds (it
+#' [`trunc()`]ates decimals).
+#'
+#' @return A `"POSIXct"` vector with assigned attributes `varnames` and `units`
+#'   specified as `"timestamp"` and `"-"`, respectively.
 #'
 #' @param x A character vector containing date-time information to be converted
-#'   to class \code{"POSIXct"}.
-#' @param format A character string. The default \code{format} is
-#'   \code{"\%Y-\%m-\%d \%H:\%M"}
-#' @param interval A numeric value specifying the time interval (in seconds) of
-#'   the input date-time vector.
-#' @param shift.by An integer value specifying the time shift (in seconds) to be
+#'   to class `"POSIXct"`.
+#' @param format A character string. The default `format` is
+#'   `"%Y-%m-%d %H:%M"`
+#' @param interval A numeric value specifying the time interval (in seconds)
+#'   valid for all values of the input date-time vector. If `NULL` (default),
+#'   `interval` is inferred from the data (see Details).
+#' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
-#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
+#' @param allow_gaps A logical value. If `TRUE`, date-time information does
 #'   not have to be regular but time differences must be multiples of
-#'   \code{interval}.
-#' @param tz A time zone (see \code{\link{time zones}}) specification to be used
+#'   `interval`.
+#' @param tz A time zone (see [time zones]) specification to be used
 #'   for the conversion.
+#' @param storage.mode A character string. Either `"integer"` (default) or
+#'   `"double"` (see Details).
 #' @param ... Further arguments to be passed from or to other methods.
-#' @seealso \code{\link{strptime}} provides the details about conversions
-#'   between date-time character representation and \code{"POSIXct"} or
-#'   \code{"POSIXlt"} classes. It also includes information about \code{format}
-#'   \emph{conversion specification}.
 #'
-#'   \code{\link{DateTimeClasses}} further inform about the date-time classes.
+#' @seealso [strptime()] provides the details about conversions
+#'   between date-time character representation and `"POSIXct"` or
+#'   `"POSIXlt"` classes. It also includes information about `format`
+#'   *conversion specification*.
 #'
-#'   See \code{\link{locales}} to query or set a locale.
+#'   [DateTimeClasses] further inform about the date-time classes.
+#'
+#'   See [locales] to query or set a locale.
 #' @examples
 #' xx <- c("01.01.2014  00:30:00", "01.01.2014  01:00:00",
 #' "01.01.2014  01:30:00", "01.01.2014  02:00:00")
-#' varnames(xx) <- "timestamp"
-#' units(xx) <- "-"
 #' str(xx)
 #' (yy <- strptime_eddy(xx, "%d.%m.%Y %H:%M", shift.by = -900L))
 #' attributes(yy)
 #' typeof(yy)
 #'
 #' ## Convert to original format
-#' format(yy + 900, format = "%d.%m.%Y %H:%M", tz = "GMT")
+#' format(yy + 900, format = "%d.%m.%Y %H:%M:%S", tz = "GMT")
+#'
+#' ## Handle gaps in timestamp
 #' zz <- xx[-3]
 #' strptime_eddy(zz, "%d.%m.%Y %H:%M", allow_gaps = TRUE)
 #'
-#' \dontrun{
 #' ## This is not a regular date-time sequence
-#' strptime_eddy(zz, "%d.%m.%Y %H:%M") # error returned
-#' ## interval argument provided incorrectly
-#' strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600L)
-#' }
+#' try(strptime_eddy(zz, "%d.%m.%Y %H:%M")) # error returned
+#'
+#' ## Interval argument provided incorrectly
+#' try(strptime_eddy(xx, "%d.%m.%Y %H:%M", interval = 3600)) # error returned
 #'
 #' @export
-strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
+strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = NULL,
                           shift.by = NULL, allow_gaps = FALSE, tz = "GMT",
-                          ...) {
+                          storage.mode = "integer", ...) {
   if (anyNA(x)) stop("NAs in 'x' not allowed")
-  out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
-  # Force storage mode of timestamp to integer to simplify data frame rounding
-  storage.mode(out) <- "integer"
-  if (anyNA(out)) stop("incorrect 'format' or multiple formats present")
-  tdiff <- diff(as.integer(out))
-  if (!allow_gaps && any(tdiff != interval)) {
-    stop("timestamp does not form regular sequence with specified 'interval'")
-  } else {
-    # timestamp without gaps should have only one unique tdiff value
-    if (length(unique(tdiff)) > 1) {
-      message("timestamp in 'x' contains gaps")
-      # gaps should be allowed only if they are multiples of interval
-      if (any(tdiff %% interval != 0)) {
-        stop("timestamp does not form regular sequence with 'interval' multiples")
-      }
-    }
+  interval <- interval[1]
+  if (!is.null(interval) && (interval == 0 | is.na(interval))) {
+    stop("wrong value of 'interval'")
   }
-  if (!is.null(shift.by)) out <- out + as.integer(shift.by)
+  out <- as.POSIXct(strptime(x, format = format, tz = tz, ...))
+  # anyNA(NULL) is false
+  if (anyNA(out)) {
+    # provide info where first issue arose
+    i <- which(is.na(out))[1]
+    stop("incorrect 'format' or multiple formats present in 'x'\n",
+         "  - first issue for x[", i, "]: ", x[i], " (expected ", format, ")")
+  }
+  tdiff <- diff(as.numeric(out)) # strip POSIXt class to get numeric diff()s
+  if (any(tdiff < 0) & any(tdiff > 0)) {
+    # this is needed because infer_interval() checks might be skipped below
+    # if interval is provided by user
+    stop("date-time sequence is both ascending and descending")
+  }
+  if (is.null(interval)) {
+    # setting manual interval is relevant especially for allow_gaps = TRUE cases
+    # - e.g. inferred interval would by hourly but user wants half-hourly
+    interval <- infer_interval(tdiff)
+  }
+  # if x has length 0 or 1 (no interval), skip further testing conditions
+  # - interval can be set by user so test on tdiff
+  # - 0 length of output is also covered by il0
+  il0 <- ifelse(length(tdiff) == 0, TRUE, FALSE)
+  # first test that timestamp forms regular sequence with 'interval' multiples
+  # - needed both for manually set interval and inferred one
+  # - gaps should be allowed only if they are multiples of interval
+  if (!il0 && any(tdiff %% interval != 0)) {
+    stop("intervals among timestamps are not multiples of set 'interval' ",
+         "(interval = ", interval, ")\n",
+         "  - intervals present in 'x': ",
+         paste0(unique(tdiff), collapse = ", "))
+  }
+  # catch cases when timestamp gaps are present but allow_gaps = FALSE
+  # - gaps can be explicit (multiple tdiff values) or implicit (lower manually
+  #   set interval than actual one)
+  if (!il0 && !allow_gaps &&
+      (length(unique(tdiff)) > 1 | interval != infer_interval(tdiff))) {
+    i <- which(tdiff != interval)[1]
+    stop("timestamp in 'x' contains gaps (interval = ", interval, ")\n",
+         "  - first gap for x[", i, ":", i + 1, "]: ", x[i], " - ", x[(i + 1)])
+  }
+  # catch cases when timestamp gaps are allowed and present
+  # - timestamp without gaps should have only one unique tdiff value
+  if (!il0 && allow_gaps && length(unique(tdiff)) > 1) {
+    message("timestamp in 'x' contains gaps (interval = ", interval, ")")
+  }
+  if (!is.null(shift.by)) out <- out + shift.by
+  # Set storage mode of timestamp to integer to simplify data frame rounding
+  storage.mode(out) <- storage.mode
   varnames(out) <- "timestamp"
   units(out) <- "-"
   return(out)
@@ -660,77 +830,77 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 
 #' Eddy Covariance Data Output
 #'
-#' Facilitates printing object \code{x} also with its units of measurement (or
-#' space efficient metadata) to a file or \code{\link{connection}}.
+#' Facilitates printing object `x` also with its units of measurement (or
+#' space efficient metadata) to a file or [connection].
 #'
-#' \code{write_eddy} extends the possibilities of \code{write.table} so the
+#' `write_eddy` extends the possibilities of `write.table` so the
 #' units of measurement can also be written. However, it uses default arguments
-#' of \code{write.csv} to provide flexibility for the user and to accomodate the
-#' function for the most common case. The character string \code{"-9999"} is
-#' typically used to represent missing values in eddy covariance (\emph{eddy})
+#' of `write.csv` to provide flexibility for the user and to accomodate the
+#' function for the most common case. The character string `"-9999"` is
+#' typically used to represent missing values in eddy covariance (*eddy*)
 #' data.
 #'
-#' Storing \code{varnames} and \code{units} attributes is practical mostly
-#' within data frames and vectors. Attribute \code{varnames} extracted from each
+#' Storing `varnames` and `units` attributes is practical mostly
+#' within data frames and vectors. Attribute `varnames` extracted from each
 #' data frame column represents names of respective variables and its main
-#' purpose is to keep variable names of isolated vectors. Attribute \code{units}
+#' purpose is to keep variable names of isolated vectors. Attribute `units`
 #' extracted from each column represents units of measurement (or space
 #' efficient metadata) of respective variables that are written one line above
-#' data region. If the \code{varnames} or \code{units} attribute of given column
-#' is \code{NULL}, of length not equal to 1, or contains missing value or empty
+#' data region. If the `varnames` or `units` attribute of given column
+#' is `NULL`, of length not equal to 1, or contains missing value or empty
 #' string, it is not considered meaningful. In that case the default column name
-#' produced by \code{\link{as.data.frame}} is used instead (considered only if
-#' \code{x} is supplied as vector) and unit of measurement is substituted with
-#' \code{units_fill} string. \code{units_fill} can be an empty string.
+#' produced by [as.data.frame()] is used instead (considered only if
+#' `x` is supplied as vector) and unit of measurement is substituted with
+#' `units_fill` string. `units_fill` can be an empty string.
 #'
 #' Units of measurement are considered to be part of the output header and
-#' therefore \code{col.names} and \code{quote} arguments have the effect on the
+#' therefore `col.names` and `quote` arguments have the effect on the
 #' way they are written.
 #'
 #' @param x The object that will be written. It is a data frame with optional
-#'   attributes \code{units} and \code{varnames} assigned to each column.
-#'   Otherwise it is converted by \code{\link{as.data.frame}}.
+#'   attributes `units` and `varnames` assigned to each column.
+#'   Otherwise it is converted by [as.data.frame()].
 #' @param file Either a character string naming a file to write to or a
-#'   \code{\link{connection}} that is open for writing. \code{""} results in
+#'   [connection] that is open for writing. `""` results in
 #'   writing to the console.
-#' @param append A logical value. It is considered only if \code{file} is not a
-#'   \code{connection}. If \code{TRUE}, the output is written below the content
-#'   of the file. If \code{FALSE}, the content of the file is overwritten.
-#' @param quote A logical value (\code{TRUE} or \code{FALSE}) or a numeric
-#'   vector. If \code{TRUE}, columns of class character or factor will be
+#' @param append A logical value. It is considered only if `file` is not a
+#'   `connection`. If `TRUE`, the output is written below the content
+#'   of the file. If `FALSE`, the content of the file is overwritten.
+#' @param quote A logical value (`TRUE` or `FALSE`) or a numeric
+#'   vector. If `TRUE`, columns of class character or factor will be
 #'   surrounded by double quotes. If a numeric vector, its elements should mark
 #'   the indices of character or factor columns to quote. In both cases, row and
-#'   column names and units are quoted if present. If \code{FALSE}, no quoting
+#'   column names and units are quoted if present. If `FALSE`, no quoting
 #'   is performed.
 #' @param sep A character used as the field separator of each row.
 #' @param units_fill A character string that represents missing value of
-#'   \code{units} attribute in the output.
+#'   `units` attribute in the output.
 #' @param na A character string that represents missing data values in the
 #'   output.
-#' @param row.names Either a logical value (\code{TRUE} or \code{FALSE}) that
-#'   determines if the row names of \code{x} should be included in the output,
+#' @param row.names Either a logical value (`TRUE` or `FALSE`) that
+#'   determines if the row names of `x` should be included in the output,
 #'   or a character vector of row names that will be used instead.
-#' @param col.names Either a logical value (\code{TRUE}, \code{FALSE} or
-#'   \code{NA}) or a character vector. If \code{TRUE}, column names of \code{x}
+#' @param col.names Either a logical value (`TRUE`, `FALSE` or
+#'   `NA`) or a character vector. If `TRUE`, column names of `x`
 #'   will be included in the output. If a character vector, its elements will be
-#'   used as column names. If \code{x} is supplied as vector, an attempt is made
-#'   to extract meaningful variable name from its attribute \code{varnames}. In
-#'   all cases, units extracted from \code{units} attribute of each column will
+#'   used as column names. If `x` is supplied as vector, an attempt is made
+#'   to extract meaningful variable name from its attribute `varnames`. In
+#'   all cases, units extracted from `units` attribute of each column will
 #'   be written one line below column names with identical format. See the 'CSV
-#'   files' section in \code{\link{write.table}} for further explanation of
-#'   \code{col.names = NA}.
+#'   files' section in [write.table()] for further explanation of
+#'   `col.names = NA`.
 #' @param qmethod A character string. It determines the way how strings quoting
 #'   is performed in case of embedded double quote characters. The options are
-#'   either \code{"double"} (\code{write.csv} and \code{write.csv2} defaults),
-#'   that doubles the quote character, or \code{"escape"} (\code{write.table}
+#'   either `"double"` (`write.csv` and `write.csv2` defaults),
+#'   that doubles the quote character, or `"escape"` (`write.table`
 #'   default), that escapes it in C style by a backslash.
 #' @param ... Further arguments to be passed to the internal
-#'   \code{\link{write.table}} function.
-#' @seealso \code{\link{write.table}} for information about full list of allowed
+#'   [write.table()] function.
+#' @seealso [write.table()] for information about full list of allowed
 #'   arguments and their descriptions.
 #'
-#'   \code{\link{read_eddy}} to read data frame with \code{varnames} and
-#'   \code{units} attributes specified for each column.
+#'   [read_eddy()] to read data frame with `varnames` and
+#'   `units` attributes specified for each column.
 #' @examples
 #' xx <- read_eddy(text =
 #' "timestamp,height,weight
@@ -745,14 +915,14 @@ strptime_eddy <- function(x, format = "%Y-%m-%d %H:%M", interval = 1800L,
 #' write_eddy(xx[, 1], "") # 'varnames' attribute of the vector used as column name
 #' write_eddy(head(xx), "") # dropped 'units' attribute
 #'
-#' \dontrun{
 #' # Example of using "col.names = NA"
-#' zz <- file("ex.data", "w")  # open an output file connection
-#' write_eddy(xx, zz, row.names = T, col.names = NA)
+#' f <- file.path(tempdir(), "ex.csv")
+#' zz <- file(f, "w")  # open an output file connection
+#' write_eddy(xx, zz, row.names = TRUE, col.names = NA)
 #' close(zz)
-#' (ex_data <- read_eddy("ex.data", row.names = 1))
+#' (ex_data <- read_eddy(f, row.names = 1))
 #' str(ex_data)
-#' unlink("ex.data")}
+#' unlink(f)
 #'
 #' @importFrom utils write.table
 #' @export
@@ -809,34 +979,40 @@ write_eddy <- function(x, file = "", append = FALSE, quote = TRUE, sep = ",",
 #'
 #' The function is intended to simplify the use of variable names and units
 #' within the typical processing workflow employing
-#' \code{\link[openeddy]{openeddy}}.
+#' [openeddy::openeddy].
 #'
-#' If \code{attr = "names"}, correction is meant to arrive to syntactically
+#' If `attr = "names"`, correction is meant to arrive to syntactically
 #' valid names with a higher level of control. This assumes that the original
-#' names were preserved during data loading (e.g. by using \code{check.names =
-#' FALSE} in \code{\link{read_eddy}} or \code{\link{read.table}}). Specifically,
-#' literal strings are renamed as: \itemize{\item \code{"(z-d)/L"} by
-#' \code{"zeta"} \item \code{"qc_Tau"} by \code{"qc_Tau_SSITC"} \item
-#' \code{"qc_H"} by \code{"qc_H_SSITC"} \item \code{"qc_LE"} by
-#' \code{"qc_LE_SSITC"} \item \code{"qc_co2_flux"} by \code{"qc_NEE_SSITC"} }
-#' and specified patterns or characters withing strings are substituted using
-#' regular expression patterns: \itemize{\item \code{"co2_flux"} by \code{"NEE"}
-#' \item \code{"*"} by \code{"star"} \item \code{"\%"} by \code{"perc"} \item
-#' \code{"-"} and \code{"/"} by \code{"_"}.} After the substitutions
-#' \code{make.names(names = x, ...)} is executed.
+#' names were preserved during data loading (e.g. by using `check.names =
+#' FALSE` in [read_eddy()] or [read.table()]). Specifically,
+#' literal strings are renamed as:
+#' * `"(z-d)/L"` by `"zeta"`
+#' * `"qc_Tau"` by `"qc_Tau_SSITC"`
+#' * `"qc_H"` by `"qc_H_SSITC"`
+#' * `"qc_LE"` by `"qc_LE_SSITC"`
+#' * `"qc_co2_flux"` by `"qc_NEE_SSITC"`
 #'
-#' If \code{attr = "units"}, round and square brackets are substituted by an
+#' and specified patterns or characters withing strings are substituted using
+#' regular expression patterns:
+#' * `"co2_flux"` by `"NEE"`
+#' * `"*"` by `"star"`
+#' * `"%"` by `"perc"`
+#' * `"-"` and `"/"` by `"_"`.
+#'
+#' After the substitutions `make.names(names = x, ...)` is executed.
+#'
+#' If `attr = "units"`, round and square brackets are substituted by an
 #' empty string.
 #'
 #' @param x A character vector.
 #' @param attr A character string identifying an attribute type a character
-#'   vector \code{x} to correct. Can be abbreviated.
+#'   vector `x` to correct. Can be abbreviated.
 #' @param ... Further arguments to be passed to the internal
-#'   \code{\link{make.names}} function.
+#'   [make.names()] function.
 #'
 #' @return A corrected character vector.
 #'
-#' @seealso \code{\link{make.names}}.
+#' @seealso [make.names()].
 #'
 #' @examples
 #' correct(c("co2_flux", "qc_co2_flux", "(z-d)/L", "x_70%", "*[-(z-d)/L"))
@@ -868,65 +1044,65 @@ correct <- function(x, attr = c("names", "units"), ...) {
 #'
 #' Combine quality checking results depending on whether they have a fixed or
 #' cumulative effect or any combination of these effects. It is also checked how
-#' should \code{NA}s be interpreted.
+#' should `NA`s be interpreted.
 #'
 #' The quality checking results to combine must be provided as columns of a data
-#' frame \code{x}, optionally with any number of further columns that will be
-#' ignored. Columns specified by \code{qc_names} will be further separated
-#' according to their additivity. For flags with fixed effect (\code{additive =
-#' FALSE}; the most typical type), maximum is taken over each row. For flags
-#' with additive effect (\code{additive = TRUE}), sum is taken over each row. In
+#' frame `x`, optionally with any number of further columns that will be
+#' ignored. Columns specified by `qc_names` will be further separated
+#' according to their additivity. For flags with fixed effect (`additive =
+#' FALSE`; the most typical type), maximum is taken over each row. For flags
+#' with additive effect (`additive = TRUE`), sum is taken over each row. In
 #' case both types of flags are present, results for both groups are summed
 #' together.
 #'
-#' The most typical value of argument \code{na.as} is \code{NA}. \code{NA} value
+#' The most typical value of argument `na.as` is `NA`. `NA` value
 #' does not suggest any change in interpretation (value of variable
 #' corresponding to this flag will be removed within quality checking scheme).
-#' Exceptionally, value \code{0} can be used in case that the \code{NA} flag of
+#' Exceptionally, value `0` can be used in case that the `NA` flag of
 #' the quality checking test/filter is an expected result and means that the
 #' half-hour was not checked by the given test/filter (e.g.
-#' \code{\link{despikeLF}}).
+#' [despikeLF()]).
 #'
-#' @section Automated recognition: Default values for \code{additive} and
-#'   \code{na.as} arguments are \code{FALSE} and \code{NA}, respectively. In
-#'   case that \code{additive_pattern} is found within \code{qc_names} (i.e.
-#'   \code{qc_names} ending with \code{"interdep"} or \code{"wresid"} pattern),
-#'   respective values of \code{additive} are changed to \code{TRUE}. This is
-#'   because \code{\link{interdep}} and wresid (see \code{\link{extract_QC}})
+#' @section Automated recognition: Default values for `additive` and
+#'   `na.as` arguments are `FALSE` and `NA`, respectively. In
+#'   case that `additive_pattern` is found within `qc_names` (i.e.
+#'   `qc_names` ending with `"interdep"` or `"wresid"` pattern),
+#'   respective values of `additive` are changed to `TRUE`. This is
+#'   because [interdep()] and wresid (see [extract_QC()])
 #'   quality control checks are defined as additive within the current quality
-#'   control scheme. If \code{na.as_0_pattern} is detected within
-#'   \code{qc_names} (i.e. \code{qc_names} ending with \code{"spikesLF"},
-#'   \code{"fetch70"} or \code{"man"} pattern), respective values of
-#'   \code{na.as} are changed to \code{0} (see \code{\link{despikeLF}}).
+#'   control scheme. If `na.as_0_pattern` is detected within
+#'   `qc_names` (i.e. `qc_names` ending with `"spikesLF"`,
+#'   `"fetch70"` or `"man"` pattern), respective values of
+#'   `na.as` are changed to `0` (see [despikeLF()]).
 #'
-#' @return An integer vector with attributes \code{varnames} and \code{units} is
-#'   produced. \code{varnames} value is set by \code{name_out} argument. Default
-#'   value of \code{varnames} and \code{units} is set to \code{"-"}.
+#' @return An integer vector with attributes `varnames` and `units` is
+#'   produced. `varnames` value is set by `name_out` argument. Default
+#'   value of `varnames` and `units` is set to `"-"`.
 #'
 #' @param x A data frame with column names.
-#' @param qc_names A vector of names of data frame \code{x} columns to combine.
-#' @param name_out A character string providing \code{varnames} value of the
+#' @param qc_names A vector of names of data frame `x` columns to combine.
+#' @param name_out A character string providing `varnames` value of the
 #'   output.
-#' @param additive \code{NULL} or a vector of logical values (\code{TRUE} or
-#'   \code{FALSE}) determining additivity of each respective column of \code{x}
-#'   given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+#' @param additive `NULL` or a vector of logical values (`TRUE` or
+#'   `FALSE`) determining additivity of each respective column of `x`
+#'   given by `qc_names`. If `NULL`, automated recognition is used.
 #'   Otherwise, values determine if the flags should be treated as additive
-#'   (\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+#'   (`additive = TRUE`) or with fixed effect (`additive = FALSE`). If
 #'   only one value is provided, all columns are considered to be of the same
 #'   type.
-#' @param na.as \code{NULL} or a vector of integer or \code{NA} values
+#' @param na.as `NULL` or a vector of integer or `NA` values
 #'   determining interpretation of missing flags in each respective column of
-#'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+#'   `x` given by `qc_names`. If `NULL`, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
-#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#' @param additive_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   of flags with additive effect.
-#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
-#'   for which \code{NA} flags are interpreted as zeros.
+#' @param na.as_0_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
+#'   for which `NA` flags are interpreted as zeros.
 #' @param no_messages A logical value.
 #'
-#' @seealso \code{\link{summary_QC}}.
+#' @seealso [summary_QC()].
 #'
 #' @examples
 #' set.seed(5)
@@ -1033,29 +1209,29 @@ combn_QC <- function(x, qc_names, name_out = "-", additive = NULL,
 
 #' Apply Storage Flux Correction
 #'
-#' Correction of matter or energy flux (\code{flux}) with storage computed using
-#' discrete (one point) approach (\code{st}) or profile measurement of CO2
-#' concentration (\code{stp}).
+#' Correction of matter or energy flux (`flux`) with storage computed using
+#' discrete (one point) approach (`st`) or profile measurement of CO2
+#' concentration (`stp`).
 #'
-#' If both storage estimates are available, \code{stp} takes priority. If both
-#' \code{st} and \code{stp} estimates are \code{NA}, original flux value is
-#' kept. \code{flux}, \code{st} and \code{stp} (if not NULL) must have the same
+#' If both storage estimates are available, `stp` takes priority. If both
+#' `st` and `stp` estimates are `NA`, original flux value is
+#' kept. `flux`, `st` and `stp` (if not NULL) must have the same
 #' length.
 #'
-#' @return A vector with attributes \code{varnames} and \code{units} is
-#'   produced. \code{varnames} value is set by \code{name_out} argument.
-#'   \code{units} value is extracted from \code{flux} vector by
-#'   \code{\link{units}} or set to default \code{"-"}.
+#' @return A vector with attributes `varnames` and `units` is
+#'   produced. `varnames` value is set by `name_out` argument.
+#'   `units` value is extracted from `flux` vector by
+#'   [units()] or set to default `"-"`.
 #'
 #' @param flux A numeric vector with flux values.
-#' @param name_out A character string providing \code{varnames} value of the
+#' @param name_out A character string providing `varnames` value of the
 #'   output.
 #' @param st A numeric vector with storage computed using discrete
 #'   (one point) approach.
 #' @param stp A numeric vector with storage computed using
 #' profile measurement of CO2.
 #'
-#' @seealso \code{\link{units}}.
+#' @seealso [units()].
 #'
 #' @examples
 #' aa <- matrix(ncol = 3, nrow = 10, byrow = TRUE, c(-1, 1, 2),
@@ -1094,71 +1270,63 @@ add_st <- function(flux, st, stp = NULL, name_out = "-") {
 #' Create Input for REddyProc/Online Tool
 #'
 #' Creates input for gap-filling and flux partitioning tools implemented either
-#' offline in R (\code{REddyProc} package) or accessible online
-#' (\href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
-#' Tool}) from the data frame \code{x}.
+#' offline in R (`REddyProc` package) or accessible online ([Online
+#' Tool](https://bgc.iwww.mpg.de/5622399/REddyProc)) from the data frame `x`.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it has column names and contains column named
-#' \code{"timestamp"} of class \code{"POSIXt"} with regular sequence of
-#' date-time values with (half-)hourly time interval. Any missing values in
-#' \code{"timestamp"} are not allowed. Thus, if no records exist for given
-#' date-time value, it still has to be included. It also has to contain column
-#' names specified by \code{names_in} (respective to \code{names_out}). Default
-#' vector of \code{names_out} represents a typical set of variables used in the
-#' processing tools but can be modified. Minimum requirement is for the data
-#' frame \code{x} to include timestamp and global radiation. Columns of data
-#' frame \code{x} ideally have assigned attributes \code{varnames} and
-#' \code{units}.
+#' The data frame `x` is expected to have certain properties. It is required
+#' that it has column names and contains column named `"timestamp"` of class
+#' `"POSIXt"` with regular sequence of date-time values with (half-)hourly time
+#' interval. Any missing values in `"timestamp"` are not allowed. Thus, if no
+#' records exist for given date-time value, it still has to be included. It also
+#' has to contain column names specified by `names_in` (respective to
+#' `names_out`). Default vector of `names_out` represents a typical set of
+#' variables used in the processing tools but can be modified. Minimum
+#' requirement is for the data frame `x` to include timestamp and global
+#' radiation. Columns of data frame `x` ideally have assigned attributes
+#' `varnames` and `units`.
 #'
-#' The typical variables (column names; i.e. \code{names_out}) expected by the
+#' The typical variables (column names; i.e. `names_out`) expected by the
 #' processing tools (name; unit) are quality control of net ecosystem exchange
-#' (\code{"qcNEE"}; \code{"-"}), net ecosystem exchange (\code{"NEE"};
-#' \code{"umol m-2 s-1"}), quality control of latent heat (\code{"qcLE"};
-#' \code{"-"}), latent heat (\code{"LE"}; \code{"W m-2"}), quality control of
-#' sensible heat (\code{"qcH"}; \code{"-"}), sensible heat (\code{"H"}; \code{"W
-#' m-2"}), global radiation (\code{"Rg"}; \code{"W m-2"}), air temperature
-#' (\code{"Tair"}; \code{"degC"}), soil temperature (\code{"Tsoil"};
-#' \code{"degC"}), relative humidity (\code{"rH"}; \code{"\%"}), vapor pressure
-#' deficit(\code{"VPD"}; \code{"hPa"}), quality control of momentum flux
-#' (\code{"qcTau"}; \code{"-"}) and friction velocity (\code{"Ustar"}; \code{"m
-#' s-1"}). The unicode character for a greek letter micro (e.g. in NEE units) is
-#' not accepted by the processing tools, thus it is substituted by simple
-#' \code{"u"}. Check the processing tools
-#' \href{https://bgc.iwww.mpg.de/5622399/REddyProc}{documentation} for more
-#' details.
+#' (`"qcNEE"`; `"-"`), net ecosystem exchange (`"NEE"`; `"umol m-2 s-1"`),
+#' quality control of latent heat (`"qcLE"`; `"-"`), latent heat (`"LE"`; `"W
+#' m-2"`), quality control of sensible heat (`"qcH"`; `"-"`), sensible heat
+#' (`"H"`; `"W m-2"`), global radiation (`"Rg"`; `"W m-2"`), air temperature
+#' (`"Tair"`; `"degC"`), soil temperature (`"Tsoil"`; `"degC"`), relative
+#' humidity (`"rH"`; `"%"`), vapor pressure deficit(`"VPD"`; `"hPa"`), quality
+#' control of momentum flux (`"qcTau"`; `"-"`) and friction velocity (`"Ustar"`;
+#' `"m s-1"`). The unicode character for a greek letter micro (e.g. in NEE
+#' units) is not accepted by the processing tools, thus it is substituted by
+#' simple `"u"`. Check the processing tools
+#' [documentation](https://bgc.iwww.mpg.de/5622399/REddyProc) for more details.
 #'
-#' \code{time_format} has two available options. \code{"YDH"} (default) extracts
-#' columns Year, DoY (Day of year) and Hour (decimal number) from the timestamp
-#' of \code{x}. It is less informative than \code{"YMDHM"} format but it is
-#' supported by all versions of both offline and online tools. \code{"YMDHM"}
-#' extracts columns Year, Month, Day, Hour, Minute. This format is not accepted
-#' by the current
-#' \href{https://www.bgc-jena.mpg.de/REddyProc/brew/REddyProc.rhtml}{Online
-#' Tool}.
+#' `time_format` has two available options. `"YDH"` (default) extracts columns
+#' Year, DoY (Day of year) and Hour (decimal number) from the timestamp of `x`.
+#' It is less informative than `"YMDHM"` format but it is supported by all
+#' versions of both offline and online tools. `"YMDHM"` extracts columns Year,
+#' Month, Day, Hour, Minute. This format is not accepted by the current [Online
+#' Tool](https://bgc.iwww.mpg.de/5624918/Input-Format).
 #'
 #' Fluxes are always filtered with respective quality control flags if provided.
-#' In case of \code{"qcTau"}, quality control is applied to friction velocity
-#' (\code{"Ustar"}). In case of \code{"NEE"}, it is filtered according to
-#' \code{"qcNEE"} flags and if \code{qcTau_filter = TRUE} also according to
-#' \code{"qcTau"} flags. This conservative approach will assure that NEE values
-#' that cannot be compared against friction velocity threshold (Ustar filtering)
-#' will be excluded.
+#' In case of `"qcTau"`, quality control is applied to friction velocity
+#' (`"Ustar"`). In case of `"NEE"`, it is filtered according to `"qcNEE"` flags
+#' and if `qcTau_filter = TRUE` also according to `"qcTau"` flags. This
+#' conservative approach will assure that NEE values that cannot be compared
+#' against friction velocity threshold (Ustar filtering) will be excluded.
 #'
-#' @param x A data frame with column names and \code{"timestamp"} column in
-#'   POSIXt format.
-#' @param names_in A character vector. Column names (variables) present in
-#'   \code{x} that will be used as input.
+#' @param x A data frame with column names and `"timestamp"` column in POSIXt
+#'   format.
+#' @param names_in A character vector. Column names (variables) present in `x`
+#'   that will be used as input.
 #' @param names_out A character vector. Column names required by the tools for
-#'   respective \code{names_in}.
+#'   respective `names_in`.
 #' @param time_format A character string identifying supported time format of
 #'   the output. Can be abbreviated.
 #' @param hourly A logical value indicating temporal resolution of timestamp. If
-#'   \code{FALSE} (default), half-hourly resolution is expected.
+#'   `FALSE` (default), half-hourly resolution is expected.
 #' @param qcTau_filter A logical value indicating whether NEE should be filtered
 #'   using qcTau flags. See details.
 #'
-#' @seealso \code{\link{read_eddy}} and \code{\link{write_eddy}}.
+#' @seealso [read_eddy()] and [write_eddy()].
 #'
 #' @encoding UTF-8
 #' @export
@@ -1275,58 +1443,58 @@ set_OT_input <- function(x,
 
 #' Quality Control Summary
 #'
-#' \code{summary_QC} is a function that summarizes quality checking results in a
+#' `summary_QC` is a function that summarizes quality checking results in a
 #' form of table or plot.
 #'
-#' \code{summary_QC} loads a data frame \code{x}, extracts quality control (QC)
-#' columns from it based on \code{qc_names} and creates a table (\code{plot =
-#' FALSE}) or a plot (\code{plot = TRUE}) for these columns. Results are
-#' displayed as percentages (\code{perc = TRUE}) or counts (\code{perc = FALSE})
+#' `summary_QC` loads a data frame `x`, extracts quality control (QC)
+#' columns from it based on `qc_names` and creates a table (`plot =
+#' FALSE`) or a plot (`plot = TRUE`) for these columns. Results are
+#' displayed as percentages (`perc = TRUE`) or counts (`perc = FALSE`)
 #' for given flag and QC filter.
 #'
-#' \code{cumul = TRUE} specifies that cumulative effect of gradually applied QC
-#' filters on resulting flags is considered. Note that for \code{cumul = TRUE}
-#' the results do depend on the order of qc_names. \code{additive} is considered
-#' only if \code{cumul = TRUE}, otherwise skipped.
+#' `cumul = TRUE` specifies that cumulative effect of gradually applied QC
+#' filters on resulting flags is considered. Note that for `cumul = TRUE`
+#' the results do depend on the order of qc_names. `additive` is considered
+#' only if `cumul = TRUE`, otherwise skipped.
 #'
 #' For a detailed description of automated recognition see
-#' \code{\link{combn_QC}}.
+#' [combn_QC()].
 #'
-#' @return A table or a ggplot object depending on the \code{plot} argument
-#'   value. If \code{length(qc_names) == 0}, \code{NULL} is returned instead.
+#' @return A table or a ggplot object depending on the `plot` argument
+#'   value. If `length(qc_names) == 0`, `NULL` is returned instead.
 #'
 #' @param x A data frame with column names.
-#' @param qc_names A vector of names of data frame \code{x} columns to combine.
-#' @param cumul A logical value that determines if cumulative (\code{cumul =
-#'   TRUE}) or individual (\code{cumul = FALSE}) effects of quality control
+#' @param qc_names A vector of names of data frame `x` columns to combine.
+#' @param cumul A logical value that determines if cumulative (`cumul =
+#'   TRUE`) or individual (`cumul = FALSE`) effects of quality control
 #'   flags should be shown.
-#' @param plot A logical value. If \code{TRUE}, the results are represented as a
-#'   ggplot object. If \code{FALSE}, they are represented as a table.
-#' @param perc A logical value. If \code{TRUE}, the results are reported in
-#'   percentages. If \code{FALSE}, counts are used instead.
-#' @param flux A character string. Used only if \code{plot = TRUE}. Includes the
+#' @param plot A logical value. If `TRUE`, the results are represented as a
+#'   ggplot object. If `FALSE`, they are represented as a table.
+#' @param perc A logical value. If `TRUE`, the results are reported in
+#'   percentages. If `FALSE`, counts are used instead.
+#' @param flux A character string. Used only if `plot = TRUE`. Includes the
 #'   flux name in the plot title to emphasize the relevance of displayed quality
 #'   control filters.
-#' @param na.as \code{NULL} or a vector of integer or \code{NA} values
+#' @param na.as `NULL` or a vector of integer or `NA` values
 #'   determining interpretation of missing flags in each respective column of
-#'   \code{x} given by \code{qc_names}. If \code{NULL}, automated recognition is
+#'   `x` given by `qc_names`. If `NULL`, automated recognition is
 #'   used. If only one value is provided, all columns are treated the same way.
-#' @param na.as_0_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
-#'   for which \code{NA} flags are interpreted as zeros.
-#' @param additive \code{NULL} or a vector of logical values (\code{TRUE} or
-#'   \code{FALSE}) determining additivity of each respective column of \code{x}
-#'   given by \code{qc_names}. If \code{NULL}, automated recognition is used.
+#' @param na.as_0_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
+#'   for which `NA` flags are interpreted as zeros.
+#' @param additive `NULL` or a vector of logical values (`TRUE` or
+#'   `FALSE`) determining additivity of each respective column of `x`
+#'   given by `qc_names`. If `NULL`, automated recognition is used.
 #'   Otherwise, values determine if the flags should be treated as additive
-#'   (\code{additive = TRUE}) or with fixed effect (\code{additive = FALSE}). If
+#'   (`additive = TRUE`) or with fixed effect (`additive = FALSE`). If
 #'   only one value is provided, all columns are considered to be of the same
 #'   type.
-#' @param additive_pattern A character string. A \code{\link[=regexp]{regular
-#'   expression}} \code{\link{grep}} \code{pattern} identifying \code{qc_names}
+#' @param additive_pattern A character string. A [regular
+#'   expression][regexp] [grep()] `pattern` identifying `qc_names`
 #'   of flags with additive effect.
 #' @param no_messages A logical value.
 #'
-#' @seealso \code{\link{combn_QC}}, \code{\link{ggplot}}.
+#' @seealso [combn_QC()], [ggplot2::ggplot()].
 #'
 #' @examples
 #' set.seed(6)
@@ -1468,65 +1636,65 @@ summary_QC <- function(x, qc_names, cumul = FALSE, plot = FALSE, perc = TRUE,
 #' Remap Variables
 #'
 #' Extracts and renames specified columns of a data frame, computes mean in case
-#' of \code{\link{regular expression}} pattern matching multiple column names or
+#' of [regular expression] pattern matching multiple column names or
 #' initializes one if missing.
 #'
-#' New data frame is created based on \code{x} and specified \code{source}.
-#' Original \code{x} names are changed according to respective \code{new}
-#' elements and kept as \code{varnames} attributes for traceability.
-#' Accordingly, if \code{qc} is specified, quality control (QC) columns are
-#' marked by \code{"qc_"} prefix.
+#' New data frame is created based on `x` and specified `source`.
+#' Original `x` names are changed according to respective `new`
+#' elements and kept as `varnames` attributes for traceability.
+#' Accordingly, if `qc` is specified, quality control (QC) columns are
+#' marked by `"qc_"` prefix.
 #'
-#' \code{qc} is specified as the character string pattern that distinguishes QC
+#' `qc` is specified as the character string pattern that distinguishes QC
 #' columns from the actual respective variables. Ideally, prefix should be used
-#' for QC columns. E.g. in the case of \code{"var"} and \code{"qcode_var"},
-#' \code{qc = "qcode_"}. QC column can be also marked by suffix. E.g. in the
-#' case of \code{"var_qcode"}, \code{qc = "_qcode"}. The atypical case of QC
+#' for QC columns. E.g. in the case of `"var"` and `"qcode_var"`,
+#' `qc = "qcode_"`. QC column can be also marked by suffix. E.g. in the
+#' case of `"var_qcode"`, `qc = "_qcode"`. The atypical case of QC
 #' marked by both prefix and suffix can be handled too. E.g. in the case of
-#' \code{"prefix_var_suffix"}, \code{qc = "prefix_|_suffix"}. In case of other
-#' exceptions, \code{new} and \code{source} can be used to define the QC
+#' `"prefix_var_suffix"`, `qc = "prefix_|_suffix"`. In case of other
+#' exceptions, `new` and `source` can be used to define the QC
 #' remapping explicitly.
 #'
-#' If \code{regexp = FALSE} (the default), strictly one variable (column) will
-#' be remapped to new name. The \code{source} elements must exactly match
-#' \code{x} names, otherwise expected column is initialized with \code{NA}s. If
-#' \code{qc} is specified, strictly one respective quality control column will
+#' If `regexp = FALSE` (the default), strictly one variable (column) will
+#' be remapped to new name. The `source` elements must exactly match
+#' `x` names, otherwise expected column is initialized with `NA`s. If
+#' `qc` is specified, strictly one respective quality control column will
 #' be renamed or skipped if not present.
 #'
-#' If \code{regexp = TRUE}, multiple columns can match the \code{source} element
-#' \code{\link{regular expression}} pattern. In that case \code{\link{rowMeans}}
-#' are produced and names of averaged columns kept as \code{varnames} attributes
+#' If `regexp = TRUE`, multiple columns can match the `source` element
+#' [regular expression] pattern. In that case [rowMeans()]
+#' are produced and names of averaged columns kept as `varnames` attributes
 #' for traceability. Similarly, also quality control flags are averaged over
-#' available columns if \code{qc} is specified. Note that variable names need to
+#' available columns if `qc` is specified. Note that variable names need to
 #' have unique patterns in order to achieve expected results. E.g. precipitation
-#' abbreviated as \emph{P} will have overlap with PAR; instead, Precip or sumP
+#' abbreviated as *P* will have overlap with PAR; instead, Precip or sumP
 #' can be used.
 #'
-#' \code{varnames} attribute is expected. If not automatically assigned to
-#' \code{x} through \code{\link{read_eddy}} when read from a file, they should
+#' `varnames` attribute is expected. If not automatically assigned to
+#' `x` through [read_eddy()] when read from a file, they should
 #' be assigned before remapping to keep documentation (especially if multiple
 #' columns are combined to a single one).
 #'
 #' @param x data frame
 #' @param new A character vector of new column names for remapping.
-#' @param source A vector of \code{x} column names matching \code{new} to remap.
-#'   If \code{regexp = TRUE}, character vector containing
-#'   \code{\link[=regexp]{regular expression}}s.
-#' @param regexp A logical value. If \code{FALSE} (the default), \code{source}
-#'   will be interpreted literally. If \code{TRUE}, \code{source} elements will
-#'   be used as \code{\link{grep}} \code{pattern}s.
-#' @param qc A character string. A \code{\link{regular expression}}
-#'   \code{\link{grep}} \code{pattern} identifying \code{x} column names that
-#'   carry quality control information for respective \code{source}.
-#' @param na.rm A logical value indicating whether \code{NA} values should be
-#'   stripped before the computation proceeds. \code{na.rm} is used only if
-#'   \code{regexp = TRUE} and multiple columns identified by \code{source} are
+#' @param source A vector of `x` column names matching `new` to remap.
+#'   If `regexp = TRUE`, character vector containing
+#'   [regular expression][regexp]s.
+#' @param regexp A logical value. If `FALSE` (the default), `source`
+#'   will be interpreted literally. If `TRUE`, `source` elements will
+#'   be used as [grep()] `pattern`s.
+#' @param qc A character string. A [regular expression]
+#'   [grep()] `pattern` identifying `x` column names that
+#'   carry quality control information for respective `source`.
+#' @param na.rm A logical value indicating whether `NA` values should be
+#'   stripped before the computation proceeds. `na.rm` is used only if
+#'   `regexp = TRUE` and multiple columns identified by `source` are
 #'   combined by averaging.
 #'
-#' @return A data frame with attributes \code{varnames} and \code{units}
+#' @return A data frame with attributes `varnames` and `units`
 #'   assigned to each respective column.
 #'
-#' @seealso \code{\link{varnames}}.
+#' @seealso [varnames()].
 #'
 #' @examples
 #' # Simulate soil temperature profile at different depths/positions
@@ -1669,103 +1837,118 @@ remap_vars <- function(x, new, source, regexp = FALSE, qc = NULL,
 
 #' Merge Regular Date-Time Sequence and Data Frames
 #'
-#' Merge generated regular date-time sequence with single or multiple data
-#' frames.
+#' Merge generated regular date-time sequence (timestamp) with single or
+#' multiple data frames containing timestamp.
 #'
-#' The primary purpose of \code{merge_eddy} is to combine chunks of data
-#' vertically along their column \code{"timestamp"} with date-time information.
-#' This \code{"timestamp"} is expected to be regular with given time
-#' \code{interval}. Resulting data frame contains added rows with expected
-#' date-time values that were missing in \code{"timestamp"} column, followed by
-#' \code{NA}s. In case that \code{check_dupl = TRUE} and \code{"timestamp"}
-#' values across \code{x} elements overlap, detected duplicated rows are removed
-#' (the order in which duplicates are evaluated depends on the order of \code{x}
-#' elements). A special case when \code{x} has only one element allows to fill
-#' missing date-time values in \code{"timestamp"} column of given data frame.
-#' Storage mode of \code{"timestamp"} column is set to be integer instead
-#' of double. This simplifies application of \code{\link{round_df}} but could
-#' lead to unexpected behavior if the date-time information is expected to
-#' resolve fractional seconds.
+#' The primary purpose of `merge_eddy()` is to combine chunks of data vertically
+#' along their column `"timestamp"` with date-time information. This timestamp
+#' is expected to be regular with given time `interval`. The resulting data
+#' frame contains added rows with expected date-time values missing in
+#' timestamp, followed by `NA`s across respective rows. In case that
+#' `check_dupl = TRUE` and timestamp values across `x` elements overlap,
+#' detected duplicated rows are removed (the order in which duplicates are
+#' evaluated depends on the order of `x` elements). A special case when `x` has
+#' only one element allows to fill missing date-time values in `"timestamp"`
+#' column of given data frame.
 #'
-#' The list of data frames, each with column \code{"timestamp"}, is sequentially
-#' \code{\link{merge}}d using \code{\link{Reduce}}. A \emph{(full) outer join},
-#' i.e. \code{merge(..., all = TRUE)}, is performed to keep all columns of
-#' \code{x} elements. The order of \code{x} elements can affect the result.
-#' Duplicated column names within \code{x} elements are corrected using
-#' \code{\link{make.unique}}. The merged data frame is then merged on the
-#' validated \code{"timestamp"} column that can be either automatically
-#' extracted from \code{x} or manually specified.
+#' The list of data frames, each with column `"timestamp"`, is sequentially
+#' [merge()]d using [Reduce()]. A *(full) outer join*,
+#' i.e. `merge(..., all = TRUE)`, is performed to keep all columns of
+#' `x` elements. The order of `x` elements can affect the result.
+#' Duplicated column names within `x` elements are corrected using
+#' [make.unique()]. The merged data frame is then merged on the
+#' validated `"timestamp"` column that can be either automatically
+#' extracted from `x` or manually specified.
 #'
-#' For horizontal merging (adding columns instead of rows) \code{check_dupl =
-#' FALSE} must be set but simple \code{\link{merge}} could be preferred.
+#' For horizontal merging (adding columns instead of rows) `check_dupl =
+#' FALSE` must be set but simple [merge()] could be preferred.
 #' Combination of vertical and horizontal merging should be avoided as it
-#' depends on the order of \code{x} elements and can lead to row duplication.
+#' depends on the order of `x` elements and can lead to row duplication.
 #' Instead, data chunks from different data sources should be first separately
 #' vertically merged and then merged horizontally in a following step.
 #'
-#' @param x List of data frames, each with \code{"timestamp"} column of class
-#'   \code{"POSIXt"}. Optionally with attributes \code{varnames} and
-#'   \code{units} for each column.
+#' If `interval = NULL`, automated recognition of `interval` is applied. This is
+#' preferred to setting `interval` value manually. Only in rare cases when
+#' original time interval is not present in `x` due to gaps, it is not possible
+#' to infer the original time interval from the timestamps. The inferred
+#' interval represents the shortest time interval present among `x` records.
+#' Thus if the expected interval is shorter, it needs to be set manually.
+#'
+#' The default [`storage.mode`] of `"timestamp"` column is set to be
+#' `"integer"` instead of `"double"`. This simplifies the application of
+#' [`round_df()`] (it avoids rounding) but could lead to an unexpected behavior
+#' if the date-time information is expected to resolve fractional seconds (it
+#' [`trunc()`]ates decimals).
+#'
+#' @param x List of data frames, each with `"timestamp"` column of class
+#'   `"POSIXt"`. Optionally with attributes `varnames` and
+#'   `units` for each column.
 #' @param start,end A value specifying the first (last) value of the generated
-#'   date-time sequence. If \code{NULL}, \code{\link{min}} (\code{\link{max}})
-#'   is taken across the values in \code{"timestamp"} columns across \code{x}
+#'   date-time sequence. If `NULL`, [min()] ([max()])
+#'   is taken across the values in `"timestamp"` columns across `x`
 #'   elements. If numeric, the value specifies the year for which the first
 #'   (last) date-time value will be generated, considering given time
-#'   \code{interval} and convention of assigning of measured records to the end
+#'   `interval` and convention of assigning of measured records to the end
 #'   of the time interval. Otherwise, character representation of specific half
-#'   hour is expected with given \code{format} and \code{tz}.
+#'   hour is expected with given `format` and `tz`.
 #' @param check_dupl A logical value specifying whether rows with duplicated
-#'   date-time values checked across \code{x} elements should be excluded before
+#'   date-time values checked across `x` elements should be excluded before
 #'   merging.
 #' @param interval A numeric value specifying the time interval (in seconds) of
 #'   the generated date-time sequence.
-#' @param format A character string. Format of \code{start} (\code{end}) if
-#'   provided as a character string.The default \code{\link[=strptime]{format}}
-#'   is \code{"\%Y-\%m-\%d \%H:\%M"}.
-#' @param tz A time zone (see \code{\link{time zones}}) specification to be used
-#'   for the conversion of \code{start} (\code{end}) if provided as a character
+#' @param format A character string. Format of `start` (`end`) if
+#'   provided as a character string.The default [format][strptime]
+#'   is `"%Y-%m-%d %H:%M"`.
+#' @param tz A time zone (see [time zones]) specification to be used
+#'   for the conversion of `start` (`end`) if provided as a character
 #'   string.
+#' @param storage.mode A character string. Either `"integer"` (default) or
+#'   `"double"` (see Details).
 #'
-#' @return A data frame with attributes \code{varnames} and \code{units} for
-#'   each column, containing date-time information in column \code{"timestamp"}.
+#' @return A data frame with attributes `varnames` and `units` for
+#'   each column, containing date-time information in column `"timestamp"`.
 #'
-#' @seealso \code{\link{merge}}, \code{\link{Reduce}}, \code{\link{strptime}},
-#'   \code{\link{time zones}}, \code{\link{make.unique}}
+#' @seealso [merge()], [Reduce()], [strptime()],
+#'   [time zones], [make.unique()]
 #'
 #' @examples
-#' set.seed(123)
-#' n <- 20 # number of half-hourly records in one non-leap year
-#' tstamp <- seq(c(ISOdate(2021,3,20)), by = "30 mins", length.out = n)
-#' x <- data.frame(
-#' timestamp = tstamp,
-#' H = rf(n, 1, 2, 1),
-#' LE = rf(n, 1, 2, 1),
-#' qc_flag = sample(c(0:2, NA), n, replace = TRUE)
-#' )
-#' openeddy::varnames(x) <- c("timestamp", "sensible heat", "latent heat",
-#'                            "quality flag")
-#' openeddy::units(x) <- c("-", "W m-2", "W m-2", "-")
-#' str(x)
-#' y1 <- ex(x, 1:10)
-#' y2 <- ex(x, 11:20)
-#' y <- merge_eddy(list(y1, y2))
-#' str(y)
-#' attributes(y$timestamp)
-#' typeof(y$timestamp)
+#' str(ex(eddy_data, 1:6, 1:6))
 #'
-#' # Duplicated rows and different number of columns
-#' z1 <- ex(x, 8:20, 1:3)
-#' z <- merge_eddy(list(y1, z1))
+#' # fill gaps in timestamp of single data frame
+#' a <- ex(eddy_data, c(1:3, 6), 1:6)
+#' merge_eddy(list(a))
+#'
+#' # merge overlapping data frames
+#' (b1 <- ex(eddy_data, 1:5, 1:6))
+#' (b2 <- ex(eddy_data, 4:6, 1:6))
+#' (b <- merge_eddy(list(b1, b2)))
+#' str(b)
+#' attributes(b$timestamp)
+#' typeof(b$timestamp)
+#'
+#' # merge data frames with different number of columns
+#' (c1 <- ex(eddy_data, 8:20, 1:3))
+#' (c <- merge_eddy(list(b1, c1)))
+#'
+#' # horizontal merging
+#' (d1 <- ex(eddy_data, 1:6, 1:5))
+#' (d2 <- ex(eddy_data, c(2:4, 6:8), c(1, 4:7)))
+#' (d <- merge_eddy(list(d1, d2), check_dupl = FALSE))
 #'
 #' @importFrom utils relist
 #' @export
 merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
-                       interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT") {
+                       interval = NULL, format = "%Y-%m-%d %H:%M", tz = "GMT",
+                       storage.mode = "integer") {
+  interval <- interval[1]
+  if (!is.null(interval) && (interval == 0 | is.na(interval))) {
+    stop("wrong value of 'interval'")
+  }
   sq <- seq_len(length(x))
   check_x <- lapply(x, function(x) any(!is.data.frame(x),
                                        !inherits(x$timestamp, "POSIXt")))
   if (any(unlist(check_x)))
-    stop(strwrap("'x' must be list of data frames with 'timestamp'
+    stop(strwrap("'x' must be a list of data frames with 'timestamp'
          column of POSIXt class", prefix = " ", initial = ""))
   if (any(sapply(x, function(x) anyNA(x$timestamp))))
     stop("'timestamp' includes NA value(s)")
@@ -1786,13 +1969,12 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
       units(x[[i]]) <- u
     }
   }
-
   # check if x has duplicated rows
   # treatment is optional and done across elements before merging
   if (check_dupl) {
     # x elements are reduced from data frames to vectors (required by relist)
     ts <- lapply(x, function(x) x$timestamp)
-    # identify (row) position with duplicated timestamp across data frames
+    # identify position (row) with duplicated timestamp across data frames
     dupl <- duplicated(unlist(ts)) # conversion from POSIXt to integer is OK
     if (any(dupl)) {
       # relist the dupl vector so it can be matched against the original list 'x'
@@ -1811,7 +1993,6 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
       for (i in sq) x[[i]] <- ex(x[[i]], !l_dupl[[i]], )
     }
   }
-
   # handle single data frame (timestamp correction applied)
   if (length(x) == 1L) {
     out <- x[[1]]
@@ -1822,40 +2003,50 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
     # normal case of merging multiple data frames in list 'x'
     out <- Reduce(function(x, y)
       merge(x, y, by = intersect(names(x), names(y)), all = TRUE), x)
-
     # extract variables and units and bind within each list element as data frame
     vu <- lapply(x, function(x) as.data.frame(do.call(
       rbind,
       list(varnames(x, names = TRUE), units(x, names = TRUE)))))
-
     # merge to get the same order and number of variables as in 'out'
     out_vu <- Reduce(function(x, y)
       merge(x, y, by = intersect(names(x), names(y)), all = TRUE, sort = FALSE),
       vu) # 'sort = TRUE' switches order of rows
-    # needs to be tested:
+    # needs to be further tested:
     # - merge produces data frame with combinations of varnames and units
     # - first row seems to correspond fully to varnames, last row to units
-    out_vu <- out_vu[c(1, nrow(out_vu)), ]
+    out_vu <- out_vu[c(1, nrow(out_vu)), , drop = FALSE]
   }
-
-  range <- range(out$timestamp)
+  # range() for descending timestamp would create ascending range
+  range <- c(out$timestamp[1], out$timestamp[nrow(out)])
+  # strip POSIXt class to get numeric diff()s
+  tdiff <- unlist(lapply(x, function(x) diff(as.numeric(x$timestamp))))
+  if (any(tdiff < 0) & any(tdiff > 0)) {
+    # this is needed because infer_interval() checks might be skipped below
+    # if interval is provided by user
+    stop("date-time sequence is both ascending and descending")
+  }
   if (is.null(interval)) {
     # automated estimation of interval
-    # working on list is more reliable due to possible gaps among its elements
-    interval <- median(do.call(c, lapply(x, function(x) diff(x$timestamp))))
-    if (!length(interval)) {
+    # - providing chunks as list helps to separately evaluate their tdiff
+    # - tdiffs provide intervals from each element, not among elements
+    interval <- infer_interval(tdiff)
+    if (!length(tdiff)) {
+      # could be the case if each x element has only single timestamp (no diff)
       stop("not possible to automatically extract 'interval' from 'x'")
     } else {
-      message("'interval' set to '", format(interval),
-              "' - specify manually if incorrect")
+      message("'interval' set to ", interval,
+              " - specify manually if incorrect")
     }
-  } else {
-    # convert 'interval' to class 'difftime'
-    interval <- diff(seq(Sys.time(), by = interval, length.out = 2))
   }
-  if (diff(range) < interval)
-    stop("'interval' is larger than 'timestamp' range")
-
+  # test that timestamp forms regular sequence with 'interval' multiples
+  # - needed both for manually set interval and inferred one
+  # - gaps should be allowed only if they are multiples of interval
+  if (any(tdiff %% interval != 0)) {
+    stop("intervals among timestamps are not multiples of set 'interval' ",
+         "(interval = ", interval, ")\n",
+         "  - intervals present in 'x': ",
+         paste0(unique(tdiff), collapse = ", "))
+  }
   # For both start and end arguments:
   # if NULL - get value automatically from x input
   # if numeric - the value represents start/end of given year
@@ -1863,11 +2054,10 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   if (is.null(start)) {
     start <- range[1]
   } else if (is.numeric(start)) {
-    start <- ISOdate(start, 1, 1, 0) + as.numeric(interval, units = "secs")
+    start <- ISOdate(start, 1, 1, 0) + interval
   } else {
     start <- strptime(start, format = format, tz = tz)
   }
-
   if (is.null(end)) {
     end <- range[2]
   } else if (is.numeric(end)) {
@@ -1875,94 +2065,118 @@ merge_eddy <- function(x, start = NULL, end = NULL, check_dupl = TRUE,
   } else {
     end <- strptime(end, format = format, tz = tz)
   }
-
+  # make sure it works also for desceding timestamp (negative diffs)
+  if (abs(diff(as.numeric(c(start, end)))) < abs(interval))
+    stop("'interval' is larger than 'timestamp' range")
   # seq.POSIXt converts to POSIXct so strptime POSIXlt product does not matter
-  # timestamp should not have missing values or reversed order
-    if (start > end) stop("generated 'timestamp' would have reversed order")
   full_ts <- data.frame(timestamp = seq(start, end, by = interval))
-
   # It is not possible to reduce both EP and full_ts in one step
-  # First step with Reduce aims to keep all rows and columns of 'x' data frames
-  # Second step trims them according to the specified timestamp range (all.x)
+  # - first step with Reduce aims to keep all rows and columns of 'x' data frames
+  # - second step trims them according to the specified timestamp range (all.x)
+  # merge(..., sort = FALSE) not helpful for supporting descending timestamp
+  # - sort = TRUE forces ascending timestamp
+  # - but sort = FALSE produces random order (timestamp does not form regular
+  #   sequence)
   out <- merge(full_ts, out, by = "timestamp", all.x = TRUE)
-
-  # Is resulting time series regular? Tested independently on check_dupl
-  if (length(unique(diff(out$timestamp))) > 1) {
-    warning("resulting timestamp does not form regular sequence")
+  if (!check_dupl && length(unique(diff(out$timestamp))) > 1) {
+    warning("overlapping parts of data frames do not have identical data\n",
+            "- duplicated timestamps after merge() were removed",
+            call. = FALSE)
+    out <- out[!duplicated(out$timestamp), ]
+    row.names(out) <- NULL
   }
-
+    if (interval < 0) {
+    out <- out[nrow(out):1, ]
+    row.names(out) <- NULL
+  }
   # Last merge could move timestamp so names need to be matched
   pos <- match(names(out), names(out_vu))
   varnames(out) <- t(out_vu)[pos, 1] # t() to extract as vector
   units(out) <- t(out_vu)[pos, 2]
-
-  # Force storage mode of timestamp to integer to simplify data frame rounding
-  storage.mode(out$timestamp) <- "integer"
-
+  # Set storage mode of timestamp to integer to simplify data frame rounding
+  storage.mode(out$timestamp) <- storage.mode
   return(out)
 }
 
 #' Read Meteorological Data with Units
 #'
-#' Read single or multiple CSV meteorological data files at Czechglobe MeteoDBS
-#' format at given path and merge them together.
+#' Read single or multiple meteorological data files at Czechglobe MeteoDBS
+#' format at given path and merge them together along generated regular
+#' date-time sequence.
 #'
 #' This utility function is adapted to Czechglobe MeteoDBS file structure but
 #' allows to change selected useful arguments that have preset default values.
 #' It also assures that date-time sequence is regular and equidistant.
 #'
-#' In case that multiple files are present in the \code{path}, the expectation
-#' is that files represent meteorological variables for given site and different
+#' In case that multiple files are present in the `path`, the expectation is
+#' that files represent meteorological variables for given site and different
 #' periods. Function merges them vertically (along generated complete
 #' timestamp). All original columns across all files excluding the last empty
 #' one are kept. The order of variables keeps that of the first file loaded
-#' (note that file ordering in \code{path} is alphabetical not chronological)
-#' and additional variables are appended if present in the following files. The
-#' output "date/time" column is converted into class \code{POSIXct}.
+#' (note that file ordering in `path` is alphabetical not chronological) and
+#' additional variables are appended if present in the following files. The
+#' output "date/time" column is converted into class `POSIXct`.
 #'
-#' If you want to specify \code{start} and \code{end} arguments as strings and
-#' you change also default \code{shift.by} value, \code{start} and \code{end}
-#' arguments need to be adopted accordingly to account for that change. E.g. if
-#' \code{shift.by = -900}, then \code{start = "2019-12-31 21:15:00", end =
-#' "2019-12-31 23:15:00"} instead of \code{start = "2019-12-31 21:30:00", end =
-#' "2019-12-31 23:30:00"}.
+#' If you want to specify `start` and `end` arguments as strings and you change
+#' also default `shift.by` value, `start` and `end` arguments need to be adopted
+#' accordingly to account for that change. E.g. if `shift.by = -900`, then
+#' `start = "2019-12-31 21:15:00", end = "2019-12-31 23:15:00"` instead of
+#' `start = "2019-12-31 21:30:00", end = "2019-12-31 23:30:00"` for half-hourly
+#' data.
 #'
 #' Function introduces additional column "timestamp" for purposes of merging
-#' with \code{merge_eddy()}. This column is then removed as it is not included
-#' in the original data.
+#' with `merge_eddy()`. This column is then removed as it is not included in the
+#' original data.
 #'
-#' @return A data frame is produced with additional attributes \code{varnames}
-#'   and \code{units} assigned to each respective column.
+#' @return A data frame is produced with additional attributes `varnames` and
+#'   `units` assigned to each respective column.
 #'
 #' @param path A string. The path to directory with CSV file(s) in Czechglobe
 #'   MeteoDBS format. Other than CSV files are ignored.
 #' @param start,end A value specifying the first (last) value of the generated
-#'   date-time sequence in temporary column "timestamp". If \code{NULL},
-#'   \code{\link{min}} (\code{\link{max}}) of date-time values from "date/time"
-#'   column across all files is used. If numeric, the value specifies the year
-#'   for which the first (last) date-time value will be generated, considering
-#'   given time interval (automatically detected from "date/time" column) and
-#'   convention of assigning of measured records to the end of the time
-#'   interval. Otherwise, character representation of specific date-time value
-#'   is expected in given \code{format} and timezone "GMT".
-#' @param format A character string. Format of \code{start} (\code{end}) if
-#'   provided as a character string.
+#'   date-time sequence in temporary column "timestamp". If `NULL`, [min()]
+#'   ([max()]) of date-time values from "date/time" column across all files is
+#'   used. If numeric, the value specifies the year for which the first (last)
+#'   date-time value will be generated, considering given time interval
+#'   (automatically detected from "date/time" column) and convention of
+#'   assigning of measured records to the end of the time interval. Otherwise,
+#'   character representation of specific date-time value is expected in given
+#'   `format` and timezone "GMT".
+#' @param format A character string. Format of `start` (`end`) if provided as a
+#'   character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
-#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
-#'   not have to be regular but time differences must be multiples of
-#'   automatically detected time interval.
+#' @param allow_gaps A logical value. If `TRUE`, date-time information does not
+#'   have to be regular but time differences must be multiples of automatically
+#'   detected time interval.
 #' @param verbose A logical value. Should additional statistics about presence
-#'   of \code{NA} values in resulting data frame be printed to console?
+#'   of `NA` values in resulting data frame be printed to console?
+#' @param pattern A character string. A [regular expression][regexp] [grep()]
+#' `pattern` identifying MeteoDBS files in the `path` folder.
+#'
+#' @examples
+#' # examples of different patterns for file selection
+#' xx <- c("CZ-BK1_2024_meteo.csv", "data.CSV", "CZ-BK1.txt")
+#'
+#' # select file names ending with ".csv" (case insensitive)
+#' grep("\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
+#' # select file names starting with CZ-BK1 site abbreviation
+#' grep("^CZ-BK1", xx, value = TRUE)
+#'
+#' # select CSV file names starting with CZ-BK1 site abbreviation
+#' # - note the usage of ".*" to combine above patterns
+#' grep("^CZ-BK1.*\\.[Cc][Ss][Vv]$", xx, value = TRUE)
 #'
 #' @importFrom utils read.table
 #' @export
 read_MeteoDBS <- function(path, start = NULL, end = NULL,
                           format = "%d.%m.%Y %H:%M", shift.by = NULL,
-                          allow_gaps = TRUE, verbose = TRUE) {
+                          allow_gaps = TRUE, verbose = TRUE,
+                          pattern = "\\.[Cc][Ss][Vv]$") {
   lf <- list.files(path, full.names = TRUE)
-  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
-  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  lf <- grep(pattern, lf, value = TRUE) # "\\." is literal dot
+  if (length(lf) == 0) stop("no file matching 'pattern' in folder 'path'")
   l <- vector("list", length(lf))
   names(l) <- lf
   for (i in seq_along(lf)) {
@@ -2075,68 +2289,86 @@ read_MeteoDBS <- function(path, start = NULL, end = NULL,
 
 #' Read EddyPro Files with Units
 #'
-#' Read single or multiple CSV EddyPro full output files at given path and merge
-#' them together.
+#' Read single or multiple EddyPro full output files at given path and merge
+#' them together along generated regular date-time sequence.
 #'
 #' This utility function is adapted to EddyPro full output file structure but
 #' allows to change selected useful arguments that have preset default values.
 #' Column "timestamp" with date-time information is constructed based on "date"
-#' and "time" columns and converted into class \code{POSIXct}. It also assures
+#' and "time" columns and converted into class `POSIXct`. It also assures
 #' that date-time sequence is regular and equidistant.
 #'
-#' In case that multiple files are present in the \code{path}, function merges
+#' In case that multiple files are present in the `path`, function merges
 #' them vertically (along generated complete timestamp) and discards rows with
 #' duplicated date-time values. All original columns across all files are kept.
-#' The order of variables keeps that of the first file loaded (note that file
-#' ordering in \code{path} is alphabetical not chronological) and additional
+#' The order of variables follows that of the first file loaded (note that file
+#' ordering in `path` is alphabetical not chronological) and additional
 #' variables are appended if present in the following files. To assure
 #' compatibility with older EddyPro versions, old column name "max_speed" is
 #' renamed to "max_wind_speed" if present.
 #'
-#' If you want to specify \code{start} and \code{end} arguments as strings and
-#' you change also default \code{shift.by} value, \code{start} and \code{end}
+#' If you want to specify `start` and `end` arguments as strings and
+#' you change also default `shift.by` value, `start` and `end`
 #' arguments need to be adopted accordingly to account for that change. E.g. if
-#' \code{shift.by = -900}, then \code{start = "2019-12-31 21:15:00", end =
-#' "2019-12-31 23:15:00"} instead of \code{start = "2019-12-31 21:30:00", end =
-#' "2019-12-31 23:30:00"}.
+#' `shift.by = -900`, then `start = "2019-12-31 21:15:00", end =
+#' "2019-12-31 23:15:00"` instead of `start = "2019-12-31 21:30:00", end =
+#' "2019-12-31 23:30:00"` for half-hourly data.
 #'
-#' Note that \code{skip} and \code{fileEncoding} arguments must be valid across
+#' Note that `skip` and `fileEncoding` arguments must be valid across
 #' all files, otherwise the function will not execute correctly.
 #'
-#' @return A data frame is produced with additional attributes \code{varnames}
-#'   and \code{units} assigned to each respective column.
+#' @return A data frame is produced with additional attributes `varnames`
+#'   and `units` assigned to each respective column.
 #'
 #' @param path A string. The path to directory with EddyPro full output. Other
 #'   than CSV files are ignored.
 #' @param start,end A value specifying the first (last) value of the column
-#'   "timestamp" in outputted data frame. If \code{NULL}, \code{\link{min}}
-#'   (\code{\link{max}}) of date-time values from "timestamp" column across all
+#'   "timestamp" in outputted data frame. If `NULL`, [min()]
+#'   ([max()]) of date-time values from "timestamp" column across all
 #'   input files is used. If numeric, the value specifies the year for which the
 #'   first (last) date-time value will be generated, considering given time
 #'   interval (automatically detected from "timestamp" column) and convention of
 #'   assigning of measured records to the end of the time interval. Otherwise,
 #'   character representation of specific date-time value is expected in given
-#'   \code{format} and timezone "GMT".
+#'   `format` and timezone "GMT".
 #' @param skip An integer. The number of lines to skip in the input file before
 #'   reading data.
 #' @param fileEncoding A character string. If non-empty, declares the encoding
 #'   used on a file (not a connection) so the character data can be re-encoded.
-#'   See \code{\link{read.table}} for further details.
-#' @param format A character string. Format of \code{start} (\code{end}) if
+#'   See [read.table()] for further details.
+#' @param format A character string. Format of `start` (`end`) if
 #'   provided as a character string.
 #' @param shift.by A numeric value specifying the time shift (in seconds) to be
 #'   applied to the date-time information.
-#' @param allow_gaps A logical value. If \code{TRUE}, date-time information does
+#' @param allow_gaps A logical value. If `TRUE`, date-time information does
 #'   not have to be regular but time differences must be multiples of
 #'   automatically detected time interval.
+#' @param pattern A character string. A [regular expression][regexp] [grep()]
+#' `pattern` identifying EddyPro full output files in the `path` folder.
+#'
+#' @examples
+#' # examples of different patterns for file selection
+#' xx <- c("CZ-BK1_2024_eddy.csv", "data.CSV", "CZ-BK1.txt")
+#'
+#' # select file names ending with ".csv" (case insensitive)
+#' grep("\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
+#' # select file names starting with CZ-BK1 site abbreviation
+#' grep("^CZ-BK1", xx, value = TRUE)
+#'
+#' # select CSV file names starting with CZ-BK1 site abbreviation
+#' # - note the usage of ".*" to combine above patterns
+#' grep("^CZ-BK1.*\\.[Cc][Ss][Vv]$", xx, value = TRUE)
+#'
 #'
 #' @export
 read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
                          fileEncoding = "UTF-8", format = "%Y-%m-%d %H:%M",
-                         shift.by = NULL, allow_gaps = TRUE) {
+                         shift.by = NULL, allow_gaps = TRUE,
+                         pattern = "\\.[Cc][Ss][Vv]$") {
   lf <- list.files(path, full.names = TRUE)
-  lf <- grep("\\.[Cc][Ss][Vv]$", lf, value = TRUE) # "\\." is literal dot
-  if (length(lf) == 0) stop("no CSVs in folder specified by 'path'")
+  lf <- grep(pattern, lf, value = TRUE) # "\\." is a literal dot
+  if (length(lf) == 0) stop("no file matching 'pattern' in folder 'path'")
   l <- vector("list", length(lf))
   names(l) <- lf
   for (i in seq_along(lf)) {
@@ -2164,7 +2396,7 @@ read_EddyPro <- function(path, start = NULL, end = NULL, skip = 1,
 #' representing horizontal and vertical placement and number of replicates
 #' (_H_V_R suffix used in tower network naming strategy).
 #'
-#' If \code{warn = TRUE}, it is checked if multiple _H_V_R suffixes were
+#' If `warn = TRUE`, it is checked if multiple _H_V_R suffixes were
 #' detected. This might be undesired based on the application.
 #'
 #' @param x A string vector.
@@ -2204,8 +2436,8 @@ strip_suffix <- function(x, warn = FALSE) {
 #' @param names A character vector with available names.
 #' @param all_names A character vector with all expected variable names.
 #' @param show_ignored A logical value. Should ignored names be shown?
-#' @param warn A logical value. Should you be warned if \code{names} or
-#'   \code{all_names} contain duplicates?
+#' @param warn A logical value. Should you be warned if `names` or
+#'   `all_names` contain duplicates?
 #'
 #' @return A character vector with subset of expected variable names.
 #'

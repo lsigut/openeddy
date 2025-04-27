@@ -1,61 +1,63 @@
 #' Apply Thresholds
 #'
-#' Values of \code{x} are checked against the specified thresholds to obtain
+#' Values of `x` are checked against the specified thresholds to obtain
 #' their quality control (QC) flags.
 #'
-#' This function is called by \code{\link{extract_QC}} but can be useful on its
+#' This function is called by [extract_QC()] but can be useful on its
 #' own when filtering values of variable according to the 0 - 2 QC flag scheme.
 #'
 #' Obtained QC flags are assigned in the range 0 - 2 according to these rules:
 #'
-#' For \code{flag = "higher"} \itemize{ \item If \code{x <= thr[1]}, QC flag =
-#' 0. \item If \code{x > thr[1] & x <= thr[2]}, QC flag = 1. \item If \code{x >
-#' thr[2]}, QC flag = 2.}
+#' For `flag = "higher"`
+#' * If `x <= thr[1]`, QC flag = 0.
+#' * If `x > thr[1] & x <= thr[2]`, QC flag = 1.
+#' * If `x > thr[2]`, QC flag = 2.
 #'
-#' For \code{flag = "outside"} (\code{thr} supplied as vector) \itemize{ \item
-#' If \code{x >= thr[1] & x <= thr[2]}, QC flag = 0. \item If \code{x < thr[1] |
-#' x > thr[2]}, QC flag = 2.}
+#' For `flag = "outside"` (`thr` supplied as vector)
+#' * If `x >= thr[1] & x <= thr[2]`, QC flag = 0.
+#' * If `x < thr[1] | x > thr[2]`, QC flag = 2.
 #'
-#' For \code{flag = "outside"} (\code{thr} supplied as list) \itemize{ \item If
-#' \code{x >= thr[[1]][2] & x <= thr[[2]][1]}, QC flag = 0. \item If \code{x <
-#' thr[[1]][2] | x > thr[[2]][1]}, QC flag = 1. \item If \code{x < thr[[1]][1] |
-#' x > thr[[2]][2]}, QC flag = 2.}
+#' For `flag = "outside"` (`thr` supplied as list)
+#' * If `x >= thr[[1]][2] & x <= thr[[2]][1]`, QC flag = 0.
+#' * If `x < thr[[1]][2] | x > thr[[2]][1]`, QC flag = 1.
+#' * If `x < thr[[1]][1] | x > thr[[2]][2]`, QC flag = 2.
 #'
-#' For \code{flag = "between"} (\code{thr} supplied as vector) \itemize{ \item
-#' If \code{x <= thr[1] | x >= thr[2]}, QC flag = 0. \item If \code{x > thr[1] &
-#' x < thr[2]}, QC flag = 2. }
+#' For `flag = "between"` (`thr` supplied as vector)
+#' * If `x <= thr[1] | x >= thr[2]`, QC flag = 0.
+#' * If `x > thr[1] & x < thr[2]`, QC flag = 2.
 #'
-#' For \code{flag = "between"} (\code{thr} supplied as list) \itemize{ \item If
-#' \code{x <= thr[[1]][1] | x >= thr[[2]][2]}, QC flag = 0. \item If \code{x >
-#' thr[[1]][1] & x < thr[[2]][2]}, QC flag = 1. \item If \code{x > thr[[1]][2] &
-#' x < thr[[2]][1]}, QC flag = 2.}
+#' For `flag = "between"` (`thr` supplied as list)
+#' * If `x <= thr[[1]][1] | x >= thr[[2]][2]`, QC flag = 0.
+#' * If `x > thr[[1]][1] & x < thr[[2]][2]`, QC flag = 1.
+#' * If `x > thr[[1]][2] & x < thr[[2]][1]`, QC flag = 2.
 #'
-#' For \code{flag = "lower"} \itemize{ \item If \code{x >= thr[1]}, QC flag = 0.
-#' \item If \code{x < thr[1] & x >= thr[2]}, QC flag = 1. \item If \code{x <
-#' thr[2]}, QC flag = 2.}
+#' For `flag = "lower"`
+#' * If `x >= thr[1]`, QC flag = 0.
+#' * If `x < thr[1] & x >= thr[2]`, QC flag = 1.
+#' * If `x < thr[2]`, QC flag = 2.
 #'
-#' In case of \code{angles = TRUE}, conditions are appropriately implemented on
+#' In case of `angles = TRUE`, conditions are appropriately implemented on
 #' the circular scale. Angles are expected to be within the range [0, 360)
-#' degrees and corrected otherwise. Notice that using \code{flag = "higher"} or
-#' \code{flag = "lower"} might not be very useful on the circular scale.
+#' degrees and corrected otherwise. Notice that using `flag = "higher"` or
+#' `flag = "lower"` might not be very useful on the circular scale.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
-#' @param x A numeric atomic type with \code{NULL} \code{\link{dim}}ensions.
+#' @param x A numeric [atomic] type with `NULL` [dim()]ensions.
 #' @param thr A numeric vector of length two or list with two numeric vectors of
 #'   length two. If vector, first (second) element provides lower (upper)
 #'   boundary threshold for quality control flag 2. If list, first (second)
 #'   element provides lower (upper) boundary threshold for quality control flag
-#'   1 and 2. This is reversed for \code{flag = "lower"}. See examples.
-#' @param name_out A character string providing \code{varnames} attribute value
+#'   1 and 2. This is reversed for `flag = "lower"`. See examples.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param flag A character string. Selects one of the available flagging
 #'   approaches. Can be abbreviated. See 'Details'.
-#' @param angles A logical value. Choose if \code{x} represents angles.
+#' @param angles A logical value. Choose if `x` represents angles.
 #'
-#' @seealso \code{\link{extract_QC}}.
+#' @seealso [extract_QC()].
 #'
 #' @examples
 #' # flag defaults to "higher"
@@ -117,6 +119,15 @@ apply_thr <- function(x, thr, name_out = "-",
                       flag = c("higher", "outside", "between", "lower"),
                       angles = FALSE) {
   flag <- match.arg(flag)
+  name_out <- as.character(name_out)[1]
+  # support NULL value input
+  if (is.null(x)) {
+    out <- integer(0)
+    varnames(out) <- name_out
+    units(out) <- "-"
+    return(out)
+  }
+  # data frame, list or matrix would not provide sensible output (without error)
   if (!is.numeric(x)) stop("'x' must be numeric")
   # matrix and array is numeric - we do not want them:
   if (!is.null(dim(x))) stop("'dim(x)' must be NULL")
@@ -135,10 +146,6 @@ apply_thr <- function(x, thr, name_out = "-",
       stop("'thr' supplied incorrectly")
     }
   }
-  if (!is.atomic(name_out) || length(name_out) != 1) {
-    stop("atomic type 'name_out' must have length 1")
-  }
-  name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   # initiate with flag 0
   out <- vector("integer", length(x))
   # thr cannot contain NAs, thus NA flags only if x NA
@@ -240,7 +247,8 @@ apply_thr <- function(x, thr, name_out = "-",
     out[x <  thr[1]] <- 1L
     out[x <  thr[2]] <- 2L
   }
-  attributes(out) <- list(varnames = name_out, units = "-")
+  varnames(out) <- name_out
+  units(out) <- "-"
   return(out)
 }
 
@@ -248,19 +256,19 @@ apply_thr <- function(x, thr, name_out = "-",
 #'
 #' Identify and flag values of runs with repeating values in a vector.
 #'
-#' \code{NA} values are omitted before evaluation of runs. Thus \code{NA}s do
+#' `NA` values are omitted before evaluation of runs. Thus `NA`s do
 #' not interrupt runs. Flagging is done according to the 0 - 2 quality control
 #' flag scheme.
 #'
-#' @param x A numeric atomic type with NULL dimensions.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param x A numeric [atomic] type with `NULL` dimensions.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param length A numeric value. The minimum number of repeating values to
 #'   trigger flagging.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
 #' @examples
 #' (xx <- c(rep(c(0, NA), 5)))
@@ -305,12 +313,12 @@ flag_runs <- function(x, name_out = "-", length = 4) {
 #' @param x A POSIXt vector providing timestamp of measurements.
 #' @param start,end A POSIXt vector marking the start and end of the periods to
 #'   be flagged. They must be of the same length.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #'
-#' @return An integer vector with the same length as \code{x}. Its
-#'   \code{varnames} and \code{units} attributes are set to  \code{name_out} and
-#'   \code{"-"} values, respectively.
+#' @return An integer vector with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
 #'
 #' @examples
 #' # alternative style: as.POSIXct("2000-01-01 12:15:00", tz = "GMT")
@@ -323,8 +331,8 @@ flag_runs <- function(x, name_out = "-", length = 4) {
 #' end = c(ISOdatetime(2000, 1, 1, 14, 15, 0, tz = "GMT"),
 #'         ISOdatetime(2000, 1, 1, 17, 15, 0, tz = "GMT"))
 #' )
-#' (flags <- flag_periods(x, periods$start, periods$end, "qc_ALL_periods"))
-#' data.frame(x, qc_ALL_periods = flags)
+#' (flags <- flag_periods(timestamp, periods$start, periods$end, "qc_ALL_periods"))
+#' data.frame(timestamp, qc_ALL_periods = flags)
 #'
 #' @export
 flag_periods <- function(x, start, end, name_out = "-") {
@@ -335,6 +343,12 @@ flag_periods <- function(x, start, end, name_out = "-") {
   if (length(start) != length(end)) {
     stop("lengths of 'start' and 'end' must be equal")
   }
+  if (any(diff(start) <= 0) | any(diff(end) <= 0)) {
+    stop("'start' and 'end' must be in ascending order")
+  }
+  if (any(start > end)) {
+    stop("'start' value higher than 'end' value")
+  }
   name_out <- if (name_out %in% c("", NA)) "-" else as.character(name_out)
   out <- vector("integer", length(x))
   for (i in seq_along(start)) {
@@ -344,91 +358,182 @@ flag_periods <- function(x, start, end, name_out = "-") {
   return(out)
 }
 
-#' Separate columns
+#' Label Periods
 #'
-#' Helper function utilized in \code{\link{extract_coded}} for coded variables
-#' that controls column splitting.
+#' Annotate selected periods with custom labels.
 #'
-#' @keywords internal
-separate <- function(x, ...) {
-  strsplit(as.character(gsub(...,"", x)), NULL)
+#' Labels are always only in the extent of `x`, although the range of labeled
+#' period provided by `start` and `end` can surpass it.
+#'
+#' If `end = NULL` (default), `end` is inferred from the `start` argument. In
+#' that case `start` provides the break points between the labelled periods and
+#' the last period extends to the last timestamp in `x`. If `end` is specified,
+#' gaps between periods with no labels can exist.
+#'
+#' @param x A POSIXt vector providing timestamp of measurements.
+#' @param labels An [atomic] type.
+#' @param start,end A POSIXt vector marking the start (end) of the periods to
+#'   be labelled. If `end` is specified, they must be of the same length.
+#' @param name_out A character string providing `varnames` attribute value
+#'   of the output.
+#'
+#' @return An atomic type with the same length as `x`. Its
+#'   `varnames` and `units` attributes are set to  `name_out` and
+#'   `"-"` values, respectively.
+#'
+#' @seealso [extract_QC()], [interdep()].
+#'
+#' @examples
+#' # alternative style: as.POSIXct("2000-01-01 12:15:00", tz = "GMT")
+#' timestamp <- seq(ISOdatetime(2000, 1, 1, 12, 15, 0, tz = "GMT"),
+#'                  ISOdatetime(2000, 1, 1, 18, 15, 0, tz = "GMT"),
+#'                  by = "30 mins")
+#'
+#' start <- c(ISOdatetime(2000, 1, 1, 12, 15, 0, tz = "GMT"),
+#'            ISOdatetime(2000, 1, 1, 15, 15, 0, tz = "GMT"))
+#'
+#' # specify labels that can be useful for extract_QC() or interdep()
+#' rec <- label_periods(timestamp, c(18000, 36000), start,
+#'                      name_out = "max_records")
+#' rot <- label_periods(timestamp, c("double", "planar fit"), start,
+#'                      name_out = "used_rotation")
+#' IRGA <- label_periods(timestamp, c("open", "en_closed"), start,
+#'                       name_out = "used_IRGA")
+#' data.frame(timestamp, max_records = rec, used_rotation = rot,
+#'            used_IRGA = IRGA)
+#'
+#' @export
+label_periods <- function(x, labels, start, end = NULL, name_out = "-") {
+  if (is.null(end)) {
+    if (!inherits(x, "POSIXt") | !inherits(start, "POSIXt")) {
+      stop("'x' and 'start' must be of class 'POSIXt'")
+    }
+    end <- c(start[-1], if (start[length(start)] > x[length(x)]) {
+      start[length(start)] + 1
+    } else {
+      x[length(x)]
+    })
+    if (any(diff(start) <= 0)) {
+      stop("'start' must be in ascending order")
+    }
+    if (any(start > end)) {
+      stop("'start' value cannot go outside of 'x' range if 'end = NULL'")
+    }
+  } else {
+    if (!inherits(x, "POSIXt") | !inherits(start, "POSIXt") |
+        !inherits(end, "POSIXt")) {
+      stop("'x', 'start' and 'end' must be of class 'POSIXt'")
+    }
+    if (any(diff(start) <= 0) | any(diff(end) <= 0)) {
+      stop("'start' and 'end' must be in ascending order")
+    }
+    if (length(start) != length(end)) {
+      stop("lengths of 'start' and 'end' must be equal")
+    }
+    if (any(start > end)) {
+      stop("'start' value higher than 'end' value")
+    }
+  }
+  if (length(start) != length(labels)) {
+    stop("lengths of 'start' and 'labels' must be equal")
+  }
+  name_out <- as.character(name_out)[1]
+  out <- rep(NA, length(x))
+  class(out) <- class(labels)
+  for (i in seq_along(start)) {
+    out[x >= start[i] & x <= end[i]] <- labels[i]
+  }
+  varnames(out) <- name_out
+  units(out) <- "-"
+  return(out)
 }
 
-#' Handle NA values
+#' Separate columns
 #'
-#' Helper function utilized in extract_coded() for abslim and spikesHF
-#' - controls NAs in splitted columns
-#' - 9 is EddyPro code for NA
-#' - in case of missing half hour inserts NAs according to number of variables
-#'   in 'units'
+#' Helper function utilized in [extract_coded()] for coded variables
+#' that controls column splitting.
+#'
+#' It substitutes a regexp pattern provided by "..." by `split` and splits
+#' provided string to single characters. Output is a list with single element
+#' including vector of characters.
+#'
+#' @examples
+#' openeddy:::separate(x = 800000099, "8")
+#' openeddy:::separate(x = "8u/v/w/ts/co2/h2o/ch4/none", "8", split = "/")
 #'
 #' @keywords internal
-handleNA <- function(x, variables) {
-  out <- as.numeric(unlist(x))
-  out[out == 9]  <- NA
-  length(out) <- length(variables)
-  return(out)
+#' @noRd
+separate <- function(x, ..., split = NULL) {
+  strsplit(as.character(gsub(...,"", x)), split = split)
 }
 
 #' Extract Quality Control Information from Coded Values
 #'
-#' This function is called by \code{\link{extract_QC}} and is not intended to be
+#' This function is called by [extract_QC()] and is not intended to be
 #' used directly. Coded QC information for one or multiple variables stored in a
 #' character vector of certain properties is extracted and interpreted.
 #'
-#' Each element of \code{x} is expected to have the same structure according to
-#' the format specified by \code{units} attribute of \code{x}. \code{units}
-#' format string (e.g. \code{"8u/v/w/ts/h2o/co2"}) starts with a prefix
-#' (\code{"8"}) that is followed by variable names (\code{"u", "v", "w", "ts",
-#' "h2o", "co2"}) that are distinguished by a separator (\code{"/"}). Elements
-#' of \code{x} thus consist of either seven components (prefix and six flags for
-#' each variable) or one \code{NA} value. Flags of coded variables can have
-#' three values: \itemize{ \item flag 0: measured variable passed the test.
-#' \item flag 1: measured variable failed the test. \item flag 9: flag could not
-#' be obtained for the given variable (\code{NA}).}
+#' Each element of `x` is expected to have the same structure according to
+#' the format specified by `units` attribute of `x`. `units`
+#' format string (e.g. `"8u/v/w/ts/h2o/co2"`) starts with a prefix
+#' (`"8"`) that is followed by variable names (`"u", "v", "w", "ts",
+#' "h2o", "co2"`) that are distinguished by a separator (`"/"`). Elements
+#' of `x` thus consist of either seven components (prefix and six flags for
+#' each variable) or one `NA` value. Flags of coded variables can have
+#' three values:
+#' * flag 0: measured variable passed the test.
+#' * flag 1: measured variable failed the test.
+#' * flag 9: flag could not be obtained for the given variable (`NA`).
 #'
 #' The original flags are then interpreted within the QC scheme using QC flag
-#' range 0 - 2. Coded variable can represent either \itemize{\item hard flag
-#' (suffix \code{"_hf"} in EddyPro column name): flag 1 interpreted as flag 2.
-#' \item soft flag (suffix \code{"_sf"} in EddyPro column name): flag 1
-#' interpreted as flag 1.}
+#' range 0 - 2. Coded variable can represent either
+#' * hard flag (suffix `"_hf"` in EddyPro column name): flag 1 interpreted as
+#' flag 2.
+#' * soft flag (suffix `"_sf"` in EddyPro column name): flag 1 interpreted as
+#' flag 1.
 #'
-#' \code{x} is interpreted in respect to instruments required to measure given
+#' `x` is interpreted in respect to instruments required to measure given
 #' fluxes. SA is required for measurements of all fluxes and solely provides
 #' data for computation of Tau and H fluxes. GA is used only for measurements of
 #' LE and NEE. A combination of SA and GA (SAGA) is used for measurements of LE
 #' and NEE. Filters where flags would be identical for both SA and GA have
 #' prefix ALL (QC flags in a single column applicable to all fluxes). To confirm
-#' the correct performance of SA, all variables \code{"u", "v", "w", "ts"} must
-#' have flag 0. In case of GA, all variables \code{"co2", "h2o"} must have flag
-#' 0. In case of SAGA, all variables \code{"u", "v", "w", "ts", "h2o", "co2"}
+#' the correct performance of SA, all variables `"u", "v", "w", "ts"` must
+#' have flag 0. In case of GA, all variables `"co2", "h2o"` must have flag
+#' 0. In case of SAGA, all variables `"u", "v", "w", "ts", "h2o", "co2"`
 #' must have flag 0.
 #'
-#' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-#'   speed component [m s-1] \item v: Cross-wind wind speed component [m s-1]
-#'   \item w: Vertical wind speed component [m s-1] \item ts: Sonic temperature
-#'   [degC] \item h2o: H2O concentration [mmol mol-1] \item co2: CO2
-#'   concentration [umol mol-1]}.
+#' @section Abbreviations:
+#' * QC: Quality Control
+#' * SA: Sonic Anemometer
+#' * GA: Gas Analyzer
+#' * Tau: Momentum flux \[kg m-1 s-2\]
+#' * H: Sensible heat flux \[W m-2\]
+#' * LE: Latent heat flux \[W m-2\]
+#' * NEE: Net ecosystem exchange \[umol m-2 s-1\]
+#' * u: Longitudinal wind speed component \[m s-1\]
+#' * v: Cross-wind wind speed component \[m s-1\]
+#' * w: Vertical wind speed component \[m s-1\]
+#' * ts: Sonic temperature \[degC\]
+#' * h2o: H2O concentration \[mmol mol-1\]
+#' * co2: CO2 concentration \[umol mol-1\].
 #'
 #' @return A data frame with relevant column names defined by
-#'   \code{name_out_SA}, \code{name_out_GA}, \code{name_out_SAGA} and
-#'   \code{name_out_ALL}. Each column has attributes \code{"varnames"} and
-#'   \code{"units"} and length equal to that of \code{x}.
+#'   `name_out_SA`, `name_out_GA`, `name_out_SAGA` and
+#'   `name_out_ALL`. Each column has attributes `"varnames"` and
+#'   `"units"` and length equal to that of `x`.
 #'
-#' @param x An atomic type.
+#' @param x An [atomic] type.
 #' @param name_out_SA,name_out_GA,name_out_SAGA,name_out_ALL A character string.
 #'   Name of the output column with QC related to SA, GA, SAGA or ALL.
-#' @param prefix Character string containing a \code{\link{regular expression}}
+#' @param prefix Character string containing a [regular expression]
 #'   identifying the prefix of coded values.
-#' @param split Character string containing a \code{\link{regular expression}}
-#'   identifying the separator of variable names in \code{units} attribute.
-#' @param sf A logical value. Coded variable represents hard flag (\code{sf =
-#'   FALSE}; default) or soft flag (\code{sf = TRUE}). See Details.
+#' @param split Character string containing a [regular expression]
+#'   identifying the separator of variable names in `units` attribute.
+#' @param sf A logical value. Coded variable represents hard flag (`sf =
+#'   FALSE`; default) or soft flag (`sf = TRUE`). See Details.
 #'
-#' @seealso \code{\link{extract_QC}}.
+#' @seealso [extract_QC()].
 #'
 #' @examples
 #' set.seed(5)
@@ -456,10 +561,18 @@ extract_coded <- function(x,
     stop("missing units containing the format of coded variable",
          call. = FALSE)
   # extract the units as vector
-  vars <- unlist(strsplit(gsub(prefix, "", units),
-                          split = split))
+  vars <- unlist(separate(x = units, split = split, prefix))
+  # to simplify, convert single NAs to char strings of 9s without prefix
+  x[is.na(x)] <- paste(rep(9L, length(vars)), collapse = "")
   # separate coded variables within the column into a list
-  l <- lapply(x, separate, prefix)
+  l <- separate(x, prefix)
+  # convert each list element from char vector to int vector
+  ln <- lapply(l, as.integer)
+  # all elements of ln are expected to have the same length so can be rbind()ed
+  df <- as.data.frame(do.call(rbind, ln))
+  # search for implicit NAs (code 9) and exchange for explicit NAs
+  df[df == 9] <- NA_integer_
+  names(df) <- vars
 
   # support Angle of attack and Non-steady wind filters
   if ("aa" %in% vars || "U" %in% vars) {
@@ -471,10 +584,6 @@ extract_coded <- function(x,
     units(out) <- "-"
     return(out)
   }
-
-  # make data frame with variables in each column from the list
-  df <- as.data.frame(t(sapply(l, handleNA, vars)))
-  names(df) <- vars
 
   # support Timelag filters (only vars c("h2o", "co2") expected)
   if (!all(c("u", "v", "w", "ts") %in% vars)) {
@@ -509,6 +618,9 @@ extract_coded <- function(x,
 #'
 #' Computes missing fraction of high frequency records for particular flux.
 #'
+#' Cases when `ur > mfr` cause error as they can result only from wrong user
+#' input and would be overlooked.
+#'
 #' @param x A data frame. Contains two columns with the count of high frequency
 #'   spikes detected for the pair of variables used to compute covariance.
 #' @param ur An integer vector. Number of used records for computation of
@@ -517,187 +629,324 @@ extract_coded <- function(x,
 #'   dataset).
 #'
 #' @keywords internal
+#' @noRd
 mf <- function(x, ur, mfr) {
+  # in case all ur are NA add FALSE (NAs are not an issue for the evaluation)
+  if (any(c(na.omit(ur), FALSE) > mfr)) {
+    stop("used_records higher than max_records", call. = FALSE)
+  }
   1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
 }
 
 #' Extract Quality Control Information
 #'
-#' QC information stored in columns of data frame \code{x} is extracted and
+#' QC information stored in columns of data frame `x` is extracted and
 #' interpreted in respect to instruments or individual fluxes.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column names according to considered QC filters. In
-#' the case of coded variables, attribute \code{units} containing the format of
-#' coded variable is required to extract the coded QC information. See
-#' \code{\link{extract_coded}}.
+#' The data frame `x` is expected to have certain properties. It is required
+#' that it contains column names according to considered QC filters. In the case
+#' of coded variables, attribute `units` containing the format of coded variable
+#' is required to extract the coded QC information. See [extract_coded()].
 #'
 #' Extracted QC information can be relevant to fluxes measured by given
 #' instrument(s), specific flux or is applicable to all fluxes. See 'Naming
 #' Strategy' below. Results are reported according to the QC scheme using QC
 #' flag range 0 - 2. In cases when extracted variable is checked against
-#' thresholds, \code{\link{apply_thr}} is used to assign flag values.
+#' thresholds, [apply_thr()] is used to assign flag values.
 #'
 #' Check of missing data in averaging period (missfrac) takes into account
 #' number of valid records used for given averaging period. This number is
 #' further reduced by the sum of count of high frequency data spikes out of
 #' variables needed to compute covariance. Covariance pairs are w, u (Tau); w,
-#' ts (H); w, h2o (LE) and w, co2 (NEE).
+#' ts (H); w, h2o (LE) and w, co2 (NEE). If `max_records = FALSE` (default),
+#' the number of records in averaging period is estimated as
+#' `max(x$file_records, na.rm = TRUE)`, i.e. fixed value for all records in `x`.
+#' If `max_records = TRUE`, column "max_records" manually inserted by user is
+#' expected in `x` instead of "file_records" that specifies the maximum amount
+#' of records for each averaging period if acquisition frequency changed.
+#'
+#' If `used_rotation = TRUE`, argument `rotation` is ignored and column
+#' "used_rotation" manually inserted by user is expected in `x` that specifies
+#' the type of rotation (either "double" or "planar fit"; cannot be abbreviated)
+#' used for each averaging period if rotation changed throughout the data set.
+#' Any other type of rotation value will be considered missing and assigned
+#' flag 0 (relaxed approach).
 #'
 #' @section Extracted QC Checks: Filters from coded EddyPro columns (thresholds
 #'   are set within EddyPro software). All of the filters extracted from coded
-#'   variables are not additive. \itemize{ \item spikesHF: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking}{high
-#'    frequency data spike percentage} in averaging period against thresholds.
-#'   HF in spikesHF means high frequency and distinguishes despiking done on raw
-#'   data (spikesHF) from despiking done on low frequency data (spikesLF; see
-#'   \code{\link{despikeLF}}). \item ampres: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution}{amplitude
-#'    resolution} in the recorded data. \item dropout: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts}{drop-outs},
-#'    i.e. situations when the time series stays for “too long” on a value that
-#'   is far from the mean. \item abslim: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits}{absolute
-#'    limits} when raw data are out of plausible range. \item skewkurt_sf and
-#'   skewkurt_hf: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis}{skewness
-#'    and kurtosis} limits. If \code{simplify = TRUE}, skewkurt_sf and
-#'   skewkurt_hf are combined into skewkurt column instead. \item discont_sf and
-#'   discont_hf: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities}{discontinuities}
-#'    that lead to semi-permanent changes in the time series. If \code{simplify
-#'   = TRUE}, discont_sf and discont_hf are combined into discont column
-#'   instead. \item timelag_sf and timelag_hf: check of estimated
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags}{timelags}
-#'    compared to the expected timelags. If \code{simplify = TRUE}, timelag_sf
-#'   and timelag_hf are combined into timelag column instead. \item attangle:
-#'   check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack}{angle
-#'    of attack}. \item nonsteady: check of
-#'   \href{https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind}{steadiness
-#'    of horizontal wind}.}
+#'   variables are not additive.
+#'   * spikesHF: check of [high frequency data spike
+#'   percentage](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Despiking)
+#'   in averaging period against thresholds. HF in spikesHF means high frequency
+#'   and distinguishes despiking done on raw data (spikesHF) from despiking done
+#'   on low frequency data (spikesLF; see [despikeLF()]).
+#'   * ampres: check of
+#'   [amplitude
+#'   resolution](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Amplituderesolution)
+#'   in the recorded data.
+#'    * dropout: check of
+#'   [drop-outs](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Dropouts),
+#'   i.e. situations when the time series stays for “too long” on a value that
+#'   is far from the mean.
+#'   * abslim: check of
+#'   [absolute
+#'   limits](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Absolutelimits)
+#'   when raw data are out of plausible range.
+#'   * skewkurt_sf and skewkurt_hf: check of
+#'   [skewness and
+#'   kurtosis](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Skewnessandkurtosis)
+#'   limits. If `simplify = TRUE`, skewkurt_sf and skewkurt_hf are combined into
+#'   skewkurt column instead.
+#'   * discont_sf and discont_hf: check of
+#'   [discontinuities](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Discontinuities)
+#'   that lead to semi-permanent changes in the time series. If `simplify =
+#'   TRUE`, discont_sf and discont_hf are combined into discont column instead.
+#'   * timelag_sf and timelag_hf: check of estimated
+#'   [timelags](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Timelags)
+#'   compared to the expected timelags. If `simplify = TRUE`, timelag_sf and
+#'   timelag_hf are combined into timelag column instead.
+#'   * attangle: check of
+#'   [angle of
+#'   attack](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Angleofattack).
+#'   * nonsteady: check of
+#'   [steadiness of horizontal
+#'   wind](https://www.licor.com/env/support/EddyPro/topics/despiking-raw-statistical-screening.html#Steadinessofhorizontalwind).
 #'
 #'   Additional filters extracted from EddyPro output. The only additive test is
-#'   "wresid". \itemize{ \item missfrac: check of missing data in averaging
-#'   period against thresholds (default is 10\%). \item scf: check of spectral
-#'   correction factor against thresholds. \item wresid: check of mean unrotated
-#'   \emph{w} (double rotation) or \emph{w} residual (planar fit) against
-#'   thresholds. \item runs: check of runs with repeating values
-#'   (see \code{\link{flag_runs}}). Flux values are rounded to 2 digits prior
-#'   checking runs, except for Tau. \item lowcov:
+#'   "wresid".
+#'   * missfrac: check of missing data in averaging
+#'   period against thresholds (default is 10%).
+#'   * scf: check of spectral
+#'   correction factor against thresholds.
+#'   * wresid: check of mean unrotated
+#'   *w* (double rotation) or *w* residual (planar fit) against
+#'   thresholds.
+#'   * runs: check of runs with repeating values
+#'   (see [flag_runs()]). Flux values are rounded to 2 digits prior checking
+#'   runs, except for Tau.
+#'   * lowcov:
 #'   check of fluxes too close to zero (assuming issues during covariance
-#'   computation) \item var: check of variances against thresholds. \item humid:
-#'   check of relative humidity against thresholds. \item LI7200: check of CO2
-#'   and H2O signal strength against thresholds. \item LI7500: check of CO2
+#'   computation)
+#'   * var: check of variances against thresholds.
+#'   * humid:
+#'   check of relative humidity against thresholds.
+#'   * LI7200: check of CO2
+#'   and H2O signal strength against thresholds.
+#'   * LI7500: check of CO2
 #'   signal strength against thresholds (H2O signal not provided by the
-#'   instrument).}
+#'   instrument).
 #'
-#' @section Content and Format of Columns: \itemize{ \item For details
-#'   concerning coded variables see \code{\link{extract_coded}}. \item
-#'   \code{"file_records"}: number of valid records found in the raw file \item
-#'   \code{"used_records"}: number of valid records used at given averaging
-#'   period. This number can also contain high frequency spikes that should be
-#'   excluded. \item \code{"u_spikes", "ts_spikes", "h2o_spikes" and
-#'   "co2_spikes"}: number of high frequency spikes detected at given averaging
-#'   period in respective variable. Values can be set to 0 if
-#'   \code{"used_records"} already accounts for spikes. \item \code{"Tau_scf",
-#'   "H_scf", "LE_scf" and "co2_scf"}: spectral correction factor for given
-#'   flux. Values are above 1. \item \code{"w_unrot", "w_rot"}: unrotated and
-#'   rotated \emph{w} wind component, respectively (should be close to 0 m
-#'   s-1).}
+#' @section Content and Format of Columns:
+#' * For details concerning coded variables see [extract_coded()].
+#' * `"file_records"`: number of valid records found in the raw file
+#' * `"used_records"`: number of valid records used at given averaging period.
+#'   This number can also contain high frequency spikes that should be excluded.
+#' * `"u_spikes", "ts_spikes", "h2o_spikes" and "co2_spikes"`: number of
+#'   high frequency spikes detected at given averaging period in respective
+#'   variable. Values can be set to 0 if `"used_records"` already accounts for
+#'   spikes.
+#' * `"Tau_scf", "H_scf", "LE_scf" and "co2_scf"`: spectral
+#'   correction factor for given flux. Values are above 1.
+#' * `"w_unrot", "w_rot"`: unrotated and rotated *w* wind component,
+#' respectively (should be close to 0 m s-1).
 #'
-#' @section Naming Strategy: \strong{QC prefixes} (specifies which flux is
-#'   affected by that QC output): \itemize{ \item qc_SA: applicable to fluxes
-#'   relying only on SA (Tau, H) \item qc_GA: applicable to fluxes relying on GA
-#'   (LE, NEE); only GA issues considered \item qc_SAGA: applicable to fluxes
-#'   relying both on SA and GA (LE, NEE); SA and GA issues considered \item
-#'   qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux \item
-#'   qc_ALL: applicable to all fluxes}
+#' @section Naming Strategy: **QC prefixes** (specifies which flux is
+#'   affected by that QC output):
+#'   * qc_SA: applicable to fluxes relying only on SA (Tau, H)
+#'   * qc_GA: applicable to fluxes relying on GA (LE, NEE); only GA issues
+#'   considered
+#'   * qc_SAGA: applicable to fluxes relying both on SA and GA (LE, NEE); SA and
+#'   GA issues considered
+#'   * qc_Tau, qc_H, qc_LE, qc_NEE: only applicable for the respective flux
+#'   * qc_ALL: applicable to all fluxes
 #'
-#'   \strong{QC suffixes} (specifies which QC check was performed to get this QC
-#'   output): \itemize{ \item See 'Extracted QC Checks' above for the complete
-#'   list.}
+#'   **QC suffixes** (specifies which QC check was performed to get this QC
+#'   output):
+#'   * See 'Extracted QC Checks' above for the complete list.
 #'
-#' @section Abbreviations: \itemize{ \item QC: Quality Control \item SA: Sonic
-#'   Anemometer \item GA: Gas Analyzer \item Tau: Momentum flux [kg m-1 s-2]
-#'   \item H: Sensible heat flux [W m-2] \item LE: Latent heat flux [W m-2]
-#'   \item NEE: Net ecosystem exchange [umol m-2 s-1] \item u: Longitudinal wind
-#'   speed component [m s-1] \item w: Vertical wind speed component [m s-1]
-#'   \item ts: Sonic temperature [degC] \item h2o: H2O concentration [mmol
-#'   mol-1] \item co2: CO2 concentration [umol mol-1] \item RH: relative
-#'   humidity}.
+#' @section Abbreviations:
+#' * QC: Quality Control
+#' * SA: Sonic Anemometer
+#' * GA: Gas Analyzer
+#' * Tau: Momentum flux \[kg m-1 s-2\]
+#' * H: Sensible heat flux \[W m-2\]
+#' * LE: Latent heat flux \[W m-2\]
+#' * NEE: Net ecosystem exchange \[umol m-2 s-1\]
+#' * u: Longitudinal wind speed component \[m s-1\]
+#' * w: Vertical wind speed component \[m s-1\]
+#' * ts: Sonic temperature \[degC\]
+#' * h2o: H2O concentration \[mmol mol-1\]
+#' * co2: CO2 concentration \[umol mol-1\]
+#' * RH: relative humidity \[%\].
 #'
 #' @section References: Foken, T., Wichura, B., 1996. Tools for quality
 #'   assessment of surface-based flux measurements. Agric. For. Meteorol. 78,
-#'   83–105. \url{https://doi.org/10.1016/0168-1923(95)02248-1}
+#'   83–105. <https://doi.org/10.1016/0168-1923(95)02248-1>
 #'
 #'   Vickers, D. and Mahrt, L., 1997. Quality Control and Flux Sampling Problems
 #'   for Tower and Aircraft Data. Journal of Atmospheric and Oceanic Technology,
 #'   14(3), 512-526.
-#'   \url{https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2}
+#'   [https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2](https://doi.org/10.1175/1520-0426(1997)014<0512:QCAFSP>2.0.CO;2)
 #'
 #'   Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C., Schmid, H.P.,
 #'   Schmidt, M., Steinbrecher, R., 2013. A strategy for quality and uncertainty
 #'   assessment of long-term eddy-covariance measurements. Agric. For. Meteorol.
-#'   169, 122-135. \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   169, 122-135. <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
 #'   McGloin, R., Sigut, L., Havrankova, K., Dusek, J., Pavelka, M., Sedlak, P.,
 #'   2018. Energy balance closure at a variety of ecosystems in Central Europe
 #'   with contrasting topographies. Agric. For. Meteorol. 248, 418-431.
-#'   \url{https://doi.org/10.1016/j.agrformet.2017.10.003}
+#'   <https://doi.org/10.1016/j.agrformet.2017.10.003>
 #'
-#' @return A data frame. Each column has attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return A data frame. Each column has attributes `"varnames"` and `"units"`.
 #'
 #' @param x A data frame with column names representing required variables.
 #' @param filters A character vector. A full set of supported filters to extract
 #'   (default) or its subset.
 #' @param rotation A character string. Specifies the type of coordinate rotation
 #'   applied. Allowed values are "double" and "planar fit". Can be abbreviated.
-#' @param prefix Character string containing a \code{\link{regular expression}}
-#'   identifying the prefix of coded values. See '\code{\link{extract_coded}}'.
-#' @param split Character string containing a \code{\link{regular expression}}
-#'   identifying the separator of variable names in \code{units} attribute. See
-#'   '\code{\link{extract_coded}}'.
+#' @param prefix Character string containing a [regular expression] identifying
+#'   the prefix of coded values. See [extract_coded()].
+#' @param split Character string containing a [regular expression] identifying
+#'   the separator of variable names in `units` attribute. See
+#'   [extract_coded()].
 #' @param missfrac_thr A numeric vector with 2 non-missing values. Represents
 #'   thresholds for fraction of missing high frequency data within averaging
-#'   period if \code{filters} include \code{"missfrac"}. \code{\link{apply_thr}}
-#'   flags the records higher than the given thresholds.
+#'   period if `filters` include `"missfrac"`. [apply_thr()] flags the records
+#'   higher than the given thresholds.
 #' @param scf_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for spectral correction factor if \code{filters} include
-#'   \code{"scf"}. \code{\link{apply_thr}} flags the records higher than the
-#'   given thresholds.
+#'   thresholds for spectral correction factor if `filters` include `"scf"`.
+#'   [apply_thr()] flags the records higher than the given thresholds.
 #' @param w_unrot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for absolute value of unrotated \emph{w} if \code{filters}
-#'   include \code{"wresid"} and \code{rotation = "double"}.
-#'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
+#'   thresholds for absolute value of unrotated *w* if `filters` include
+#'   `"wresid"` and `rotation = "double"`. [apply_thr()] flags the records
+#'   higher than the given thresholds.
 #' @param w_rot_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for absolute value of rotated \emph{w} if \code{filters} include
-#'   \code{"wresid"} and \code{rotation = "planar fit"}. \code{\link{apply_thr}}
-#'   flags the records higher than the given thresholds.
+#'   thresholds for absolute value of rotated *w* if `filters` include
+#'   `"wresid"` and `rotation = "planar fit"`. [apply_thr()] flags the records
+#'   higher than the given thresholds.
 #' @param lowcov_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for computed covariance if \code{filters} include
-#'   \code{"lowcov"}. \code{\link{apply_thr}} flags the records between given
-#'   thresholds.
+#'   thresholds for computed covariance if `filters` include `"lowcov"`.
+#'   [apply_thr()] flags the records between given thresholds.
 #' @param ts_var_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for sonic temperature variance if \code{filters} include
-#'   \code{"var"}. \code{\link{apply_thr}} flags the records higher than the
-#'   given thresholds.
+#'   thresholds for sonic temperature variance if `filters` include `"var"`.
+#'   [apply_thr()] flags the records higher than the given thresholds.
 #' @param RH_thr A numeric vector with 2 non-missing values. Represents
-#'   thresholds for relative humidity if \code{filters} include \code{"humid"}.
-#'   \code{\link{apply_thr}} flags the records higher than the given thresholds.
+#'   thresholds for relative humidity if `filters` include `"humid"`.
+#'   [apply_thr()] flags the records higher than the given thresholds.
 #' @param LI7200_signal_thr,LI7500_signal_thr A numeric vector with 2
 #'   non-missing values. Represents thresholds for signal strength provided by
-#'   LI-COR 7200 or 7500 if \code{filters} include \code{"LI7200"} or
-#'   \code{"LI7500"}. \code{\link{apply_thr}} flags the records lower than the
-#'   given thresholds.
-#' @param simplify A logical value. Should be soft (suffix \code{"_sf"} in
-#'   EddyPro column name) and hard (suffix \code{"_hf"} in EddyPro column name)
-#'   flags extracted from EddyPro coded variables combined? See
-#'   \code{\link{extract_coded}}.
+#'   LI-COR 7200 or 7500 if `filters` include `"LI7200"` or `"LI7500"`.
+#'   [apply_thr()] flags the records lower than the given thresholds.
+#' @param max_records A logical value. If `TRUE`, column "max_records" is
+#'   expected in `x` (see Details).
+#' @param used_rotation A logical value. If `TRUE`, column "used_rotation" is
+#'   expected in `x` (see Details).
+#' @param simplify A logical value. Should be soft (suffix `"_sf"` in EddyPro
+#'   column name) and hard (suffix `"_hf"` in EddyPro column name) flags
+#'   extracted from EddyPro coded variables combined? See [extract_coded()].
 #'
-#' @seealso \code{\link{extract_coded}} and \code{\link{apply_thr}}.
+#' @seealso [label_periods()], [extract_coded()] and [apply_thr()].
 #'
+#' @examples
+#' # filters are obtained by comparing thresholds directly with EddyPro column(s)
+#' simple <- data.frame(co2_signal_strength_7500_mean = 100)
+#' extract_QC(simple, LI7500_signal_thr = c(90, 80), filters = "LI7500")
+#'
+#' # or columns need to be extracted from a coded column before comparison
+#' # - this requires presence of units specifying the pattern for decoding
+#' coded <- data.frame(attack_angle_hf = 81)
+#' units(coded) <- "8aa"
+#' extract_QC(coded, filters = "attangle")
+#'
+#' # complete list of supported coded EddyPro columns with their data format
+#' x <- data.frame(
+#'   spikes_hf = 800000099,
+#'   amplitude_resolution_hf = 800000099,
+#'   drop_out_hf = 800000099,
+#'   absolute_limits_hf = 800000099,
+#'   skewness_kurtosis_hf = 800000099,
+#'   skewness_kurtosis_sf = 800000099,
+#'   discontinuities_hf = 800001199,
+#'   discontinuities_sf = 800011199,
+#'   timelag_hf = 80000,
+#'   timelag_sf = 80100,
+#'   attack_angle_hf = 81,
+#'   non_steady_wind_hf = 80
+#' )
+#'
+#' # units specifying the pattern for decoding (provided by EddyPro)
+#' units(x) <- c(
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8u/v/w/ts/co2/h2o/ch4/none",
+#'   "8co2/h2o/ch4/none",
+#'   "8co2/h2o/ch4/none",
+#'   "8aa",
+#'   "8U"
+#' )
+#'
+#' # run all filters based on coded EddyPro columns
+#' extract_QC(
+#'   x,
+#'   filters = c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf",
+#'               "skewkurt_sf", "discont_hf", "discont_sf", "timelag_hf",
+#'               "timelag_sf", "attangle", "nonsteady"))
+#'
+#' # list of columns required by remaining filters
+#' y <- data.frame(
+#'   # columns needed for 'missfrac' filter
+#'   file_records = 36000,
+#'   used_records = 36000,
+#'   w_spikes = 0,
+#'   u_spikes = 0,
+#'   ts_spikes = 0,
+#'   h2o_spikes = 0,
+#'   co2_spikes = 0,
+#'   # columns needed for 'scf' filter
+#'   Tau_scf = 0, H_scf = 0, LE_scf = 0, co2_scf = 0,
+#'   # columns needed for 'wresid' filter (rotation = 'double')
+#'   w_unrot = 0.001,
+#'   # columns needed for 'runs' and 'lowcov' filters
+#'   Tau = 0.2, H = 50, LE = 50, NEE = -5,
+#'   # columns needed for 'var' filter
+#'   ts_var = 6,
+#'   # columns needed for 'humid' filter
+#'   RH = 99,
+#'   # columns needed for 'LI7200' filter
+#'   co2_signal_strength_7200_mean = 85, h2o_signal_strength_7200_mean = 86,
+#'   # columns needed for 'LI7500' filter
+#'   co2_signal_strength_7500_mean = 95
+#' )
+#'
+#' # function extracts only available filters (coded columns are missing)
+#' # - user is informed about skipped filters but no error or warning is issued
+#' extract_QC(y)
+#'
+#' # missfrac filter with max_records = TRUE
+#' z <- data.frame(
+#'   # columns needed for 'missfrac' filter
+#'   max_records = c(18000, 36000),
+#'   used_records = c(18000, 36000),
+#'   w_spikes = 0,
+#'   u_spikes = 0,
+#'   ts_spikes = 0,
+#'   h2o_spikes = 0,
+#'   co2_spikes = 0
+#' )
+#' extract_QC(z, filters = "missfrac", max_records = TRUE)
+#'
+#' # wresid filter with used_rotation = TRUE
+#' extract_QC(data.frame(
+#'   w_unrot = c(NA, 0.1, 0.4, 0.1, 0.4),
+#'   w_rot = c(NA, 0.001, 0.2, 0.001, 0.2),
+#'   used_rotation = c("wrong name", rep("double", 2), rep("planar fit", 2))),
+#'   filters = "wresid", used_rotation = TRUE)
 #' @export
 extract_QC <- function(x,
                        filters = c("spikesHF", "ampres", "dropout",
@@ -713,7 +962,9 @@ extract_QC <- function(x,
                        w_unrot_thr = c(0.35, 0.35), w_rot_thr = c(0.1, 0.15),
                        lowcov_thr = c(-0.005, 0.005), ts_var_thr = c(2, 2),
                        RH_thr = c(95, 95), LI7200_signal_thr = c(90, 80),
-                       LI7500_signal_thr = c(90, 80), simplify = TRUE) {
+                       LI7500_signal_thr = c(90, 80),
+                       max_records = FALSE, used_rotation = FALSE,
+                       simplify = TRUE) {
   # Basic check of input =======================================================
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
@@ -777,7 +1028,9 @@ extract_QC <- function(x,
           out[sfhf[i, ][sfhf_av]] <- NULL
         }
       }
-      message("-> soft and hard flags were combined (simplify = TRUE)")
+      if (sum(EP_avail)) {
+        message("-> soft and hard flags were combined (simplify = TRUE)")
+      }
     }
   }
 
@@ -786,8 +1039,9 @@ extract_QC <- function(x,
   # checks the fraction of missing high frequency records against missfrac_thr
   if ("missfrac" %in% filters) {
     message("Extracting 'missfrac' filters")
-    mf_vars <- c("file_records", "used_records", "w_spikes", "u_spikes",
-                 "ts_spikes", "h2o_spikes", "co2_spikes")
+    mf_vars <- c(if (max_records) "max_records" else "file_records",
+                 "used_records", "w_spikes", "u_spikes", "ts_spikes",
+                 "h2o_spikes", "co2_spikes")
     mf_avail <- mf_vars %in% x_names
     if (any(!mf_avail)) {
       message("- missing EddyPro columns: ",
@@ -795,7 +1049,8 @@ extract_QC <- function(x,
     }
     if (all(mf_avail)) {
       ur <- x$used_records
-      mfr <- max(x$file_records, na.rm = TRUE) # maximum file records (mfr)
+      mfr <- if (max_records) x[, "max_records"] else
+        max(x$file_records, na.rm = TRUE) # maximum file records (mfr)
       mf_Tau  <- mf(x[c("w_spikes", "u_spikes")], ur, mfr)
       mf_H    <- mf(x[c("w_spikes", "ts_spikes")], ur, mfr)
       mf_LE   <- mf(x[c("w_spikes", "h2o_spikes")], ur, mfr)
@@ -840,22 +1095,76 @@ extract_QC <- function(x,
   # probable advection
   if ("wresid" %in% filters) {
     message("Extracting 'wresid' filter")
-    rotation <- match.arg(rotation)
-    wr_var <- ifelse(rotation == "double", "w_unrot", "w_rot")
-    message(paste("-", rotation, "rotation -> using",
-                  ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
-    # double rotation: abs(w_unrot) should be < 0.35 m/s
-    # planar fit: flag correction according to residual absolute w
-    # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
-    wr_avail <- wr_var %in% x_names
-    if (!wr_avail) {
-      message("- missing EddyPro column: ", wr_var)
-      message("-> skipped")
+    rotation <- if (!used_rotation) match.arg(rotation)
+    if (used_rotation) {
+      rtypes <- c("double", "planar fit")
+      wr_avail <- "used_rotation" %in% x_names
+      if (!wr_avail) {
+        message("- missing 'x' column: used_rotation")
+        message("-> skipped")
+      } else {
+        urot <- x[, "used_rotation"]
+        wr_var <- NULL
+        if ("double" %in% urot) wr_var <- c(wr_var, "w_unrot")
+        if ("planar fit" %in% urot) wr_var <- c(wr_var, "w_rot")
+        if (is.null(wr_var)) {
+          message("- no recognized type of rotation in 'x$used_rotation'")
+          message("-> skipped")
+        } else {
+          message("- applied rotation: ",
+                  paste0(rtypes[rtypes %in% urot], collapse = ", "),
+                  " -> using ", paste0(c(
+                    if ("double" %in% urot) "w_unrot_thr",
+                    if ("planar fit" %in% urot) "w_rot_thr"),
+                    collapse = ", "))
+          if (!all(urot %in% rtypes)) {
+            message("- unrecognized rotation types: ",
+                    paste0(unique(urot[!urot %in% rtypes]), collapse = ", "))
+          }
+          urot[!urot %in% rtypes] <- "missing"
+          wr_avail <- wr_var %in% x_names
+          if (!all(wr_avail)) {
+            message("- missing EddyPro column: ",
+                    paste0(wr_var[!wr_avail], collapse = ", "))
+            message("-> skipped")
+          } else {
+            # actual computation of wresid filter for custom setup
+            # max 3 cases (double, planar fit, missing)
+            l <- split(x[wr_var], urot)
+            if ("double" %in% urot) {
+              # absw_d <- abs(x$w_unrot)
+              l$double <- apply_thr(abs(l$double$w_unrot), w_unrot_thr)
+            }
+            if ("planar fit" %in% urot) {
+              l$`planar fit` <- apply_thr(abs(l$`planar fit`$w_rot), w_rot_thr)
+            }
+            if ("missing" %in% urot) {
+              l$missing <- integer(nrow(l$missing)) # relaxed approach
+            }
+            out$qc_ALL_wresid <- unsplit(l, urot)
+            varnames(out$qc_ALL_wresid) <- "qc_ALL_wresid"
+            units(out$qc_ALL_wresid) <- "-"
+            message("-> success")
+          }
+        }
+      }
     } else {
-      thr <- if (rotation == "double") w_unrot_thr else w_rot_thr
-      absw <- abs(if (rotation == "double") x$w_unrot else x$w_rot)
-      out$qc_ALL_wresid <- apply_thr(absw, thr, "qc_ALL_wresid")
-      message("-> success")
+      wr_var <- ifelse(rotation == "double", "w_unrot", "w_rot")
+      message(paste("-", rotation, "rotation -> using",
+                    ifelse(rotation == "double", "w_unrot_thr", "w_rot_thr")))
+      # double rotation: abs(w_unrot) should be < 0.35 m/s
+      # planar fit: flag correction according to residual absolute w
+      # abs(w) > 0.10 m s-1: flag incresead by +1, abs(w) > 0.15 m s-1: flag = 2
+      wr_avail <- wr_var %in% x_names
+      if (!wr_avail) {
+        message("- missing EddyPro column: ", wr_var)
+        message("-> skipped")
+      } else {
+        thr <- if (rotation == "double") w_unrot_thr else w_rot_thr
+        absw <- abs(if (rotation == "double") x$w_unrot else x$w_rot)
+        out$qc_ALL_wresid <- apply_thr(absw, thr, "qc_ALL_wresid")
+        message("-> success")
+      }
     }
   }
 
@@ -935,7 +1244,7 @@ extract_QC <- function(x,
     } else message("-> skipped")
   }
 
-  ### Extract humid filter =======================================================
+  ### Extract humid filter =====================================================
 
   # CO2 fluxes are not reliable if relative humidity is above 95%
   # https://www.licor.com/env/support/LI-7200RS/topics/specifications.html
@@ -959,14 +1268,14 @@ extract_QC <- function(x,
     } else message("-> skipped")
   }
 
-  ### Extract LI7200 filter =======================================================
+  ### Extract LI7200 filter ====================================================
 
   # LE and NEE fluxes are not reliable if signal strength is too low
   # - <90 flag 1, <80 flag 2
   if ("LI7200" %in% filters) {
     message("Extracting 'LI7200' filter")
     LI_vars <- c("co2_signal_strength_7200_mean",
-                "h2o_signal_strength_7200_mean")
+                 "h2o_signal_strength_7200_mean")
     nout <- "qc_GA_LI7200"
     LI7200_avail <- LI_vars %in% x_names
     if (any(!LI7200_avail)) {
@@ -1012,119 +1321,154 @@ extract_QC <- function(x,
 #'
 #' Flux interdependency is an additive QC flag correction. Results follow the QC
 #' scheme using QC flag range 0 - 2. Returned data frame follows the 'Naming
-#' Strategy' described in \code{\link{extract_QC}}. Returned QC flags have QC
+#' Strategy' described in [extract_QC()]. Returned QC flags have QC
 #' suffix interdep.
 #'
 #' To convert buoyancy flux to sensible heat flux (SND or Schotanus correction),
 #' reliable measurements of LE must be available. To correct LE and NEE
-#' estimated by open-path IRGA (\code{IRGA = "open"}) for the effects of density
+#' estimated by open-path IRGA (`IRGA = "open"`) for the effects of density
 #' fluctuations due to temperature and humidity fluctuations (WPL or Webb
 #' correction), reliable measurements of H must be available. To perform WPL
 #' correction of NEE estimated with any kind of IRGA, reliable measurements of
 #' LE must be available. Thus following set of rules apply:
 #'
-#' If \code{IRGA = "en_closed"} \itemize{ \item If \code{qc_LE == 2 |
-#' is.na(qc_LE) == TRUE}: qc_H and qc_NEE flags are increased by 1.} If
-#' \code{IRGA = "open"} \itemize{ \item if \code{qc_LE == 2 | is.na(qc_LE) ==
-#' TRUE}: qc_H flags are increased by 1. \item If \code{qc_H == 2 | is.na(qc_H)
-#' == TRUE}: qc_LE flags are increased by 1. \item If \code{qc_H == 2 |
-#' is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE}: qc_NEE flags are
-#' increased by 1.}
+#' If `IRGA = "en_closed"`
+#' * If `qc_LE == 2 | is.na(qc_LE) == TRUE`: qc_H and qc_NEE flags are increased
+#' by 1.
 #'
-#' @section Abbreviations: \itemize{ \item QC: Quality Control \item H: Sensible
-#'   heat flux [W m-2] \item LE: Latent heat flux [W m-2] \item NEE: Net
-#'   ecosystem exchange [umol m-2 s-1] \item IRGA: Infrared Gas Analyzer}.
+#' If `IRGA = "open"`
+#' * if `qc_LE == 2 | is.na(qc_LE) == TRUE`: qc_H flags are increased by 1.
+#' * If `qc_H == 2 | is.na(qc_H) == TRUE`: qc_LE flags are increased by 1.
+#' * If `qc_H == 2 | is.na(qc_H) == TRUE | qc_LE == 2 | is.na(qc_LE) == TRUE`:
+#' qc_NEE flags are increased by 1.
+#'
+#' Input is not provided via a data frame on purpose. Required QC flags
+#' typically need to be computed and are not part of the original EddyPro file.
+#' These QC flags also serve no other purpose than for `interdep()` and are
+#' not further used.
+#'
+#' @section Abbreviations:
+#' * QC: Quality Control
+#' * H: Sensible heat flux \[W m-2\]
+#' * LE: Latent heat flux \[W m-2\]
+#' * NEE: Net ecosystem exchange \[umol m-2 s-1\]
+#' * IRGA: Infrared Gas Analyzer.
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
 #'   and uncertainty assessment of long-term eddy-covariance measurements.
 #'   Agric. For. Meteorol. 169, 122-135.
-#'   \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
-#' @return A data frame. Each column has attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return A data frame. Each column has attributes `"varnames"` and
+#'   `"units"`.
 #'
-#' @param qc_LE An atomic type containing numeric or NA values. Combination of
-#'   all available QC flags for LE.
-#' @param qc_H An atomic type containing numeric or NA values. Combination of
-#'   all available QC flags for H. Used only if \code{IRGA = "open"}.
+#' @param qc_LE An integer vector. Latent heat quality control flags combining
+#' all filters relevant for detection of instrument failure.
+#' @param qc_H An integer vector. Sensible heat quality control flags combining
+#' all filters relevant for detection of instrument failure. Used only if
+#'  `IRGA = "open"`.
 #' @param IRGA A character string. Specifies the type of IRGA. Allowed values
-#'   are \code{"en_closed"} both for closed and enclosed path systems and
-#'   \code{"open"} for open path systems. Can be abbreviated.
+#'   are "en_closed" both for closed and enclosed path systems and
+#'   "open" for open path systems. Can be abbreviated.
+#' @param used_IRGA A character vector or `NULL`. If specified, user-provided
+#'  IRGA type (either "en_closed" or "open"; cannot be abbreviated) used within
+#'  each averaging period is expected if IRGA type changed throughout the data
+#'  set. Any other `used_IRGA` value will be considered missing and assigned
+#'  flag 0 (relaxed approach). `IRGA` is ignored if `used_IRGA` is specified.
 #'
-#' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
+#' @seealso [label_periods()], [combn_QC()] and [extract_QC()].
+#'
+#' @examples
+#' interdep(0:2, IRGA = "en_closed")
+#' interdep(0:2, 2:0, IRGA = "open")
+#' interdep(0:2, 2:0, used_IRGA = c("enclosed", "open", "en_closed"))
 #'
 #' @export
-interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open")) {
-  if (!is.atomic(qc_LE) || !is.atomic(qc_H)) {
-    stop("'qc_LE' and 'qc_H' must be an atomic type")
+interdep <- function(qc_LE, qc_H = NULL, IRGA = c("en_closed", "open"),
+                     used_IRGA = NULL) {
+  if (is.null(used_IRGA)) {
+    IRGA <- match.arg(IRGA)
+    includes_open <- IRGA == "open"
+  } else {
+    includes_open <- "open" %in% used_IRGA
   }
-  IRGA <- match.arg(IRGA)
-  if (!is.null(qc_LE) && !is.numeric(qc_LE) && !all(is.na(qc_LE))) {
-    stop("'qc_LE' must contain numeric or NA values")
-  }
-  if (IRGA == "open") {
-    if (!is.null(qc_H) && !is.numeric(qc_H) && !all(is.na(qc_H))) {
-      stop("'qc_H' must contain numeric or NA values")
-    }
-  }
+  gatypes <- c("en_closed", "open")
   len <- length(qc_LE)
-  if (IRGA == "open" && len != length(qc_H)) {
-    stop("length(qc_LE) and length(qc_H) must be equal")
+  if (includes_open && len != length(qc_H)) {
+    stop("length of 'qc_LE' and 'qc_H' is not equal")
+  }
+  if (!is.null(used_IRGA) && len != length(used_IRGA)) {
+    stop("length of 'qc_LE' and 'used_IRGA' is not equal")
   }
   # qc_H is influencing variable only for open path system
   nout <- c("qc_H_interdep", "qc_LE_interdep", "qc_NEE_interdep")
-  out <- data.frame(rep(NA, len), rep(NA, len), rep(NA, len))
-  names(out) <- nout
-  for (i in nout) {
-    attributes(out[, i]) <- list(varnames = i, units = "-")
-  }
+  out <- data.frame(integer(len), integer(len), integer(len))
+  names(out) <- varnames(out) <- nout
+  units(out) <- rep("-", 3)
   if (length(qc_LE) == 0) {
     if (IRGA != "open") out$qc_LE_interdep <- NULL
     return(out)
   }
-  qc_LE[is.na(qc_LE)] <- 2L
-  out$qc_H_interdep[qc_LE <  2] <- 0L
-  out$qc_H_interdep[qc_LE >= 2] <- 1L
-  if (IRGA == "open") {
-    qc_H[is.na(qc_H)] <- 2L
-    out$qc_LE_interdep[qc_H <  2] <- 0L
-    out$qc_LE_interdep[qc_H >= 2] <- 1L
-    out$qc_NEE_interdep[qc_LE <  2 & qc_H <  2] <- 0L
-    out$qc_NEE_interdep[qc_LE >= 2 | qc_H >= 2] <- 1L
-  } else {
-    out$qc_LE_interdep <- NULL
-    out$qc_NEE_interdep[qc_LE <  2] <- 0L
-    out$qc_NEE_interdep[qc_LE >= 2] <- 1L
+  if (!is.null(used_IRGA)) {
+    # any supported IRGA type?
+    # which types included?
+    # which not recognized
+    if (!any(gatypes %in% used_IRGA)) {
+      stop("no recognized type of IRGA in 'used_IRGA'")
+    } else {
+      message("- recognized IRGA types: ",
+              paste0(gatypes[gatypes %in% used_IRGA], collapse = ", "))
+    }
+    if (!all(used_IRGA %in% gatypes)) {
+      message("- unrecognized IRGA types: ",
+              paste0(unique(used_IRGA[!used_IRGA %in% gatypes]),
+                     collapse = ", "))
+    }
   }
+  if (is.null(used_IRGA)) used_IRGA <- rep(IRGA, len)
+  used_IRGA[!used_IRGA %in% gatypes] <- "missing"
+  # at this point all used_IRGA cannot be "missing"
+  # qc_interdep values initialized with flag 0 (no exclusion)
+  qc_LE[is.na(qc_LE)] <- 2L
+  out$qc_H_interdep[qc_LE == 2 & used_IRGA != "missing"] <- 1L
+  # only for IRGA = "open" cases
+  qc_H[used_IRGA == "open" & is.na(qc_H)] <- 2L
+  out$qc_LE_interdep[used_IRGA == "open" & qc_H == 2] <- 1L
+  out$qc_NEE_interdep[used_IRGA == "open" & (qc_LE == 2 | qc_H == 2)] <- 1L
+  # only if no IRGA = "open" detected
+  if (!includes_open) out$qc_LE_interdep <- NULL
+  # only for IRGA = "en_closed" cases
+  out$qc_NEE_interdep[used_IRGA == "en_closed" & qc_LE == 2] <- 1L
   return(out)
 }
 
 #' Apply despiking to a given subset
 #'
 #' This is a low level function not intended to be used on its own. It is
-#' utilized by \code{\link{despikeLF}} that should be used instead.
+#' utilized by [despikeLF()] that should be used instead.
 #'
-#' @param xBlock1 The double-differenced \code{var} time series with appropriate
+#' @param xBlock1 The double-differenced `var` time series with appropriate
 #'   block size.
 #' @param xBlock2 Serves for computing despiking threshold and can be from the
-#'   same block as \code{xBlock1} (default) or from the whole year (more
+#'   same block as `xBlock1` (default) or from the whole year (more
 #'   conservative when less data available).
-#' @param refBlock1 \code{var} values from appropriate block for finding
+#' @param refBlock1 `var` values from appropriate block for finding
 #'   false-flagged spikes by comparison with scaled median absolute deviation.
-#' @param refBlock2 \code{var} values for computing median and mad from the same
-#'   block as \code{refBlock1} (default) or whole year (more conservative when
+#' @param refBlock2 `var` values for computing median and mad from the same
+#'   block as `refBlock1` (default) or whole year (more conservative when
 #'   less data available).
 #' @param z A numeric value. \eqn{MAD} scale factor.
-#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#' @param c A numeric value. [mad()] scale factor. Default is `3
+#'   * [mad] constant` (`i.e. 3 * 1.4826 = 4.4478`).
 #'
-#' @return A logical vector. \code{TRUE} values flag spikes.
+#' @return A logical vector. `TRUE` values flag spikes.
 #'
-#' @seealso use \code{\link{despikeLF}} instead.
+#' @seealso use [despikeLF()] instead.
 #'
 #' @importFrom stats mad
 #' @keywords internal
+#' @noRd
 desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
                  refBlock2 = refBlock1, z, c) {
   med_block <- median(xBlock2, na.rm = TRUE)
@@ -1148,30 +1492,31 @@ desp <- function(xBlock1, xBlock2 = xBlock1, refBlock1,
 #' Apply despiking to all data blocks
 #'
 #' This is a low level function not intended to be used on its own. It is
-#' utilized by \code{\link{despikeLF}} that should be used instead.
+#' utilized by [despikeLF()] that should be used instead.
 #'
-#' @param SD_sub A data frame prepared by \code{\link{despikeLF}} with expected
+#' @param SD_sub A data frame prepared by [despikeLF()] with expected
 #'   columns Index, Date, timestamp, var, Spike and Light. This is a subset of
-#'   data (\code{x}) provided to \code{\link{despikeLF}} containing only the
+#'   data (`x`) provided to [despikeLF()] containing only the
 #'   data of good quality.
-#' @param date An unsubsetted vector of class \code{"Date"} extracted from data
-#'   frame \code{x} fed to \code{\link{despikeLF}}.
+#' @param date An unsubsetted vector of class `"Date"` extracted from data
+#'   frame `x` fed to [despikeLF()].
 #' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
-#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
-#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#' @param c A numeric value. [mad()] scale factor. Default is `3
+#'   * [mad] constant` (`i.e. 3 * 1.4826 = 4.4478`).
+#' @param plot A logical value. If `TRUE`, list of [ggplot2::ggplot()]
 #'   objects visualizing the spikes is also produced.
 #'
-#' @return If \code{plot = FALSE}, an updated data frame \code{SD_sub} with
+#' @return If `plot = FALSE`, an updated data frame `SD_sub` with
 #'   identified spikes in column Spike and with three new columns var_minus,
-#'   var_plus and diff. If \code{plot = TRUE}, a list with elements \code{SD} (a
-#'   data frame identical to the one produced if \code{plot = FALSE}) and
-#'   \code{plots} containing a list of \code{ggplot} objects.
+#'   var_plus and diff. If `plot = TRUE`, a list with elements `SD` (a
+#'   data frame identical to the one produced if `plot = FALSE`) and
+#'   `plots` containing a list of `ggplot` objects.
 #'
 #' @importFrom ggplot2 aes
 #' @keywords internal
+#' @noRd
 desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
   SD_sub$var_minus <- c(NA, SD_sub$var[-nrow(SD_sub)])
   SD_sub$var_plus <- c(SD_sub$var[-1], NA)
@@ -1244,103 +1589,105 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #' double-differenced time series to identify outliers.
 #'
 #' Low Frequency Data Despiking is not an additive quality control (QC) test.
-#' \code{despikeLF} follows the QC scheme using QC flag range 0 - 2.
-#' \code{varnames} attribute of returned vector should be chosen to follow the
-#' 'Naming Strategy' described in \code{\link{extract_QC}}, i.e. to be
-#' distinguished by suffix \code{"_spikesLF"}.
+#' `despikeLF` follows the QC scheme using QC flag range 0 - 2.
+#' `varnames` attribute of returned vector should be chosen to follow the
+#' 'Naming Strategy' described in [extract_QC()], i.e. to be
+#' distinguished by suffix `"_spikesLF"`.
 #'
-#' The data frame \code{x} is expected to have certain properties. It is
-#' required that it contains column named \code{"timestamp"} of class
-#' \code{"POSIXt"} with regular sequence of date-time values, typically with
-#' (half-)hourly time interval. Any missing values in \code{"timestamp"} are not
+#' The data frame `x` is expected to have certain properties. It is
+#' required that it contains column named `"timestamp"` of class
+#' `"POSIXt"` with regular sequence of date-time values, typically with
+#' (half-)hourly time interval. Any missing values in `"timestamp"` are not
 #' allowed. Thus, if no records exist for given date-time value, it still has to
 #' be included. It also has to contain required (depends on the argument values)
-#' column names. If QC flags are not available for \code{var}, \code{qc_flag}
-#' still has to be included in \code{x} as a named column with all values set to
-#' \code{0} (i.e. all values will be checked for outliers).
+#' column names.
 #'
-#' Only non-missing \code{var} values with corresponding \code{qc_flag} values
-#' below \code{2} are used to detect the outliers. Missing \code{var} values or
-#' those with assigned flag \code{2} or \code{NA} are not checked and marked by
-#' \code{NA} flag in the output. Thus \code{NA} values of \code{despikeLF}
+#' `light` and `night_thr` are intended to separate data to night and
+#' day subsets with different statistical properties. `NA`s in
+#' `x[light]` are thus not allowed due to the subsetting. Despiking is then
+#' applied to individual subsets and combined QC flags are returned. For the
+#' purpose of day/night separation, it may be sufficient to compute potential
+#' radiation (PotRad \[W m-2\]) using [REddyProc::fCalcPotRadiation()].
+#'
+#' Only non-missing `var` values with corresponding `qc_flag` values
+#' below `2` are used to detect the outliers. Missing `var` values or
+#' those with assigned flag `2` or `NA` are not checked and marked by
+#' `NA` flag in the output. Thus `NA` values of `despikeLF`
 #' should be considered as not checked records and therefore interpreted as
-#' \code{0} flag within the \code{0 - 2} quality control scheme.
+#' `0` flag within the `0 - 2` quality control scheme.
 #'
-#' \code{var_thr} is intended for exclusion of data clearly outside of
-#' theoretically acceptable range for the whole dataset. If \code{var_thr} is
-#' specified, \code{var} values below \code{var_thr[1]} and above
-#' \code{var_thr[2]} are marked as spikes (flag 2) in the output. Such values
+#' `var_thr` is intended for exclusion of data clearly outside of
+#' theoretically acceptable range for the whole dataset. If `var_thr` is
+#' specified, `var` values below `var_thr[1]` and above
+#' `var_thr[2]` are marked as spikes (flag 2) in the output. Such values
 #' are further not used for computing statistics on double-differenced time
 #' series.
-#'
-#' \code{light} and \code{night_thr} are intended to separate data to night and
-#' day subsets with different statistical properties. \code{NA}s in
-#' \code{x[light]} are thus not allowed due to the subsetting. Despiking is then
-#' applied to individual subsets and combined QC flags are returned.
 #'
 #' Despiking is done within blocks of 13 consecutive days to account for
 #' seasonality of measured variable. Within each block, all records are compared
 #' with its neighbours and \eqn{d[i]} scores are produced. This is achieved by
 #' double-differencing: \deqn{d[i] = (var[i] - var[i-1]) - (var[i+1] - var[i])}
 #' In order to obtain maximum amount of \eqn{d[i]} scores, all missing
-#' \code{var} values are removed from the block before \eqn{d[i]} scores are
-#' produced. \code{var} values are marked as spikes if \eqn{d[i]} is higher
+#' `var` values are removed from the block before \eqn{d[i]} scores are
+#' produced. `var` values are marked as spikes if \eqn{d[i]} is higher
 #' (lower) than median of \eqn{d[i]} scores (\eqn{M[d]}) + (-) scaled median
 #' absolute deviation: \deqn{d[i] > M[d] + (z * MAD / 0.6745)} \deqn{d[i] < M[d]
 #' - (z * MAD / 0.6745)} MAD is defined as: \deqn{MAD = median(abs(d[i] -
 #' M[d]))}
 #'
 #' The algorithm tends to flag also values that are neighbours of spikes. To
-#' prevent false flagging, \code{\link{median}} and \code{\link{mad}} of
-#' \code{var} values within given block (\eqn{M[var]} and \eqn{mad[var]},
+#' prevent false flagging, [median()] and [mad()] of
+#' `var` values within given block (\eqn{M[var]} and \eqn{mad[var]},
 #' respectively) is computed. Values can be marked as spikes only if
 #' \deqn{var[i] > M[var] + (c * mad / 1.4826)} or \deqn{var[i] < M[var] - (c *
 #' mad / 1.4826)}
 #'
-#' Number of available double-differenced \code{var} values (\code{nVals}) is
-#' checked within each block. If equal or below \code{nVals}, \eqn{d[i]} or
+#' Number of available double-differenced `var` values (`nVals`) is
+#' checked within each block. If equal or below `nVals`, \eqn{d[i]} or
 #' \eqn{var[i]} values are checked against the statistics computed using entire
 #' dataset to ensure robustness.
 #'
-#' The whole process is repeated iteratively if \code{iter > 1}. This way new
+#' The whole process is repeated iteratively if `iter > 1`. This way new
 #' statistics are produced for each iteration after exclusion of already
 #' detected outliers and new spikes can be identified.
 #'
-#' @section Plotting: Plots are produced as a list of \code{ggplot} objects.
+#' @section Plotting: Plots are produced as a list of `ggplot` objects.
 #'   Thus they can be assigned to an object and modified as needed before actual
 #'   plotting. Each plot consists of two panels. The upper one shows the
-#'   double-differenced time series, the bottom one the actual \code{var}
-#'   values. Grey bands mark the respective intervals in which \code{var} value
+#'   double-differenced time series, the bottom one the actual `var`
+#'   values. Grey bands mark the respective intervals in which `var` value
 #'   cannot be considered as an outlier. The red points in upper panel show all
-#'   points that would be marked as spikes if \code{c = 0}. Only the points
+#'   points that would be marked as spikes if `c = 0`. Only the points
 #'   marked by blue color (bottom panel) will be considered spikes. The spike
 #'   detection tolerance (width of grey bands) can be modified by scale factors
-#'   \code{z} (upper panel) and \code{c} (bottom panel).
+#'   `z` (upper panel) and `c` (bottom panel).
 #'
-#' @section Abbreviations: \itemize{\item QC: Quality Control \item PAR:
-#'   Photosynthetic Active Radiation [umol m-2 s-1] \item GR: Global Radiation
-#'   [W m-2]}
+#' @section Abbreviations:
+#' * QC: Quality Control
+#' * GR: Global Radiation \[W m-2\]
+#' * PotRad: Potential Radiation \[W m-2\]
+#' * PAR: Photosynthetic Active Radiation \[umol m-2 s-1\]
 #'
 #' @section References: Mauder, M., Cuntz, M., Drue, C., Graf, A., Rebmann, C.,
 #'   Schmid, H.P., Schmidt, M., Steinbrecher, R., 2013. A strategy for quality
 #'   and uncertainty assessment of long-term eddy-covariance measurements.
 #'   Agric. For. Meteorol. 169, 122-135.
-#'   \url{https://doi.org/10.1016/j.agrformet.2012.09.006}
+#'   <https://doi.org/10.1016/j.agrformet.2012.09.006>
 #'
 #'   Papale, D., Reichstein, M., Canfora, E., Aubinet, M., Bernhofer, C.,
 #'   Longdoz, B., Kutsch, W., Rambal, S., Valentini, R., Vesala, T., Yakir, D.,
 #'   2006. Towards a more harmonized processing of eddy covariance CO2 fluxes:
 #'   algorithms and uncertainty estimation. Biogeosciences Discuss. 3, 961-992.
-#'   \url{https://doi.org/10.5194/bgd-3-961-2006}
+#'   <https://doi.org/10.5194/bgd-3-961-2006>
 #'
 #'   Sachs, L., 1996. Angewandte Statistik: Anwendung Statistischer Methoden,
 #'   Springer, Berlin.
 #'
-#' @return If \code{plot = FALSE}, an integer vector with attributes
-#'   \code{"varnames"} and \code{"units"}. If \code{plot = TRUE}, a list with
-#'   elements \code{SD} and \code{plots}. \code{SD} contains identical output as
-#'   produced when \code{plot = FALSE}, \code{plots} contains list of
-#'   \code{ggplot} objects for respective iteration, \code{light} subset and
+#' @return If `plot = FALSE`, an integer vector with attributes
+#'   `"varnames"` and `"units"`. If `plot = TRUE`, a list with
+#'   elements `SD` and `plots`. `SD` contains identical output as
+#'   produced when `plot = FALSE`, `plots` contains list of
+#'   `ggplot` objects for respective iteration, `light` subset and
 #'   13-day period.
 #'
 #'   Side effect: the counts of spikes detected in each iteration are printed to
@@ -1348,48 +1695,89 @@ desp_loop <- function(SD_sub, date, nVals, z, c, plot = FALSE) {
 #'
 #' @param x A data frame with column names representing required variables. See
 #'   'Details' below.
-#' @param var A character string. Specifies the variable name in \code{x} with
+#' @param var A character string. Specifies the variable name in `x` with
 #'   values to be despiked.
-#' @param qc_flag A character string. Specifies the column name in \code{x} with
-#'   \code{var} related quality control flag.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param qc_flag A character string. Specifies the column name in `x` with
+#'   `var`-related quality control flags. If `qc_flag = NULL`, all `var` values
+#'   will be checked for outliers.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #' @param var_thr A numeric vector with 2 non-missing values. Specifies fixed
-#'   thresholds for \code{var} values. Values outside this range will be flagged
-#'   as spikes (flag 2). If \code{var_thr = NULL}, thresholds are not applied.
+#'   thresholds for `var` values. Values outside this range will be flagged
+#'   as spikes (flag 2). If `var_thr = NULL`, thresholds are not applied.
 #' @param iter An integer value. Defines number of despiking iterations.
-#' @param plot A logical value. If \code{TRUE}, list of \code{\link{ggplot}}
+#' @param plot A logical value. If `TRUE`, list of [ggplot2::ggplot()]
 #'   objects visualizing the spikes is also produced.
 #' @param light A character string. Selects preferred variable for incoming
-#'   light intensity. \code{"PAR"} or \code{"GR"} is allowed. Can be
-#'   abbreviated. If \code{light = NULL}, \code{var} values are not separated to
-#'   night/day subsets and \code{night_thr} is not used.
+#'   light intensity. `"GR"`, `"PotRad"` or `"PAR"` is allowed. Can be
+#'   abbreviated. If `light = NULL`, `var` values are not separated to
+#'   night/day subsets and `night_thr` is not used.
 #' @param night_thr A numeric value that defines the threshold  between night
-#'   (for \code{light} values equal or lower than \code{night_thr}) and day (for
-#'   \code{light} values higher than \code{night_thr}) for incoming light.
+#'   (for `light` values equal or lower than `night_thr`) and day (for
+#'   `light` values higher than `night_thr`) for incoming light.
 #' @param nVals A numeric value. Number of values within 13-day blocks required
 #'   to obtain robust statistics.
 #' @param z A numeric value. \eqn{MAD} scale factor.
-#' @param c A numeric value. \code{\link{mad}} scale factor. Default is \code{3
-#'   * \link{mad} constant} (\code{i.e. 3 * 1.4826 = 4.4478}).
+#' @param c A numeric value. [mad()] scale factor. Default is `3 * mad
+#'   constant` (i.e. `3 * 1.4826 = 4.4478`).
 #'
-#' @seealso \code{\link{combn_QC}}, \code{\link{extract_QC}},
-#'   \code{\link{median}} and \code{\link{mad}}.
+#' @seealso [combn_QC()], [extract_QC()],
+#'   [median()] and [mad()].
+#'
+#' @examples
+#' a <- eddy_data
+#'
+#' # include spikes
+#' a$NEE[c(152, 479)] <- c(26, -20)
+#'
+#' # plot time series
+#' plot_eddy(a, "NEE", "qc_NEE_SSITC", "qc_NEE_SSITC", skip = "monthly")
+#'
+#' # despike (plot = TRUE)
+#' xx <- despikeLF(a, "NEE", "qc_NEE_SSITC", plot = TRUE)
+#'
+#' # add results to data frame, summarize and plot outliers
+#' a$spikesLF <- xx$SD
+#' summary_QC(a, qc_names = "spikesLF")
+#' xx$plots$`iter 1`$night$`2023-07-23 - 2023-08-04`
+#'
+#' # combine with original QC and plot
+#' a$qc_res <- combn_QC(a,
+#'                      qc_names = c("qc_NEE_SSITC", "spikesLF"),
+#'                      name_out = "qc_res")
+#' plot_eddy(a, "NEE", "qc_res", "qc_res", skip = "monthly")
+#'
+#' # compute and use potential radiation
+#' library(REddyProc)
+#' tlist <- as.POSIXlt(a$timestamp)
+#' a$PotRad <- fCalcPotRadiation(DoY = tlist$yday + 1,
+#'                               Hour = tlist$hour + tlist$min / 60,
+#'                               LatDeg = 48.68,
+#'                               LongDeg = 16.95,
+#'                               TimeZone = +1)
+#' yy <- despikeLF(a, "NEE", "qc_NEE_SSITC", light = "PotRad")
+#'
+#' # no outliers are detected without day/night separation
+#' zz <- despikeLF(a, "NEE", "qc_NEE_SSITC", light = NULL)
 #'
 #' @export
-despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
-                      iter = 10, plot = FALSE, light = c("PAR", "GR"),
+despikeLF <- function(x, var, qc_flag = NULL, name_out = "-", var_thr = NULL,
+                      iter = 10, plot = FALSE, light = c("GR", "PotRad", "PAR"),
                       night_thr = 10, nVals = 50, z = 7, c = 4.4478) {
   x_names <- colnames(x)
   if (!is.data.frame(x) || is.null(x_names)) {
     stop("'x' has to be of class data.frame with colnames")
   }
-  if (any(!sapply(list(var, qc_flag, name_out), is.character))) {
-    stop("'var', 'qc_flag', 'name_out' has to be of class character")
+  test <- if (is.null(qc_flag)) list(var, name_out) else
+    list(var, qc_flag, name_out)
+  if (any(!sapply(test, is.character))) {
+    stop("'var', ",
+         if(!is.null(qc_flag)) "'qc_flag', ",
+         "'name_out' has to be of class character")
   }
   var <- var[1]
   qc_flag <- qc_flag[1]
-  req_vars <- c("timestamp", var, qc_flag)
+  req_vars <- c("timestamp", var, qc_flag) # works also with qc_flag = NULL
   if (!is.null(light)) {
     light <- match.arg(light)
     req_vars <- c(req_vars, light)
@@ -1398,8 +1786,9 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
     }
   }
   if (!all(req_vars %in% x_names)) {
-    stop(paste("missing", paste0(req_vars[!(req_vars %in% x_names)],
-                                 collapse = ", ")))
+    stop(paste("missing columns:",
+               paste0(sQuote(req_vars[!(req_vars %in% x_names)], q = FALSE),
+                      collapse = ", ")))
   }
   if (!inherits(x$timestamp, "POSIXt")) {
     stop("'x$timestamp' must be of class 'POSIXt'")
@@ -1412,7 +1801,7 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
   if (iter[1] < 1) stop("set iter = 1 or higher")
   date <- as.Date(x$timestamp)
   vals <- x[, var]
-  qc_flag <- x[, qc_flag]
+  qc_flag <- if (is.null(qc_flag)) integer(nrow(x)) else x[, qc_flag]
   # NA qc is interpreted as flag 2
   qc_flag[is.na(qc_flag)] <- 2L
   if (!is.null(light)) {
@@ -1488,14 +1877,14 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
     # It has different length for each iteration
     use <- SD_df$Spike == 0 | is.na(SD_df$Spike)
   }
-  if (plot) return(list(SD = out, plots = plots))
   attributes(out) <- list(varnames = name_out, units = "-")
+  if (plot) return(list(SD = out, plots = plots))
   return(out)
 }
 
 #' Apply Fetch Filter
 #'
-#' \code{fetch_filter} flags all halfhours that have longer fetch distance (of
+#' `fetch_filter` flags all halfhours that have longer fetch distance (of
 #' given percentage of contribution to the flux) than the user defined boundary
 #' of the region of interest (ROI).
 #'
@@ -1503,36 +1892,39 @@ despikeLF <- function(x, var, qc_flag, name_out = "-", var_thr = NULL,
 #' the cases when fetch reached beyond ROI.
 #'
 #' The spatial extent of the studied ecosystem (ROI) is specified by its
-#' \code{ROI_boundary} that describes the distance from eddy covariance tower to
-#' the edge of the studied ecosystem. \code{ROI_boundary} has following
-#' properties: \itemize{ \item the number of circular sectors is the same as the
-#' number of provided distances; \item the angular resolution of the ROI
-#' boundary can be computed as 360 degrees / number of angular sectors; \item
-#' the ROI boundary distances are assigned to the centers of their respective
-#' circular sectors with first sector centered on 0 degrees.}
+#' `ROI_boundary` that describes the distance from eddy covariance tower to
+#' the edge of the studied ecosystem. `ROI_boundary` has following
+#' properties:
+#' * the number of circular sectors is the same as the
+#' number of provided distances;
+#' * the angular resolution of the ROI
+#' boundary can be computed as 360 degrees / number of angular sectors;
+#' * the ROI boundary distances are assigned to the centers of their respective
+#' circular sectors with first sector centered on 0 degrees.
 #'
-#' Example: \code{ROI_boundary} specified as c(150, 200, 250, 300) has following
-#' properties: \itemize{ \item 4 circular sectors with 90° angular resolution;
-#' \item ROI boundary is specified for the whole first sector (315°, 45°] at the
-#' distance 150 m from tower (center of the sector is 0°); \item boundary of the
-#' second sector (45°, 135°] is at the distance 200 m; \item third sector (135°,
-#' 225°] is at the distance 250 m; \item fourth sector (225°, 315°] is at the
-#' distance 300 m.}
+#' Example: `ROI_boundary` specified as c(150, 200, 250, 300) has following
+#' properties:
+#' * 4 circular sectors with 90° angular resolution;
+#' * ROI boundary is specified for the whole first sector (315°, 45°] at the
+#' distance 150 m from tower (center of the sector is 0°);
+#' * boundary of the second sector (45°, 135°] is at the distance 200 m;
+#' * third sector (135°, 225°] is at the distance 250 m;
+#' * fourth sector (225°, 315°] is at the distance 300 m.
 #'
-#' @return An integer vector with attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return An integer vector with attributes `"varnames"` and
+#'   `"units"`.
 #'
 #' @param x A data frame with column names representing required variables.
-#' @param fetch_name A character string. Specifies the column name in \code{x}
+#' @param fetch_name A character string. Specifies the column name in `x`
 #'   with fetch distance values.
-#' @param wd_name A character string. Specifies the column name in \code{x} with
+#' @param wd_name A character string. Specifies the column name in `x` with
 #'   wind direction values.
 #' @param ROI_boundary A numeric vector. Represents the boundary of region of
 #'   interest.
-#' @param name_out A character string providing \code{varnames} attribute value
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
 #'
-#' @seealso \code{\link{combn_QC}} and \code{\link{extract_QC}}.
+#' @seealso [combn_QC()] and [extract_QC()].
 #'
 #' @examples
 #' set.seed(20)
@@ -1566,58 +1958,58 @@ fetch_filter <- function(x, fetch_name, wd_name, ROI_boundary, name_out = "-") {
 #' Interactive plots are used for identification and flagging of data for
 #' exclusion based on the visual inspection.
 #'
-#' Six options are available during the interactive session. \enumerate{ \item
-#' flag values: select interval of values to exclude or use double-click to flag
-#' single value. \item undo last: allows to change the user flagging input back
-#' to the state before last flagging. \item refresh plots: apply current user
+#' Six options are available during the interactive session.
+#' 1. flag values: select interval of values to exclude or use double-click to
+#' flag single value.
+#' 1. undo last: allows to revert previous flagging (only one step back).
+#' 1. refresh plots: apply current user
 #' flagging input to the plots. It removes excluded points and affects y-axis
 #' range or it can show again excluded points if option 2 (undo last) was
-#' applied before. \item next plot. \item jump to plot: any plot within the
-#' existing range (see as a plot title) can be selected. \item finalize: finish
-#' the flagging and return the results.}
+#' applied before.
+#' 1. next plot.
+#' 1. jump to plot: any plot within the
+#' existing range (see as a plot title) can be selected.
+#' 1. finalize: finish the flagging and return the results.
 #'
-#' The interactive session will be finished successfully also when option 4
-#' (next plot) is executed while at the last plot.
+#' The manual flagging is finished only after it is *finalized* (option 6).
+#' The interactive session will be finished successfully also when
+#' option 4 (*next plot*) is executed while at the last plot. If `exclude()`
+#' is `Escape`d before it is finalized, the user will lose the whole progress
+#' (see *undo last* option instead).
 #'
 #' @param x A numeric vector with values to inspect.
-#' @param qc_x An integer vector in the range \code{0 - 2} providing quality
-#'   control information about \code{x}.
+#' @param qc_x An integer vector in the range `0 - 2` providing quality
+#'   control information about `x`.
 #' @param y,z A numeric vector with values of auxiliary variable helping with
-#'   the interpretation of \code{x}.
-#' @param name_out A character string providing \code{varnames} attribute value
+#'   the interpretation of `x`.
+#' @param name_out A character string providing `varnames` attribute value
 #'   of the output.
-#' @param win_size An integer. Number of \code{x} values displayed per plot.
+#' @param win_size An integer. Number of `x` values displayed per plot.
 #'
-#' @return An integer vector with attributes \code{"varnames"} and
-#'   \code{"units"}.
+#' @return An integer vector with attributes `"varnames"` and
+#'   `"units"`.
 #'
-#' @seealso \code{\link{check_manually}}
+#' @seealso [check_manually()]
 #'
 #' @examples
-#' \dontrun{
-#' # prepare mock data
-#' set.seed(87)
-#' my_var <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' my_var[my_var > 5] <- 5
-#' PAR <- (-my_var + 5) * 100
-#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#'
-#' # combine into data frame
-#' a <- data.frame(
-#'   my_var = my_var + rnorm(48 * 14),
-#'   my_qc = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   PAR = PAR,
-#'   Tair = Tair
-#' )
+#' a <- eddy_data[c("NEE", "qc_NEE_SSITC", "GR", "Tair")]
 #'
 #' # include spikes
-#' a$my_var[c(152, 479)] <- c(231, -2000)
+#' a$NEE[c(152, 479)] <- c(231, -2000)
 #'
-#' # flag data manually
-#' exclude(x = a$my_var, qc_x = a$my_qc)
-#' exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR)
-#' exclude(x = a$my_var, qc_x = a$my_qc, y = a$PAR, z = a$Tair)
+#' # flag data manually (no auxiliary data)
+#' if (dev.interactive()) {
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC)
+#' }
+#'
+#' # flag data manually (single auxiliary variable)
+#' if (dev.interactive()) {
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR)
+#' }
+#'
+#' # flag data manually (two auxiliary variables)
+#' if (dev.interactive()) {
+#'   exclude(x = a$NEE, qc_x = a$qc_NEE_SSITC, y = a$GR, z = a$Tair)
 #' }
 #'
 #' @importFrom graphics lines identify points
@@ -1817,93 +2209,69 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 
 #' Manual Data Flagging
 #'
-#' A wrapper for \code{\link{exclude}} that allows visual inspection of selected
+#' A wrapper for [exclude()] that allows visual inspection of selected
 #' variables in a data frame and manual flagging of values to be discarded.
 #' Saving and reloading of results is supported.
 #'
-#' Automatic reload of previously saved results in \code{path} with filename
-#' including pattern \code{"manual_QC"} is attempted. If found, timestamp is
-#' merged with date-time information in \code{x} if not identical and quality
+#' Automatic reload of previously saved results in `path` with filename
+#' including pattern `"manual_QC"` is attempted. If found, timestamp is
+#' merged with date-time information in `x` if not identical and quality
 #' control is combined with the new flags marked by user (flag 2 marks data
-#' exclusion). Proper alignment of timestamps can be assured by \code{shift.by}.
-#' \code{path} is also used for saving file (\code{"manual_QC"} pattern) with
-#' results. Actual flagging allows to run \code{\link{exclude}} over all
-#' \code{vars}. Each variable is required to have associated quality control
-#' column in format \code{qc_prefix+vars+qc_suffix}.
+#' exclusion). Proper alignment of timestamps can be assured by `shift.by`.
+#' Argument `path` is used for saving CSV file (`"manual_QC"` pattern) with
+#' results. Actual flagging allows to run [exclude()] over all
+#' `vars`. Each variable is required to have associated quality control
+#' column in format `qc_prefix+vars+qc_suffix`.
 #'
-#' Function can be run in two modes. If \code{interactive = TRUE}, attempt to
+#' Function can be run in two modes. If `interactive = TRUE`, attempt to
 #' load previously saved manual QC will be performed, user will be allowed to
 #' flag data manually in interactive session and save (merged) results. If you
-#' just want to reload previously saved results, use \code{interactive = FALSE}.
+#' just want to reload previously saved results, use `interactive = FALSE`.
 #'
 #' @param x A data frame.
 #' @param path A string. Specifies a path to directory where results should be
 #'   saved.
 #' @param vars A character vector, matrix or data frame providing names of
-#'   variables in data frame \code{x} that will be inspected. If character
-#'   vector, each value is iteratively used as argument \code{x} in
-#'   \code{\link{exclude}}. If matrix or data frame, first, second and third
-#'   column are respectively interpreted as arguments \code{x} (quality checked
-#'   variable), \code{y} and \code{z} (auxiliary variables) in
-#'   \code{\link{exclude}} and used iteratively across rows. If auxiliary
-#'   variables are not needed for certain combinations (\code{vars} rows),
-#'   provide \code{NA} values.
+#'   variables in data frame `x` that will be inspected. If character
+#'   vector, each value is iteratively used as argument `x` in
+#'   [exclude()]. If matrix or data frame, first, second and third
+#'   column are respectively interpreted as arguments `x` (quality checked
+#'   variable), `y` and `z` (auxiliary variables) in
+#'   [exclude()] and used iteratively across rows. If auxiliary
+#'   variables are not needed for certain combinations (`vars` rows),
+#'   provide `NA` values.
 #' @param qc_prefix,qc_suffix A string. Quality control columns corresponding to
-#'   \code{vars} names are required in \code{x} in format
-#'   \code{qc_prefix+vars+qc_suffix}. If \code{vars} is matrix or data frame,
-#'   \code{qc_prefix} and \code{qc_suffix} is applied only for the first column.
-#'   Set to \code{NULL} if either \code{qc_prefix} or \code{qc_suffix} is not
+#'   `vars` names are required in `x` in format
+#'   `qc_prefix+vars+qc_suffix`. If `vars` is matrix or data frame,
+#'   `qc_prefix` and `qc_suffix` is applied only for the first column.
+#'   Set to `NULL` if either `qc_prefix` or `qc_suffix` is not
 #'   applicable.
-#' @param interactive A logical value. If \code{TRUE}, manual checking will be
-#'   provided in an interactive session. If \code{FALSE}, previously created
-#'   file with manual flags will be reloaded or \code{NULL} will be returned.
-#' @param siteyear A string. Unique label for the saved \emph{manual_QC} CSV
-#'   file if no file with "manual_QC" pattern was found in \code{path}.
-#' @param tname A string. Name of variable in \code{x} with date-time
+#' @param interactive A logical value. If `TRUE`, manual checking will be
+#'   provided in an interactive session. If `FALSE`, previously created
+#'   file with manual flags will be reloaded or `NULL` will be returned.
+#' @param siteyear A string. Unique label for the saved *manual_QC* CSV
+#'   file if no file with `"manual_QC"` pattern was found in `path`.
+#' @param tname A string. Name of variable in `x` with date-time
 #'   information.
 #' @param shift.by An integer value specifying the time shift (in seconds) to be
 #'   applied to the date-time information of the reloaded manual QC if present.
 #' @param with_units A logical value indicating whether read (or written) data
 #'   frame with manual flags includes (should include) also units.
 #' @param win_size An integer. Number of values displayed per plot.
-#' @param format A string. Format of \code{tname} date-time information.
+#' @param format A string. Format of `tname` date-time information.
 #'
 #' @return A data frame with flags 0 (marking accepted points) and flags 2
-#'   (marking excluded points). Results can be written to \code{path}.
+#'   (marking excluded points). Results can be written to `path`.
 #'
-#'   If \code{interactive = FALSE}, and no file in \code{path} with pattern
-#'   \code{"manual_QC"}, \code{NULL} is returned.
+#'   If `interactive = FALSE`, and no file in `path` with pattern
+#'   `"manual_QC"`, `NULL` is returned.
 #'
-#' @seealso \code{\link{exclude}}, \code{\link{locator}},
-#'   \code{\link{combn_QC}}, \code{\link{strptime_eddy}}, \code{\link{merge}}.
+#' @seealso [exclude()], [locator()],
+#'   [combn_QC()], [strptime_eddy()], [merge()].
 #'
 #' @examples
-#' \dontrun{
-#' # prepare mock data
-#' set.seed(87)
-#' NEE <- sin(seq(pi / 2, 2.5 * pi, length = 48)) * 10
-#' NEE[NEE > 5] <- 5
-#' t <- seq(ISOdate(2020, 7, 1, 0, 15), ISOdate(2020, 7, 14, 23, 45), "30 mins")
-#' PAR <- (-NEE + 5) * 100
-#' Tair <- rep(-cos(seq(0, 2 * pi, length = 48)), 14)
-#' Tair <- Tair * 2 + 15 + seq(0, 5, length = 48 * 14)
-#' Rn <- PAR / 2 - 50
-#' H <- Rn * 0.7
-#' LE <- Rn * 0.3
-#'
-#' # combine into data frame
-#' a <- data.frame(
-#'   timestamp = t,
-#'   H = H + rnorm(48 * 14),
-#'   qc_H = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   LE = LE + rnorm(48 * 14),
-#'   qc_LE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   NEE = NEE + rnorm(48 * 14),
-#'   qc_NEE = sample(c(0:2, NA), 672, replace = TRUE, prob = c(5, 3, 2, 1)),
-#'   PAR = PAR,
-#'   Tair = Tair,
-#'   Rn = Rn
-#' )
+#' a <- eddy_data[c("timestamp", "H", "qc_H_SSITC", "LE", "qc_LE_SSITC", "NEE",
+#'                  "qc_NEE_SSITC", "GR", "Tair", "Rn")]
 #'
 #' # introduce outliers
 #' a$H[c(97, 210, 450, 650)] <- c(-300, 2000, -800, 3200)
@@ -1911,40 +2279,56 @@ exclude <- function(x, qc_x = NULL, y = NULL, z = NULL, name_out = "-",
 #' a$NEE[c(10, 152, 400, 500)] <- c(50, -100, 70, -250)
 #'
 #' # single variable example without auxiliary variables
-#' man <- check_manually(a, vars = "H", interactive = TRUE,
-#'                       siteyear = "MySite2022")
-#' summary_QC(man, names(man)[-1])
+#' if (dev.interactive()) {
+#'   man <- check_manually(a, vars = "H", qc_prefix = "qc_",
+#'                         qc_suffix = "_SSITC", interactive = TRUE,
+#'                         siteyear = "MySite2022")
+#'   summary_QC(man, names(man)[-1])
+#' }
 #'
 #' # multiple vars provided as vector (without auxiliary variables)
-#' man <- check_manually(a, vars = c("H", "LE", "NEE"),
-#'                       interactive = TRUE)
+#' if (dev.interactive()) {
+#'   man <- check_manually(a, vars = c("H", "LE", "NEE"),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
+#'                         interactive = TRUE)
+#'   summary_QC(man, names(man)[-1])
+#' }
 #'
 #' # multiple vars provided as matrix (including auxiliary variables)
-#' man <- check_manually(a,
-#'                       vars = cbind(
-#'                         c("H", "LE", "NEE"), # main variables (x)
-#'                         c("Rn", "Rn", "PAR") # auxiliary variables (y)
-#'                       ),
-#'                       interactive = TRUE)
+#' if (dev.interactive()) {
+#'   man <- check_manually(a,
+#'                         vars = cbind(
+#'                           c("H", "LE", "NEE"), # main variables (x)
+#'                           c("Rn", "Rn", "GR") # auxiliary variables (y)
+#'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
+#'                         interactive = TRUE)
+#' }
 #'
 #' # two sets of auxiliary variables
 #' # - "missing_var" not present in "a", thus handled as if NA was provided
-#' man <- check_manually(a,
-#'                       vars = cbind(
-#'                         c("H", "LE", "NEE"),      # main variables (x)
-#'                         c("Rn", "Rn", NA),        # auxiliary variables (y)
-#'                         c("missing_var", "H", NA) # auxiliary variables (z)
-#'                       ),
-#'                       interactive = TRUE)
+#' # - example shows two sets only for H flux, LE flux has one, NEE none
+#' if (dev.interactive()) {
+#'   man <- check_manually(a,
+#'                         vars = cbind(
+#'                           c("H", "LE", "NEE"),       # main variables (x)
+#'                           c("Rn", "Rn", NA),         # auxiliary variables (y)
+#'                           c("LE", "missing_var", NA) # auxiliary variables (z)
+#'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
+#'                         interactive = TRUE)
+#' }
 #'
 #' # multiple vars provided as data frame (including two sets of auxiliary vars)
-#' man <- check_manually(a,
-#'                       vars = data.frame(
-#'                         x = c("H", "LE", "NEE"),
-#'                         y = c("Rn", "Rn", "PAR"),
-#'                         z = c("LE", "H", "Tair")
-#'                       ),
-#'                       interactive = TRUE)
+#' if (dev.interactive()) {
+#'   man <- check_manually(a,
+#'                         vars = data.frame(
+#'                           x = c("H", "LE", "NEE"),
+#'                           y = c("Rn", "Rn", "GR"),
+#'                           z = c("LE", "H", "Tair")
+#'                         ),
+#'                         qc_prefix = "qc_", qc_suffix = "_SSITC",
+#'                         interactive = TRUE)
 #' }
 #'
 #' @importFrom utils read.csv write.csv
@@ -2181,19 +2565,19 @@ check_manually <- function(x,
 #'
 #' Apply quality control information to the respective numeric vector.
 #'
-#' Values of \code{x} are set to \code{NA} if \code{qc} value (flag) equals or
-#' is above \code{qc_thr} or if \code{qc} value is missing.
+#' Values of `x` are set to `NA` if `qc` value (flag) equals or
+#' is above `qc_thr` or if `qc` value is missing.
 #'
-#' \code{na.as = 0} can be used to preserve \code{x} values with respective
-#' \code{NA} \code{qc} values.
+#' `na.as = 0` can be used to preserve `x` values with respective
+#' `NA` `qc` values.
 #'
 #' @param x A numeric vector.
 #' @param qc A numeric vector.
 #' @param qc_thr An integer value.
-#' @param na.as An integer value or \code{NA}.
+#' @param na.as An integer value or `NA`.
 #'
-#' @return A numeric vector of length \code{x} with attributes \code{"varnames"}
-#'   and \code{"units"}.
+#' @return A numeric vector of length `x` with attributes `"varnames"`
+#'   and `"units"`.
 #'
 #' @examples
 #' set.seed(215)

@@ -1,3 +1,40 @@
+# openeddy 0.0.0.9009
+
+-   improved folder structure introduced by make_paths() which
+    supersedes structure_eddy()
+-   added eddy_data object that is now used in many examples instead of
+    generated data
+-   rework of strptime_eddy() and its automated time interval
+    recognition with more informative error messages
+-   improved automated time interval recognition was included in
+    merge_eddy() with more informative examples
+-   added support for open-path LI7500 gas analyzer: "LI7500" filter in
+    extract_QC()
+-   added support for a change of anemometer coordinate rotation type in
+    extract_QC()
+-   added support for a change of averaging period extent in
+    extract_QC()
+-   added support for a change of gas analyzer type in interdep()
+-   added label_periods() to annotate above changes in rotation,
+    averaging periods or analyzer type
+-   extract_coded() was vectorized (performance improvement)
+-   prefer global or potential radiation over photosynthetically active
+    radiation in functions taking incoming light intensity as input:
+    despikeLF(), plot_eddy(), exclude(), check_manually()
+-   support qc_flag = NULL in despikeLF() for cases when quality control
+    is not available
+-   added support for missing variables in plot_eddy() with examples
+-   removed data objects relevant only to EC workflow (precheck_vars,
+    essential_vars_QC) - moved to EC workflow content
+-   added pattern argument in read_EddyPro() and read_MeteoDBS() to
+    allow usage of regular expression to select files from a folder
+-   bug fix: weekly plots in plot_eddy() can now start from any day (no
+    additional blank plot or blank days introduced)
+-   markdown = TRUE in roxygen documentation was enabled and
+    reformatting of documentation to Markdown style was applied
+-   adopted testthat 3e (third edition) and extensive set of unit tests
+    was added
+
 # openeddy 0.0.0.9008
 
 -   precheck_vars object included
@@ -6,7 +43,7 @@
 -   fix bug: NA instead of 9 in extract_coded() for "attangle" and
     "nonsteady"
 -   check_manually() now displays also two additional meteo variables
-    (requested by Milan and useful when deciding about outliers)
+    (useful when deciding about outliers)
 -   apply_QC() was added: removes flux values with QC flag = 2
 -   agg_fun() added: you can use arbitrary function for data
     aggregations (e.g. extracting daily temperature minimum, maximum,

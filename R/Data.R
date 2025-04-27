@@ -1,8 +1,9 @@
 #' Coded Variables
 #'
-#' Used within \code{\link{extract_QC}} to link names of filters (QC suffixes)
+#' Used within [extract_QC()] to link names of filters (QC suffixes)
 #' with EddyPro column names and relevant SA, GA, SAGA and ALL output names.
 #' @keywords internal
+#' @noRd
 coded_vars <- data.frame(
   QC_suffix =
     c("spikesHF", "ampres", "dropout", "abslim", "skewkurt_hf",
@@ -27,40 +28,62 @@ coded_vars <- data.frame(
     c(rep(NA, 10), "qc_ALL_attangle", "qc_ALL_nonsteady")
 )
 
-#' Precheck Variables
+#' Eddy covariance data
 #'
-#' A set of variables typically available in EddyPro full output that can be
-#' useful for preliminary check before quality control procedure.
+#' A two week subset of eddy covariance and related meteorological data from the
+#' mixed floodplain forest ecosystem station in Lanzhot, Czechia (CZ-Lnz).
 #'
-#' @export
-precheck_vars <-
-  c("u_rot", "v_rot", "w_unrot", "w_rot",
-    "sonic_temperature", "max_wind_speed",
-    "Tau", "ustar", "H", "LE", "NEE",
-    "u_var", "v_var", "w_var", "ts_var", "h2o_var", "co2_var",
-    "rand_err_Tau", "rand_err_H", "rand_err_LE", "rand_err_NEE",
-    "Tau_scf", "H_scf", "LE_scf", "co2_scf",
-    "u_spikes", "v_spikes", "w_spikes", "ts_spikes", "co2_spikes",
-    "h2o_spikes",
-    "H_strg", "LE_strg", "co2_strg",
-    "h2o_v_adv", "co2_v_adv",
-    "co2_mixing_ratio", "h2o_mixing_ratio",
-    "co2_time_lag", "h2o_time_lag",
-    "x_peak", "x_70perc",
-    "mean_value_RSSI_LI_7200", "co2_signal_strength_7200_mean",
-    "h2o_signal_strength_7200_mean", "flowrate_mean")
+#' @format A data frame with 672 rows and 36 columns:
+#' \describe{
+#'   \item{timestamp}{date-time information in POSIXct format}
+#'   \item{GR}{globar radiation}
+#'   \item{PAR}{photosynthetically active radiation}
+#'   \item{Rn}{net radiation}
+#'   \item{Tair}{air temperature}
+#'   \item{Tsoil}{soil temperature}
+#'   \item{RH}{relative humidity}
+#'   \item{VPD}{vapor pressure deficit}
+#'   \item{SWC}{soil water content}
+#'   \item{P}{precipitation}
+#'   \item{G}{soil heat flux}
+#'   \item{qc_G}{quality control information related to G}
+#'   \item{Tau}{momentum flux}
+#'   \item{qc_Tau_SSITC}{steady-state and integral turbulence characteristics
+#'   QC information related to Tau flux}
+#'   \item{qc_Tau_forGF}{QC information combined using all relevant QC filters
+#'   for Tau flux}
+#'   \item{H}{sensible heat flux}
+#'   \item{qc_H_SSITC}{steady-state and integral turbulence characteristics
+#'   QC information related to H flux}
+#'   \item{qc_H_forGF}{QC information combined using all relevant QC filters
+#'   for H flux}
+#'   \item{LE}{latent heat flux}
+#'   \item{qc_LE_SSITC}{steady-state and integral turbulence characteristics
+#'   QC information related to LE flux}
+#'   \item{qc_LE_forGF}{QC information combined using all relevant QC filters
+#'   for LE flux}
+#'   \item{NEE}{net ecosystem exchange}
+#'   \item{qc_NEE_SSITC}{steady-state and integral turbulence characteristics
+#'   QC information related to NEE flux}
+#'   \item{qc_NEE_forGF}{QC information combined using all relevant QC filters
+#'   for NEE flux}
+#'   \item{qc_NEE_forGF_UF}{QC information combined using all relevant QC
+#'   filters for NEE, including friction velocity (uStar) filtering}
+#'   \item{wind_speed}{wind speed}
+#'   \item{wind_dir}{wind direction}
+#'   \item{ustar}{friction velocity}
+#'   \item{H_f}{gap-filled H flux}
+#'   \item{LE_f}{gap-filled LE flux}
+#'   \item{NEE_uStar_f}{gap-filled NEE after application of uStar filtering}
+#'   \item{ET_f}{gap-filled evapotranspiration}
+#'   \item{Reco_uStar}{ecosystem respiration derived by nighttime-based
+#'   approach}
+#'   \item{GPP_uStar_f}{gross primary production derived by nighttime-based
+#'   approach}
+#'   \item{Reco_DT_uStar}{ecosystem respiration derived by daytime-based
+#'   approach}
+#'   \item{GPP_DT_uStar}{gross primary production derived by daytime-based
+#'   approach}
+#' }
+"eddy_data"
 
-#' Quality Control Essential Variables
-#'
-#' A minimal set of variables useful when working with quality controlled data.
-#'
-#' @export
-essential_vars_QC <- c(
-  "timestamp", "GR", "qc_GR", "PAR", "qc_PAR", "Rn", "qc_Rn", "Tair",
-  "qc_Tair", "Tsoil", "qc_Tsoil", "RH", "qc_RH", "VPD", "qc_VPD", "SWC",
-  "qc_SWC", "P", "qc_P", "G", "qc_G", "Tau", "Tau_orig", "qc_Tau_forGF",
-  "qc_Tau_SSITC", "rand_err_Tau", "H", "H_orig", "qc_H_forGF", "qc_H_SSITC",
-  "rand_err_H", "LE", "LE_orig", "qc_LE_forGF", "qc_LE_SSITC", "rand_err_LE",
-  "NEE", "NEE_orig", "qc_NEE_forGF", "qc_NEE_SSITC", "rand_err_NEE", "H_strg",
-  "LE_strg", "co2_strg", "wind_speed",
-  "wind_dir", "ustar", "L", "zeta", "model", "x_peak", "x_70perc")
