@@ -359,6 +359,22 @@ test_that("test that used_records is not higher than max_records", {
     "used_records higher than max_records")
 })
 
+test_that("test that comparison with max_records works if it is vector", {
+  expect_equal(
+    openeddy:::mf(data.frame(0, 0),
+                  c(18000, NA, 36000, NA),
+                  c(rep(18000, 2), rep(36000, 2))),
+    c(0, NA, 0, NA))
+})
+
+test_that("test that comparison with max_records flags high used_records", {
+  expect_error(
+    openeddy:::mf(data.frame(0, 0),
+                  c(18000, NA, 36000, 37000),
+                  c(rep(18000, 2), rep(36000, 2))),
+    "used_records higher than max_records")
+})
+
 # Test extract_QC() - wresid filter ====
 test_that("double rotation flagging works", {
   expect_equal(

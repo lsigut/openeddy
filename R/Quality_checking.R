@@ -631,8 +631,10 @@ extract_coded <- function(x,
 #' @keywords internal
 #' @noRd
 mf <- function(x, ur, mfr) {
-  # in case all ur are NA add FALSE (NAs are not an issue for the evaluation)
-  if (any(c(na.omit(ur), FALSE) > mfr)) {
+  # mfr can be supplied as single integer or as an integer vector
+  # - if vector, length of ur and mfr must match
+  # - to handle NA: omit NAs in results of comparison, any(na.omit(NA)) == FALSE
+  if (any(na.omit(ur > mfr))) {
     stop("used_records higher than max_records", call. = FALSE)
   }
   1 - (ur - apply(x, 1, sum, na.rm = TRUE)) / mfr
